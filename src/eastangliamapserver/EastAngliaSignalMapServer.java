@@ -9,18 +9,16 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import javax.security.auth.login.LoginException;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-public class SocketServer
+public class EastAngliaSignalMapServer
 {
-    public  static int BUILD = 1;
+    public  static int BUILD = 2;
 
     public  static final int    port = 6321;
             static ServerSocket server;
@@ -31,23 +29,16 @@ public class SocketServer
     public  static SimpleDateFormat sdfLog = new SimpleDateFormat("dd-MM-YY HH.mm.ss");
     public  static File             logFile;
     private static PrintStream      logStream;
-    private static int              lastUUID = 0;
+
+    private static int lastUUID = 0;
 
     public  static HashMap<String, String>                   CClassMap = new HashMap<>();
     public  static HashMap<String, HashMap<String, Integer>> SClassMap = new HashMap<>();
 
-    public  static List<HashMap<String, String>>             CClassLog = new ArrayList<>();
-    public  static List<HashMap<String, String>>             SClassLog = new ArrayList<>();
-
     public static void main(String[] args)
     {
-        //<editor-fold defaultstate="collapsed" desc="Look and feel">
-        try
-        {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        }
-        catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {}
-        //</editor-fold>
+        try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); }
+        catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) { e.printStackTrace(); }
 
         logFile = new File(System.getProperty("java.io.tmpdir") + "\\EastAngliaSignalMapServer\\" + sdfLog.format(new Date(System.currentTimeMillis())) + " logfile.log");
         logFile.getParentFile().mkdirs();
@@ -63,9 +54,6 @@ public class SocketServer
         try
         {
             TimerMethods.sleep(false);
-
-            //server = new ServerSocket(port, 2);
-            //server.setSoTimeout(60000);
 
             StompConnectionHandler.connect();
 
@@ -125,7 +113,7 @@ public class SocketServer
 
             try
             {
-                Socket clientSocket = SocketServer.server.accept();
+                Socket clientSocket = EastAngliaSignalMapServer.server.accept();
 
                 if (clientSocket != null && !Clients.hasClient(clientSocket))
                 {
@@ -191,13 +179,6 @@ public class SocketServer
 
         try { server.close(); }
         catch (IOException | NullPointerException e) {}
-
-        /*try
-        {
-            gui.toString(); // Throws NullPointer if neccesary
-            close();
-        }
-        catch (NullPointerException e) {}*/
     }
 
     private static void close()
@@ -225,7 +206,7 @@ public class SocketServer
 
     public static String getNextUUID()
     {
-        String UUID = "-----";
+        String UUID = "";
 
         lastUUID += 1;
         UUID = String.valueOf(lastUUID);
@@ -235,14 +216,5 @@ public class SocketServer
             UUID = "0" + UUID;
         }
         return UUID.substring(0, 5);
-    }
-
-    public static void trimLogs()
-    {
-        /*while (SClassLog.size() > 500)
-            SClassLog.remove(0);
-
-        while (CClassLog.size() > 500)
-            CClassLog.remove(0);*/
     }
 }

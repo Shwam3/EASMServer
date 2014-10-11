@@ -44,7 +44,7 @@ public class TimerMethods
                             Robot rob = new Robot();
                             rob.mouseMove(mouseLoc.x, mouseLoc.y);
                         }
-                        catch (Exception e) { SocketServer.printErr("[Timer] Exception:\n" + e); }
+                        catch (Exception e) { EastAngliaSignalMapServer.printErr("[Timer] Exception:\n" + e); }
                 }
             }, 30000, 30000);
         }

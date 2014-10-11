@@ -2056,8 +2056,8 @@ public class SignalMap
         {
             Berth berth = (Berth) pairs.getValue();
 
-            if (SocketServer.CClassMap.containsKey(pairs.getKey().toString()))
-                berth.interpose(new Train(SocketServer.CClassMap.get(pairs.getKey().toString()), berth));
+            if (EastAngliaSignalMapServer.CClassMap.containsKey(pairs.getKey().toString()))
+                berth.interpose(new Train(EastAngliaSignalMapServer.CClassMap.get(pairs.getKey().toString()), berth));
         }
 
         return this;

@@ -17,7 +17,7 @@ public class Train
 
     public Train(String headcode, Berth startBerth)
     {
-        UUID = SocketServer.getNextUUID();
+        UUID = EastAngliaSignalMapServer.getNextUUID();
 
         UID = "";
         TRUST_ID = "";
@@ -32,7 +32,7 @@ public class Train
 
     public Train(String headcode, String UID, String trustId)
     {
-        UUID = SocketServer.getNextUUID();
+        UUID = EastAngliaSignalMapServer.getNextUUID();
 
         this.UID = UID;
         TRUST_ID = trustId;

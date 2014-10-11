@@ -4,6 +4,9 @@ import eastangliamapserver.*;
 import eastangliamapserver.stomp.StompConnectionHandler;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.text.SimpleDateFormat;
@@ -21,6 +24,14 @@ public class ServerGui
     private final JTextArea     logTextArea;
     private final JTextField    commandInput;
 
+    public ServerGui(int x, int y, int width, int height)
+    {
+        this();
+
+        frame.setSize(width, height);
+        frame.setLocation(x, y);
+    }
+
     public ServerGui()
     {
         frame = new JFrame("East Anglia Signalling Map - Server");
@@ -37,7 +48,7 @@ public class ServerGui
             @Override
             public void windowClosing(WindowEvent evt)
             {
-                SocketServer.stop();
+                EastAngliaSignalMapServer.stop();
             }
         });
 
@@ -48,6 +59,23 @@ public class ServerGui
         logTextArea = new JTextArea();
         logTextArea.setEditable(false);
         logTextArea.setLineWrap(false);
+
+        try
+        {
+            FileInputStream in = new FileInputStream(EastAngliaSignalMapServer.logFile);
+
+            String file = "";
+            int read;
+
+            while ((read = in.read()) != -1)
+            {
+                file += (char) read;
+            }
+
+            logTextArea.setText(logTextArea.getText() + file);
+        }
+        catch (FileNotFoundException e) {}
+        catch (IOException e) {}
 
         System.setOut(new PrintStream(new CustomOutStream(logTextArea, System.out), true));
         System.setErr(new PrintStream(new CustomOutStream(logTextArea, System.err), true));
@@ -102,9 +130,9 @@ public class ServerGui
                     DefaultListModel<String> model = (DefaultListModel<String>) dataList.getModel();
 
                     long time = System.currentTimeMillis() - StompConnectionHandler.lastMessageTime;
-                    model.setElementAt("Current Time:  " + SocketServer.sdf.format(new Date()), 0);
+                    model.setElementAt("Current Time:  " + EastAngliaSignalMapServer.sdf.format(new Date()), 0);
                     model.setElementAt(String.format("Last Message:  %s (%02d:%02d:%02d)",
-                                    SocketServer.sdf.format(new Date(StompConnectionHandler.lastMessageTime)),
+                                    EastAngliaSignalMapServer.sdf.format(new Date(StompConnectionHandler.lastMessageTime)),
                                     (time / (3600000)) % 24,
                                     (time / (60000)) % 60,
                                     (time / 1000) % 60)
@@ -159,6 +187,11 @@ public class ServerGui
     public void stop()
     {
         commandInput.setEnabled(false);
+    }
+
+    public int[] getDims()
+    {
+        return new int[] {frame.getLocation().x, frame.getLocation().y, frame.getSize().width, frame.getSize().height};
     }
 
     public void dispose()

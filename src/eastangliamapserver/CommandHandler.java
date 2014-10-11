@@ -78,7 +78,7 @@ public class CommandHandler
 
             case STOP:
                 printCommand("Stop server", false);
-                SocketServer.stop();
+                EastAngliaSignalMapServer.stop();
                 break;
 
             /*case SET_ADMIN:
@@ -143,7 +143,7 @@ public class CommandHandler
                         HashMap updateMap = new HashMap();
                         updateMap.put(args[1].toUpperCase(), args[2].toUpperCase());
                         Clients.broadcastUpdate(updateMap);
-                        SocketServer.CClassMap.putAll(updateMap);
+                        EastAngliaSignalMapServer.CClassMap.putAll(updateMap);
 
                         printCommand("Interposed " + args[2].toUpperCase() + " to berth " + berth.getBerthDescription(), false);
                     }
@@ -169,7 +169,7 @@ public class CommandHandler
                         HashMap updateMap = new HashMap();
                         updateMap.put(args[1].toUpperCase(), "");
                         Clients.broadcastUpdate(updateMap);
-                        SocketServer.CClassMap.putAll(updateMap);
+                        EastAngliaSignalMapServer.CClassMap.putAll(updateMap);
 
                         printCommand("Cancelled train in berth " + berth.getBerthDescription(), false);
                     }
@@ -201,12 +201,18 @@ public class CommandHandler
                 break;
 
             case SEARCH:
-                if (args.length != 2)
-                    printCommand("Usage: search <headcode|station>", true);
+                if (args.length != 2 && args.length != 3)
+                    printCommand("Usage: search <headcode [area] | station>", true);
+                else if (args.length == 2)
+                    try
+                    {
+                        Desktop.getDesktop().browse(new URI("http://www.realtimetrains.co.uk/search/advancedhandler?type=advanced&qs=true&search=" + args[1].toUpperCase()));
+                    }
+                    catch (IOException | URISyntaxException e) { printCommand("" + e, true); }
                 else
                     try
                     {
-                        Desktop.getDesktop().browse(new URI("http://www.realtimetrains.co.uk/search/advancedhandler?type=advanced&qs=true&search=" + args[1]));
+                        Desktop.getDesktop().browse(new URI("http://www.realtimetrains.co.uk/search/advancedhandler?type=advanced&qs=true&search=" + args[1].toUpperCase() + "&area=" + args[2].toUpperCase()));
                     }
                     catch (IOException | URISyntaxException e) { printCommand("" + e, true); }
                 break;
@@ -226,7 +232,7 @@ public class CommandHandler
                 break;
 
             case SEND_ALL:
-                Clients.broadcastUpdate(SocketServer.CClassMap);
+                Clients.broadcastUpdate(EastAngliaSignalMapServer.CClassMap);
                 printCommand("Broadcast full map to all clients", false);
                 break;
 
@@ -271,7 +277,7 @@ public class CommandHandler
             case OPEN_LOG:
                 try
                 {
-                    Desktop.getDesktop().open(SocketServer.logFile);
+                    Desktop.getDesktop().open(EastAngliaSignalMapServer.logFile);
                     printCommand("Opened log file", false);
                 }
                 catch (IOException e)
@@ -325,7 +331,7 @@ public class CommandHandler
                 dateMap.put("date-time", new Date());
                 outMap.put("date-time", dateMap);
 
-                for (Map.Entry pairs : SocketServer.CClassMap.entrySet())
+                for (Map.Entry pairs : EastAngliaSignalMapServer.CClassMap.entrySet())
                 {
                     Berth berth = Berths.getBerth((String) pairs.getKey());
 
@@ -366,8 +372,16 @@ public class CommandHandler
                 break;
 
             case "reset":
-                ServerGui oldGui = SocketServer.gui;
-                SocketServer.gui = new ServerGui();
+                ServerGui oldGui = EastAngliaSignalMapServer.gui;
+
+                if (args.length == 2 && args[1].toLowerCase().equals("size"))
+                    EastAngliaSignalMapServer.gui = new ServerGui();
+                else
+                {
+                    int[] dims = oldGui.getDims();
+                    EastAngliaSignalMapServer.gui = new ServerGui(dims[0], dims[1], dims[2], dims[3]);
+                }
+
                 oldGui.dispose();
                 break;
 
@@ -384,8 +398,8 @@ public class CommandHandler
     private static void printCommand(String message, boolean toErr)
     {
         if (toErr)
-            SocketServer.printErr("[Command] " + message);
+            EastAngliaSignalMapServer.printErr("[Command] " + message);
         else
-            SocketServer.printOut("[Command] " + message);
+            EastAngliaSignalMapServer.printOut("[Command] " + message);
     }
 }

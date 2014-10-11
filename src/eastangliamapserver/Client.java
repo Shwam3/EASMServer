@@ -97,7 +97,7 @@ public class Client implements Runnable
                             printClient("Set name to '" + newName + "'", false);
                             name = newName;
 
-                            SocketServer.gui.updateClientList();
+                            EastAngliaSignalMapServer.gui.updateClientList();
                             break;
                     }
                 }
@@ -123,9 +123,9 @@ public class Client implements Runnable
     public void printClient(String message, boolean toErr)
     {
         if (toErr)
-            SocketServer.printErr("[Client " + name + "] " + message);
+            EastAngliaSignalMapServer.printErr("[Client " + name + "] " + message);
         else
-            SocketServer.printOut("[Client " + name + "] " + message);
+            EastAngliaSignalMapServer.printOut("[Client " + name + "] " + message);
     }
 
     //<editor-fold defaultstate="collapsed" desc="SOCKET_CLOSE">
@@ -168,7 +168,7 @@ public class Client implements Runnable
         HashMap<String, Object> message = new HashMap<>();
 
         message.put("type", MessageType.SEND_ALL.getValue());
-        message.put("message", SocketServer.CClassMap);
+        message.put("message", EastAngliaSignalMapServer.CClassMap);
 
         sendMessage(message);
     }

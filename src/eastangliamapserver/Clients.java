@@ -11,15 +11,19 @@ public class Clients
     {
         clients.add(client);
 
-        SocketServer.gui.updateClientList();
+        EastAngliaSignalMapServer.gui.updateClientList();
     }
 
     public static List<String> getClientList()
     {
         List<String> clientList = new ArrayList<>();
 
-        for (Client client : clients)
-            clientList.add(client.name + " (" + client.address + ":" + client.port + ")" + client.getErrorString());
+        try
+        {
+            for (Client client : clients)
+                clientList.add(client.name + " (" + client.address + ":" + client.port + ")" + client.getErrorString());
+        }
+        catch (Exception e) {}
 
         Collections.sort(clientList);
         return clientList;
@@ -42,19 +46,19 @@ public class Clients
 
     public static void broadcastUpdate(Map update)
     {
-        if (!SocketServer.stop)
+        if (!EastAngliaSignalMapServer.stop)
             for (Client client : clients)
                 client.sendUpdate(update);
     }
 
     public static void remove(Client client)
     {
-        if (!SocketServer.stop)
+        if (!EastAngliaSignalMapServer.stop)
         {
             try { clients.remove(client); }
             catch (Exception e) {}
 
-            SocketServer.gui.updateClientList();
+            EastAngliaSignalMapServer.gui.updateClientList();
         }
     }
 

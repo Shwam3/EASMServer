@@ -2,7 +2,7 @@ package eastangliamapserver.stomp;
 
 import eastangliamapserver.*;
 import eastangliamapserver.stomp.handlers.CClassHandler;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
 import javax.security.auth.login.LoginException;
@@ -10,65 +10,60 @@ import net.ser1.stomp.Listener;
 
 public class StompConnectionHandler
 {
-    private static final String SERVER   = "datafeeds.networkrail.co.uk";
-    private static final int    PORT     = 61618;
-    private static final String USERNAME = "";
-    private static final String PASSWORD = "";
-    private static final String APP_ID   = ""; //USERNAME + "-EastAngliaSignalMapServer-v" + SocketServer.BUILD + "-" + System.getProperty("user.name");
-
+    private static final String SERVER    = "datafeeds.networkrail.co.uk";
+    private static final int    PORT      = 61618;
+    private static       String USERNAME  = "";
+    private static       String PASSWORD  = "";
+    private static       String APP_ID    = "";
+    public  static       String TD_SUB_ID = "";
     public  static final String TD_TOPIC  = "/topic/TD_ANG_SIG_AREA";
-    public  static final String TD_SUB_ID = "cambird3@gmail.com-EastAngliaSignalMapServer-v" + SocketServer.BUILD + "-" + System.getProperty("user.name") + "-TD"; //APP_ID + "-TD";
 
     public  static StompClient client;
-    private static Timer timeoutTimer;
-    private static ScheduledFuture<?> beeperHandle = null;
+
+    private static ScheduledFuture<?> timeoutHandler = null;
     private static int   timeoutWait = 10;
     private static int   wait = 0;
     public  static long  lastMessageTime = System.currentTimeMillis();
 
-    //private static boolean init = false;
-
     public static boolean connect() throws LoginException, IOException
     {
-        String username = "cambird3@gmail.com";
-        String password = "Cameron98!";
-        String appId = username + "-EastAngliaSignalMapServer-v" + SocketServer.BUILD + "-" + System.getProperty("user.name");
-        String subId = appId + "-TD";
-
-        /*FileInputStream in = null;
+        FileInputStream in = null;
         try
         {
             Properties loginProps = new Properties();
             in = new FileInputStream("NROD_Login.properties");
             loginProps.load(in);
 
-            username = loginProps.getProperty("Username");
-            password = loginProps.getProperty("Password");
+            USERNAME = loginProps.getProperty("Username");
+            PASSWORD = loginProps.getProperty("Password");
 
-            appId = username + "-EastAngliaSignalMapServer-v" + SocketServer.BUILD + "-" + System.getProperty("user.name");
-            subId = appId + "-TD";
-
-            printStomp("Username: " + username, false);
-            printStomp("Password: " + password, false);
-            printStomp("App Id: " + appId, false);
+            APP_ID = USERNAME + "-EastAngliaSignalMapServer-v" + EastAngliaSignalMapServer.BUILD + "-" + System.getProperty("user.name");
+            TD_SUB_ID = APP_ID + "-TD";
         }
         catch (FileNotFoundException e)
         {
-            printStomp("Unable to find login properties file", true);
+            printStomp("Unable to find login properties file: (" + System.getProperty("user.dir") + "\\NROD_Login.properties)\n" + e, true);
+            return false;
         }
         finally
         {
             if (in != null)
                 in.close();
-        }*/
+        }
+
+        if ((USERNAME != null && USERNAME.equals("")) || (PASSWORD != null && PASSWORD.equals("")))
+        {
+            printStomp("Error retreiving login details", true);
+            return false;
+        }
 
         startTimeoutTimer();
 
-        client = new StompClient(SERVER, PORT, username, password, appId);
+        client = new StompClient(SERVER, PORT, USERNAME, PASSWORD, APP_ID);
 
         if (client.isConnected())
         {
-            printStomp(String.format("Connected to %s:%s, id: %s, Username: %s, Password: %s,", SERVER, PORT, appId, username, password), false);
+            printStomp(String.format("Connected to %s:%s, id: %s, Username: %s, Password: %s,", SERVER, PORT, APP_ID, USERNAME, PASSWORD), false);
         }
         else
         {
@@ -86,12 +81,11 @@ public class StompConnectionHandler
                 headers.put("nice-message-id", headers.get("message-id").toString().substring(38).replace(":", ""));
                 HashMap<String, String> updateMap = new CClassHandler(headers, body).parseMessage();
 
-                SocketServer.CClassMap.putAll(updateMap);
+                EastAngliaSignalMapServer.CClassMap.putAll(updateMap);
                 Clients.broadcastUpdate(updateMap);
 
                 lastMessageTime = System.currentTimeMillis();
-                SocketServer.gui.updateDataList();
-                SocketServer.trimLogs();
+                EastAngliaSignalMapServer.gui.updateDataList();
 
                 StompConnectionHandler.client.ack(StompConnectionHandler.TD_SUB_ID, headers.get("message-id").toString());
             }
@@ -109,10 +103,10 @@ public class StompConnectionHandler
         HashMap header = new HashMap();
         header.put("ack", "client-individual");
 
-        header.put("id", subId);
-        header.put("activemq.subscriptionName", subId); // actual name unknown
+        header.put("id", TD_SUB_ID);
+        header.put("activemq.subscriptionName", TD_SUB_ID); // actual name unknown
         client.subscribe(TD_TOPIC, TDListener, header);
-        printStomp("Subscribed to '" + TD_TOPIC + "' with subscription id '" + subId + "'", false);
+        printStomp("Subscribed to '" + TD_TOPIC + "' with subscription id '" + TD_SUB_ID + "'", false);
 
         return true;
     }
@@ -147,8 +141,8 @@ public class StompConnectionHandler
 
     private static void startTimeoutTimer()
     {
-        if (beeperHandle == null || beeperHandle.isCancelled() || beeperHandle.isDone())
-            beeperHandle = Executors.newScheduledThreadPool(1).scheduleAtFixedRate(new Runnable()
+        if (timeoutHandler == null || timeoutHandler.isCancelled() || timeoutHandler.isDone())
+            timeoutHandler = Executors.newScheduledThreadPool(1).scheduleAtFixedRate(new Runnable()
             {
                 @Override
                 public void run()
@@ -187,24 +181,24 @@ public class StompConnectionHandler
     public static void printStomp(String message, boolean toErr)
     {
         if (toErr)
-            SocketServer.printErr("[Stomp] " + message);
+            EastAngliaSignalMapServer.printErr("[Stomp] " + message);
         else
-            SocketServer.printOut("[Stomp] " + message);
+            EastAngliaSignalMapServer.printOut("[Stomp] " + message);
     }
 
     public static void printSClass(String message, boolean toErr)
     {
         if (toErr)
-            SocketServer.printErr("[S-Class] " + message);
+            EastAngliaSignalMapServer.printErr("[S-Class] " + message);
         else
-            SocketServer.printOut("[S-Class] " + message);
+            EastAngliaSignalMapServer.printOut("[S-Class] " + message);
     }
 
     public static void printCClass(String message, boolean toErr)
     {
         if (toErr)
-            SocketServer.printErr("[C-Class] " + message);
+            EastAngliaSignalMapServer.printErr("[C-Class] " + message);
         else
-            SocketServer.printOut("[C-Class] " + message);
+            EastAngliaSignalMapServer.printOut("[C-Class] " + message);
     }
 }

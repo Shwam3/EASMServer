@@ -1,6 +1,6 @@
-package eastangliamapserver.stomp.handlers;
+/*package eastangliamapserver.stomp.handlers;
 
-import eastangliamapserver.SocketServer;
+import eastangliamapserver.EastAngliaSignalMapServer;
 import static eastangliamapserver.stomp.StompConnectionHandler.printSClass;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -52,9 +52,9 @@ public class SClassHandler extends Thread
                     String xAddr = bodyMap.get("address").substring(0, 3);
                     HashMap<String, Integer> yMap;
 
-                    if (SocketServer.SClassMap.containsKey(xAddr))
+                    if (EastAngliaSignalMapServer.SClassMap.containsKey(xAddr))
                     {
-                        yMap = SocketServer.SClassMap.get(xAddr);
+                        yMap = EastAngliaSignalMapServer.SClassMap.get(xAddr);
 
                         if (yMap.containsKey(bodyMap.get("address").substring(3, 4)))
                         {
@@ -85,7 +85,7 @@ public class SClassHandler extends Thread
                         {
                             String addr = Integer.toHexString(index + i);
                             int    data = Integer.parseInt(bodyMap.get("data").substring(i * 2, (i * 2) + 2), 16);
-                            bodyMap.put("old_data", (bodyMap.get("old_data") + SocketServer.SClassMap.get(bodyMap.get("address").substring(0, 3) + addr)).replace("null", ""));
+                            bodyMap.put("old_data", (bodyMap.get("old_data") + EastAngliaSignalMapServer.SClassMap.get(bodyMap.get("address").substring(0, 3) + addr)).replace("null", ""));
                             yMap.put(addr, data);
 
                         }
@@ -93,8 +93,8 @@ public class SClassHandler extends Thread
                         printSClass(String.format("(%s) %s: Set %s to %s from %s (%s)", bodyMap.get("time_formatted"), bodyMap.get("msg_type"), bodyMap.get("address"), bodyMap.get("data"), bodyMap.get("old_data"), header.get("nice-message-id")), false);
                     }
 
-                    SocketServer.SClassMap.put(xAddr, yMap);
-                    SocketServer.SClassLog.add(bodyMap);
+                    EastAngliaSignalMapServer.SClassMap.put(xAddr, yMap);
+                    EastAngliaSignalMapServer.SClassLog.add(bodyMap);
                 }
             }
         }
@@ -105,3 +105,4 @@ public class SClassHandler extends Thread
         }
     }
 }
+*/

@@ -35,7 +35,7 @@ public class Berths
             berthMap.put(berthId, berth);
             missingBerths.remove(berthId);
 
-            try { SocketServer.gui.updateDataList(); }
+            try { EastAngliaSignalMapServer.gui.updateDataList(); }
             catch (NullPointerException e) {}
         }
     }
@@ -161,9 +161,9 @@ public class Berths
         List<String> CClassMapList = new ArrayList<>();
 
         long time = System.currentTimeMillis() - StompConnectionHandler.lastMessageTime;
-        CClassMapList.add("Current Time:  " + SocketServer.sdf.format(new Date()));
+        CClassMapList.add("Current Time:  " + EastAngliaSignalMapServer.sdf.format(new Date()));
         CClassMapList.add(String.format("Last Message:  %s (%02d:%02d:%02d)",
-                        SocketServer.sdf.format(new Date(StompConnectionHandler.lastMessageTime)),
+                        EastAngliaSignalMapServer.sdf.format(new Date(StompConnectionHandler.lastMessageTime)),
                         (time / (3600000)) % 24,
                         (time / (60000)) % 60,
                         (time / 1000) % 60)
@@ -179,7 +179,7 @@ public class Berths
         CClassMapList.add(String.format("Memory use:    %s mb"/* (f %s, t %s, m %s)"*/, (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576/*, Runtime.getRuntime().freeMemory(), Runtime.getRuntime().totalMemory(), Runtime.getRuntime().maxMemory()*/));
         CClassMapList.add(" ");
 
-        if (SocketServer.CClassMap.isEmpty() && missingBerths.isEmpty())
+        if (EastAngliaSignalMapServer.CClassMap.isEmpty() && missingBerths.isEmpty())
         {
             CClassMapList.add("No C-Class data has been received");
             return CClassMapList;
@@ -197,25 +197,25 @@ public class Berths
                     missingBerths.remove(missingBerth);
         }
 
-        if (!SocketServer.CClassMap.isEmpty() && !missingBerths.isEmpty())
+        if (!EastAngliaSignalMapServer.CClassMap.isEmpty() && !missingBerths.isEmpty())
         {
             CClassMapList.add(" ");
         }
 
-        if (!SocketServer.CClassMap.isEmpty())
+        if (!EastAngliaSignalMapServer.CClassMap.isEmpty())
         {
-            List<String> mapKeys = new ArrayList<>(SocketServer.CClassMap.keySet());
+            List<String> mapKeys = new ArrayList<>(EastAngliaSignalMapServer.CClassMap.keySet());
             Collections.sort(mapKeys);
 
             CClassMapList.add("Full C-Class Data Map (No. Berths: " + berthMap.size() + ")");
 
             for (String key : mapKeys)
                 if (skipBlanks)
-                    if (SocketServer.CClassMap.get(key) != null && !SocketServer.CClassMap.get(key).equals(""))
-                        CClassMapList.add(key + ": " + SocketServer.CClassMap.get(key));
+                    if (EastAngliaSignalMapServer.CClassMap.get(key) != null && !EastAngliaSignalMapServer.CClassMap.get(key).equals(""))
+                        CClassMapList.add(key + ": " + EastAngliaSignalMapServer.CClassMap.get(key));
                     else {} // For Syntax
                 else
-                    CClassMapList.add(key + ": " + SocketServer.CClassMap.get(key));
+                    CClassMapList.add(key + ": " + EastAngliaSignalMapServer.CClassMap.get(key));
         }
 
         return CClassMapList;
