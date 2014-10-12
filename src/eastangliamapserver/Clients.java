@@ -7,9 +7,12 @@ public class Clients
 {
     private static final List<Client> clients = new ArrayList<>();
 
+    public static final List<String> clientsHistory = new ArrayList<>();
+
     public static void addClient(Client client)
     {
         clients.add(client);
+        addClientLog(String.format("Client at %s:%s joined", client.address, client.port + (client.name != null ? " (" + client.name + ")" : "")));
 
         EastAngliaSignalMapServer.gui.updateClientList();
     }
@@ -33,6 +36,8 @@ public class Clients
     {
         for (Client client : clients.toArray(new Client[0]))
             client.disconnect();
+
+        addClientLog("Kicked all clients");
     }
 
     public static boolean hasClient(Socket clientSocket)
@@ -71,6 +76,8 @@ public class Clients
             client.sendSocketClose();
             client.closeSocket();
         }
+
+        addClientLog("Closed all clients");
     }
 
     public static Client getClient(String name)
@@ -91,5 +98,10 @@ public class Clients
                 clientsByName++;
 
         return clientsByName > 1;
+    }
+
+    public static void addClientLog(String message)
+    {
+        clientsHistory.add(EastAngliaSignalMapServer.sdfLog.format(new Date()) + message);
     }
 }

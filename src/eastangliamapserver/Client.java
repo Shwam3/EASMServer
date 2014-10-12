@@ -16,12 +16,12 @@ public class Client implements Runnable
 
     private Thread clientThread;
 
-    private boolean stop = false;
-    private int errors = 0;
+    private boolean stop   = false;
+    private int     errors = 0;
 
-    private long  lastMessageTime = System.currentTimeMillis();
-    private long  timeoutTime     = 30000;
-    private final Timer timeoutTimer    = new Timer("timeoutTimer:" + address);
+    private long  lastMessageTime    = System.currentTimeMillis();
+    private long  timeoutTime        = 30000;
+    private final Timer timeoutTimer = new Timer("timeoutTimer:" + address);
 
     public Client(Socket client) throws IOException
     {
@@ -29,14 +29,13 @@ public class Client implements Runnable
 
         address = client.getInetAddress().getHostAddress();
         port    = Integer.toString(client.getPort());
-        name    = address;
 
         in  = client.getInputStream();
         out = client.getOutputStream();
 
         printClient("Initialise client at " + name + "/" + address, false);
 
-        clientThread = new Thread(this, "Client-" + name);
+        clientThread = new Thread(this, "Client-" + address);
         clientThread.start();
 
         startTimeoutTimer();
@@ -65,36 +64,50 @@ public class Client implements Runnable
                     {
                         case SOCKET_CLOSE:
                             printClient("Closing connection", false);
+                            addClientLog("Close connection");
+
                             stop = true;
                             break;
 
                         case HEARTBEAT_REQUEST:
                             printClient("Sending heartbeat", false);
+                            addClientLog("Heartbeat ->");
+
                             sendHeartbeatReply();
                             break;
 
                         case HEARTBEAT_REPLY:
                             printClient("Received heartbeat", false);
+                            addClientLog("Heartbeat <-");
                             break;
 
                         case REQUEST_ALL:
                             printClient("Sending full map", false);
+                            addClientLog("Full map");
+
                             sendAll();
                             break;
 
                         case REQUEST_HIST_TRAIN:
-                            sendHistoryOfTrain((String) message.get("id"));
                             printClient("Sending history of train " + message.get("headcode"), false);
+                            addClientLog("Train history: " + message.get("headcode") + " (" + message.get("berth_id") + ")");
+
+                            sendHistoryOfTrain((String) message.get("id"));
                             break;
 
                         case REQUEST_HIST_BERTH:
-                            sendHistoryOfBerth((String) message.get("berth_id"));
                             printClient("Sending history of berth " + message.get("berth_id"), false);
+                            addClientLog("Berth history: " + message.get("berth_id"));
+
+                            sendHistoryOfBerth((String) message.get("berth_id"));
                             break;
 
                         case SET_NAME:
                             String newName = (String) message.get("name");
+
                             printClient("Set name to '" + newName + "'", false);
+                            addClientLog("Re-Name: " + name + " --> " + newName);
+
                             name = newName;
 
                             EastAngliaSignalMapServer.gui.updateClientList();
@@ -324,5 +337,10 @@ public class Client implements Runnable
             return " (" + errors + ")";
         else
             return "";
+    }
+
+    private void addClientLog(String message)
+    {
+        Clients.addClientLog("[" + name + "/" + address + "] " + message);
     }
 }

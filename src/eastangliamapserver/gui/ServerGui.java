@@ -17,7 +17,7 @@ import javax.swing.border.TitledBorder;
 
 public class ServerGui
 {
-    private final JFrame frame;
+    public final JFrame frame;
 
     private final DefaultListModel<String> clientListModel;
     private final JList<String>            dataList;

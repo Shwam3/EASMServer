@@ -1,5 +1,6 @@
 package eastangliamapserver;
 
+import eastangliamapserver.gui.ListDialog;
 import eastangliamapserver.gui.ServerGui;
 import eastangliamapserver.stomp.StompConnectionHandler;
 import java.awt.Desktop;
@@ -383,6 +384,10 @@ public class CommandHandler
                 }
 
                 oldGui.dispose();
+                break;
+
+            case "client_history":
+                new ListDialog("Client history", "History of client stuffs", Clients.clientsHistory);
                 break;
 
             case "gc":
