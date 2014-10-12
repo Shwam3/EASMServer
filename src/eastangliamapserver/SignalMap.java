@@ -905,6 +905,8 @@ public class SignalMap
         Berths.createOrGetBerth("WG1484");
         Berths.createOrGetBerth("WG1490");
         Berths.createOrGetBerth("WG5315");
+        Berths.createOrGetBerth("WG5319");
+        Berths.createOrGetBerth("WG5321");
         Berths.createOrGetBerth("WG5325");
         Berths.createOrGetBerth("WG5327");
         Berths.createOrGetBerth("WG5328");
@@ -1714,7 +1716,7 @@ public class SignalMap
         Berths.createOrGetBerth("SI0414").setName("CTH Plat 3 (UE)");
         Berths.createOrGetBerth("SI0415");
         Berths.createOrGetBerth("SI0416").setName("CTH Plat 1 Up (UM)");
-        Berths.createOrGetBerth("SI0417").setName("RMF Plat 5 (DE)");
+        Berths.createOrGetBerth("SI0417").setName("RMF Plat 5 Dn (DE)");
         Berths.createOrGetBerth("SI0418");
         Berths.createOrGetBerth("SI0419").setName("RMF Plat 3 (DM)");
         Berths.createOrGetBerth("SI0420");
@@ -1744,6 +1746,7 @@ public class SignalMap
         Berths.createOrGetBerth("SI0448");
         Berths.createOrGetBerth("SI0450");
         Berths.createOrGetBerth("SI5101").setName("CTH Plat 1 Dn (UM)");
+        Berths.createOrGetBerth("SI5102").setName("RMF Plat 5 Up (DE)");
         Berths.createOrGetBerth("SI5111").setName("RMF Plat 2 Dn (UM)");
         Berths.createOrGetBerth("SI5116");
         Berths.createOrGetBerth("SI5139");
