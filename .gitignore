@@ -58,8 +58,10 @@ $RECYCLE.BIN/
 *.msi
 *.msm
 *.msp
+
 *.bak*
 
-build/
 dist/
+build/
+nbproject/
 NROD_Login.properties

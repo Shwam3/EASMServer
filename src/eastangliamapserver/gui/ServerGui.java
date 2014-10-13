@@ -34,7 +34,7 @@ public class ServerGui
 
     public ServerGui()
     {
-        frame = new JFrame("East Anglia Signalling Map - Server");
+        frame = new JFrame("East Anglia Signal Map - Server (v" + EastAngliaSignalMapServer.BUILD + ")");
 
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         frame.setLocationByPlatform(true);

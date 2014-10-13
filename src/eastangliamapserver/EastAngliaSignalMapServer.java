@@ -18,7 +18,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 
 public class EastAngliaSignalMapServer
 {
-    public  static String BUILD = "3a";
+    public  static String BUILD = "3b";
 
     public  static final int    port = 6321;
             static ServerSocket server;

@@ -63,7 +63,10 @@ public class StompConnectionHandler
 
         if (client.isConnected())
         {
-            printStomp(String.format("Connected to %s:%s, id: %s, Username: %s, Password: %s,", SERVER, PORT, APP_ID, USERNAME, PASSWORD), false);
+            printStomp("Connected to \"" + SERVER + ":" + PORT + "\"", false);
+            printStomp("    ID:       " + APP_ID,   false);
+            printStomp("    Username: " + USERNAME, false);
+            printStomp("    Password: " + PASSWORD, false);
         }
         else
         {
@@ -106,7 +109,9 @@ public class StompConnectionHandler
         header.put("id", TD_SUB_ID);
         header.put("activemq.subscriptionName", TD_SUB_ID); // actual name unknown
         client.subscribe(TD_TOPIC, TDListener, header);
-        printStomp("Subscribed to '" + TD_TOPIC + "' with subscription id '" + TD_SUB_ID + "'", false);
+
+        printStomp("Subscribed to \"" + TD_TOPIC + "\"", false);
+        printStomp("Subscription id \"" + TD_SUB_ID + "\"", false);
 
         return true;
     }
@@ -136,7 +141,8 @@ public class StompConnectionHandler
         }
         catch (LoginException e) { printStomp("Login Exception. Server already connected to NR Servers", true); }
         catch (IOException e) { printStomp("IO Exception:\n" + e, true); }
-        catch (Exception e) { printStomp("" + e, true); }
+        catch (Exception e) { printStomp("Exception:\n" + e, true); }
+        catch (Throwable t) { printStomp("INVESTIGATE FURTHER:\n" + t, true); }
     }
 
     private static void startTimeoutTimer()
@@ -170,8 +176,7 @@ public class StompConnectionHandler
                                 printStomp("No problems", false);
                             }
                         }
-                        catch (Exception e) { printStomp("Exception in timeout timer:\n" + e, true); }
-                        catch (Error e) { printStomp("Error in timeout timer:\n" + e, true); }
+                        finally {}
                     else
                         wait += 10;
                 }

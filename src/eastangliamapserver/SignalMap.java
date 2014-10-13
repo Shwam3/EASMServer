@@ -907,6 +907,7 @@ public class SignalMap
         Berths.createOrGetBerth("WG5315");
         Berths.createOrGetBerth("WG5319");
         Berths.createOrGetBerth("WG5321");
+        Berths.createOrGetBerth("WG5322");
         Berths.createOrGetBerth("WG5325");
         Berths.createOrGetBerth("WG5327");
         Berths.createOrGetBerth("WG5328");
@@ -1764,6 +1765,7 @@ public class SignalMap
         Berths.createOrGetBerth("SI0472");
         Berths.createOrGetBerth("SI0474");
         Berths.createOrGetBerth("SI0476");
+        Berths.createOrGetBerth("SI5087");
         Berths.createOrGetBerth("SI5099");
         Berths.createOrGetBerth("SI5100");
         Berths.createOrGetBerth("SI5104");
