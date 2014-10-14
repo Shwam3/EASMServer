@@ -147,40 +147,42 @@ public class StompConnectionHandler
 
     private static void startTimeoutTimer()
     {
-        if (timeoutHandler == null || timeoutHandler.isCancelled() || timeoutHandler.isDone())
-            timeoutHandler = Executors.newScheduledThreadPool(1).scheduleAtFixedRate(new Runnable()
+        if (timeoutHandler != null)
+            timeoutHandler.cancel(false);
+
+        timeoutHandler = Executors.newScheduledThreadPool(1).scheduleAtFixedRate(new Runnable()
+        {
+            @Override
+            public void run()
             {
-                @Override
-                public void run()
-                {
-                    if (wait >= timeoutWait)
-                        try
+                if (wait >= timeoutWait)
+                    try
+                    {
+                        wait = 0;
+
+                        long time = System.currentTimeMillis() - lastMessageTime;
+
+                        printStomp(String.format("Timeout: %02d:%02d:%02d", (time / (1000 * 60 * 60)) % 24, (time / (1000 * 60)) % 60, (time / 1000) % 60), isTimedOut() || !isConnected());
+
+                        if (isTimedOut() || !isConnected())
                         {
-                            wait = 0;
+                            timeoutWait = Math.min(120, timeoutWait + 10);
 
-                            long time = System.currentTimeMillis() - lastMessageTime;
+                            printStomp((isTimedOut() ? "Timed Out" : "") + (!isConnected() && isTimedOut() ? " & " : "") + (!isConnected() ? "Disconnected" : "") + " (" + timeoutWait + "s)", true);
 
-                            printStomp(String.format("Timeout: %02d:%02d:%02d", (time / (1000 * 60 * 60)) % 24, (time / (1000 * 60)) % 60, (time / 1000) % 60), isTimedOut() || !isConnected());
-
-                            if (isTimedOut() || !isConnected())
-                            {
-                                timeoutWait = Math.min(60, timeoutWait + 10);
-
-                                printStomp((isTimedOut() ? "Timed Out" : "") + (!isConnected() && isTimedOut() ? " & " : "") + (!isConnected() ? "Disconnected" : "") + " (" + timeoutWait + "s)", true);
-
-                                reconnect();
-                            }
-                            else
-                            {
-                                timeoutWait = 10;
-                                printStomp("No problems", false);
-                            }
+                            reconnect();
                         }
-                        finally {}
-                    else
-                        wait += 10;
-                }
-            }, 10, 10, TimeUnit.SECONDS);
+                        else
+                        {
+                            timeoutWait = 10;
+                            printStomp("No problems", false);
+                        }
+                    }
+                    finally {}
+                else
+                    wait += 10;
+            }
+        }, 10, 10, TimeUnit.SECONDS);
     }
 
     public static void printStomp(String message, boolean toErr)
