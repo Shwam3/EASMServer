@@ -14,11 +14,9 @@ public class Berth
     public        int      isMonitoring   = 0;
     private       Train    suggestedTrain = null;
 
-    private volatile boolean addressMapLocked = false;
-
-    private final HashMap<String, HashMap<String, String>> possibleAddresses = new HashMap<>();
+    //private final HashMap<String, HashMap<String, String>> possibleAddresses = new HashMap<>();
     private final List<Berth>                   adjacentBerths = new ArrayList<>();
-    private final List<String>                  trainHistory   = new ArrayList<>();
+    private       List<String>                  trainHistory   = new ArrayList<>();
     private final List<HashMap<String, String>> stepToBerths   = new ArrayList<>();
 
     public Berth(String... berthIds)
@@ -72,11 +70,11 @@ public class Berth
         {
             if (newTrain.getHeadcode().equals(suggestedTrain.getHeadcode()))
             {
-                printCClass(String.format("    Using suggested train for %s, %s (%s%s)", BERTH_DESCRIPTION, suggestedTrain.getHeadcode(), suggestedTrain.UUID, suggestedTrain != newTrain ? " (vs " + newTrain.UUID + ")" : ""), false);
+                printCClass(String.format("Using suggested train for %s, %s (%s%s)", BERTH_DESCRIPTION, suggestedTrain.getHeadcode(), suggestedTrain.UUID, suggestedTrain != newTrain ? " (vs " + newTrain.UUID + ")" : ""), false);
                 newTrain = suggestedTrain;
             }
             else
-                printCClass(String.format("    Discarding suggested train for %s, %s (%s%s)", BERTH_DESCRIPTION, suggestedTrain.getHeadcode(), suggestedTrain.UUID, suggestedTrain != newTrain ? " (vs " + newTrain.UUID + ")" : ""), false);
+                printCClass(String.format("Discarding suggested train for %s, %s (%s%s)", BERTH_DESCRIPTION, suggestedTrain.getHeadcode(), suggestedTrain.UUID, suggestedTrain != newTrain ? " (vs " + newTrain.UUID + ")" : ""), false);
         }
         else
             if (currentTrain != null && !currentTrain.equals(newTrain) && (currentTrain.getCurrentBerth() == this || currentTrain.getTrainsHistory().size() <= 2))
@@ -178,7 +176,7 @@ public class Berth
                 if (currentTrain != null)
                     currentTrain.setBerth(null);
 
-                printCClass(String.format("    Using suggested train for %s, %s (%s)", BERTH_DESCRIPTION, train.getHeadcode(), train.UUID), false);
+                printCClass(String.format("Using suggested train for %s, %s (%s)", BERTH_DESCRIPTION, train.getHeadcode(), train.UUID), false);
                 suggestedTrain = null;
                 currentTrain = train;
 
@@ -189,7 +187,7 @@ public class Berth
             else
             {
                 suggestedTrain = train;
-                printCClass(String.format("    %s %s (%s) to %s", type, train.getHeadcode(), train.UUID, BERTH_DESCRIPTION), false);
+                printCClass(String.format("%s %s (%s) to %s", type, train.getHeadcode(), train.UUID, BERTH_DESCRIPTION), false);
             }
         }
     }
@@ -329,14 +327,19 @@ public class Berth
         timer.start();
     }*/
 
-    public boolean hasPossibleAddresses()
+    /*public boolean hasPossibleAddresses()
     {
         return !possibleAddresses.isEmpty();
-    }
+    }*/
 
     public List<String> getBerthsHistory()
     {
         return trainHistory;
+    }
+
+    public void setHistory(List<String> history)
+    {
+        this.trainHistory = history;
     }
 
     public List<String> getTrainsHistory()
@@ -350,6 +353,6 @@ public class Berth
     @Override
     public String toString()
     {
-        return "eastangliamap.Berth=[description=" + BERTH_DESCRIPTION + ",berthIds=" + Arrays.deepToString(BERTH_IDs) + (currentTrain != null ? ",train=" + currentTrain.toString(): ",train=    ") + "]";
+        return "eastangliamap.Berth=[description=" + BERTH_DESCRIPTION + ",berthIds=" + Arrays.deepToString(BERTH_IDs) + ",train=" + String.valueOf(currentTrain) + "]";
     }
 }

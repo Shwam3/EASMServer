@@ -34,6 +34,8 @@ public class Client implements Runnable
         out = client.getOutputStream();
 
         printClient("Initialise client at " + name + "/" + address, false);
+        //addClientLog(String.format("Client at %s:%s joined", client.address, client.port + (client.name != null ? " (" + client.name + ")" : "")));
+        addClientLog("Joined");
 
         clientThread = new Thread(this, "Client-" + address);
         clientThread.start();
@@ -71,14 +73,14 @@ public class Client implements Runnable
 
                         case HEARTBEAT_REQUEST:
                             printClient("Sending heartbeat", false);
-                            addClientLog("Heartbeat ->");
+                            //addClientLog("Heartbeat ->");
 
                             sendHeartbeatReply();
                             break;
 
                         case HEARTBEAT_REPLY:
                             printClient("Received heartbeat", false);
-                            addClientLog("Heartbeat <-");
+                            //addClientLog("Heartbeat <-");
                             break;
 
                         case REQUEST_ALL:
@@ -309,6 +311,7 @@ public class Client implements Runnable
                     else
                     {
                         printClient("Connection timed out", true);
+                        addClientLog("Timed out (" + (System.currentTimeMillis() - lastMessageTime) + ")");
                         sendSocketClose();
                         closeSocket();
                         timeoutTime = 30000;

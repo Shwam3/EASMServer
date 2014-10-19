@@ -4,21 +4,15 @@ import eastangliamapserver.gui.ServerGui;
 import eastangliamapserver.stomp.StompConnectionHandler;
 import java.awt.EventQueue;
 import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
+import java.net.*;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
+import java.util.*;
 import javax.security.auth.login.LoginException;
-import javax.swing.JOptionPane;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.*;
 
 public class EastAngliaSignalMapServer
 {
-    public  static String BUILD = "4";
+    public  static String BUILD = "5";
 
     public  static final int    port = 6321;
             static ServerSocket server;
@@ -56,6 +50,64 @@ public class EastAngliaSignalMapServer
             TimerMethods.sleep(false);
 
             StompConnectionHandler.connect();
+
+            readSavedMap(false);
+
+            Runtime.getRuntime().addShutdownHook(new Thread("shutdownHook")
+            {
+                @Override
+                public void run()
+                {
+                    File out = new File("C:\\Users\\Shwam\\Documents\\GitHub\\EastAngliaSignalMapServer\\dist", "EastAngliaSigMap.save");
+
+                    if (out.exists())
+                        out.delete();
+
+                    HashMap<String, HashMap<String, Object>> outMap = new HashMap();
+
+                    HashMap<String, Object> dateMap = new HashMap();
+                    dateMap.put("date-time", new Date());
+                    outMap.put("date-time", dateMap);
+
+                    for (Map.Entry pairs : EastAngliaSignalMapServer.CClassMap.entrySet())
+                    {
+                        Berth berth = Berths.getBerth((String) pairs.getKey());
+
+                        if (berth != null)
+                        {
+                            HashMap berthDetail = new HashMap();
+                            berthDetail.put("headcode", berth.getHeadcode());
+                            berthDetail.put("berth_hist", berth.getBerthsHistory());
+
+                            outMap.put((String) pairs.getKey(), berthDetail);
+                        }
+                        else
+                        {
+                            HashMap berthDetail = new HashMap();
+                            berthDetail.put("headcode", (String) pairs.getValue());
+
+                            outMap.put((String) pairs.getKey(), berthDetail);
+                        }
+                    }
+
+                    try
+                    {
+                        FileOutputStream outStream = new FileOutputStream(out);
+                        ObjectOutputStream oos = new ObjectOutputStream(outStream);
+
+                        oos.writeObject(outMap);
+
+                        oos.close();
+                        outStream.close();
+
+                        EastAngliaSignalMapServer.printOut("[Persistance] Saved map");
+                    }
+                    catch (IOException e)
+                    {
+                        printErr("[Persistance] Failed to save map\n" + e);
+                    }
+                }
+            });
 
             EventQueue.invokeLater(new Runnable()
             {
@@ -216,5 +268,53 @@ public class EastAngliaSignalMapServer
             UUID = "0" + UUID;
         }
         return UUID.substring(0, 5);
+    }
+
+    public static void readSavedMap(boolean force)
+    {
+        try
+        {
+            File mapSave = new File("C:\\Users\\Shwam\\Documents\\GitHub\\EastAngliaSignalMapServer\\dist", "EastAngliaSigMap.save");
+
+            if (mapSave.exists())
+            {
+                ObjectInputStream in = new ObjectInputStream(new FileInputStream(mapSave));
+
+                HashMap<String, Object> hm = (HashMap<String, Object>) in.readObject();
+
+                HashMap<String, Object> hm2 = ((HashMap<String, Object>) hm.get("date-time"));
+                Date date = (Date) hm2.get("date-time");
+
+                if (date == null)
+                    date = new Date(mapSave.lastModified());
+
+                if (date.after(new Date(System.currentTimeMillis() - 60000 * 20)) || force)
+                {
+                    HashMap<String, String> newCClassMap = new HashMap<>();
+                    for (Map.Entry pairs : hm.entrySet())
+                    {
+                        newCClassMap.put((String) pairs.getKey(), (String) ((HashMap<String, Object>) pairs.getValue()).get("headcode"));
+
+                        Berth berth = Berths.getBerth((String) pairs.getKey());
+                        if (berth != null)
+                            berth.setHistory((List<String>) ((HashMap<String, Object>) pairs.getValue()).get("berth_hist"));
+                    }
+
+                    System.currentTimeMillis();
+
+                    EastAngliaSignalMapServer.CClassMap.putAll(newCClassMap);
+
+                    printOut("[Persistance] Read map save file");
+                }
+                else
+                    printOut("Saved map file is out of date");
+            }
+            else
+                printOut("No map save file");
+
+        }
+        catch (FileNotFoundException e) {}
+        catch (ClassNotFoundException e) { EastAngliaSignalMapServer.printErr("[Persistance] Exception parsing map save file:\n" + e); }
+        catch (IOException e) { EastAngliaSignalMapServer.printErr("[Persistance] Exception reading map save file:\n" + e); }
     }
 }

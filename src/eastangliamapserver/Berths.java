@@ -167,8 +167,9 @@ public class Berths
                         (time / (3600000)) % 24,
                         (time / (60000)) % 60,
                         (time / 1000) % 60)
-                + (!StompConnectionHandler.isConnected() ? " - disconnected" : "")
-                + (StompConnectionHandler.isTimedOut() ? " - timed out" : ""));
+                    + (!StompConnectionHandler.isConnected() ? " - disconnected" : "")
+                    //+ (!StompConnectionHandler.isClosed()? " - closed" : "")
+                    + (StompConnectionHandler.isTimedOut() ? " - timed out" : ""));
         time = System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime();
         CClassMapList.add(String.format("Server Uptime: %02dd %02dh %02dm %02ds (%s)",
                         (time / (86400000)),

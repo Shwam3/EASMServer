@@ -21,8 +21,8 @@ public class ServerGui
 
     private final DefaultListModel<String> clientListModel;
     private final JList<String>            dataList;
-    private final JTextArea     logTextArea;
-    private final JTextField    commandInput;
+    private final JTextArea                logTextArea;
+    private final JTextField               commandInput;
 
     public ServerGui(int x, int y, int width, int height)
     {
@@ -102,11 +102,27 @@ public class ServerGui
 
         clientListModel = new DefaultListModel();
         JList<String> clientList = new JList<>(clientListModel);
+
+        /*clientList.addMouseListener(new MouseAdapter()
+        {
+            @Override
+            public void mouseClicked(MouseEvent evt)
+            {
+                JList<String> list = (JList<String>) evt.getSource();
+
+                if (SwingUtilities.isRightMouseButton(evt) && !list.isSelectionEmpty() && list.locationToIndex(evt.getPoint()) == list.getSelectedIndex())
+                    new ClientContextMenu(list, evt.getX(), evt.getY());
+            }
+        });*/
+
         clientList.setFont(new Font("Monospaced", 0, 12));
+
         JScrollPane clientScrollPane = new JScrollPane(clientList);
+
         clientScrollPane.setVerticalScrollBarPolicy(22);
         clientScrollPane.setHorizontalScrollBarPolicy(30);
         clientScrollPane.setBorder(new TitledBorder(new EtchedBorder(), "Clients"));
+
         monitorPanel.add(clientScrollPane, BorderLayout.WEST);
         updateClientList();
 

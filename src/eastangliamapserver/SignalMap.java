@@ -634,7 +634,7 @@ public class SignalMap
         Berths.createOrGetBerth("SXOB18");
         Berths.createOrGetBerth("SXOB19").setName("OUS Dn (U&DES)");
         Berths.createOrGetBerth("SXOB21");
-        //Berths.createOrGetBerth("SXOSTO"); //Dont want berth tracking
+        Berths.createOrGetBerth("SXOSTO");
     }
     //</editor-fold>
 
@@ -972,6 +972,7 @@ public class SignalMap
         Berths.createOrGetBerth("WG5383");
         Berths.createOrGetBerth("WG5385");
         Berths.createOrGetBerth("WG5387");
+        Berths.createOrGetBerth("WG5396");
         Berths.createOrGetBerth("WG5397");
         Berths.createOrGetBerth("WGGF03");
         Berths.createOrGetBerth("WGUPSD");
@@ -1548,6 +1549,7 @@ public class SignalMap
         Berths.createOrGetBerth("SE0612");
         Berths.createOrGetBerth("SE0614");
         Berths.createOrGetBerth("SE0616");
+        Berths.createOrGetBerth("SEWDNS");
 
         Berths.createOrGetBerth("SE0583").setName("RLG Plat 2 (DSD)");
         Berths.createOrGetBerth("SE0585");

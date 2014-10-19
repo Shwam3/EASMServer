@@ -73,7 +73,7 @@ public class CClassHandler
                 else
                     Berths.addMissingBerths(bodyMap.get("a_to"));
 
-                printCClass(String.format("%s: Interpose %s to %s", bodyMap.get("msg_type"), bodyMap.get("descr"), bodyMap.get("a_to")), false);
+                printCClass(String.format(/*"%s: */"Interpose %s to %s", /*bodyMap.get("msg_type"), */bodyMap.get("descr"), bodyMap.get("a_to")), false);
 
                 updateMap.put(bodyMap.get("a_to"), bodyMap.get("descr"));
             }
@@ -186,7 +186,7 @@ public class CClassHandler
                     Berths.addMissingBerths(bodyMap.get("a_from"));
                 }
 
-                printCClass(String.format("%s: Step %s from %s to %s %s", bodyMap.get("msg_type"), bodyMap.get("descr"), bodyMap.get("a_from"), bodyMap.get("a_to"), stepType), false);
+                printCClass(String.format(/*"%s: */"Step %s from %s to %s %s", /*bodyMap.get("msg_type"), */bodyMap.get("descr"), bodyMap.get("a_from"), bodyMap.get("a_to"), stepType), false);
 
                 updateMap.put(bodyMap.get("a_to"), bodyMap.get("descr"));
                 updateMap.put(bodyMap.get("a_from"), "");
@@ -232,7 +232,7 @@ public class CClassHandler
                 if (newTrain != null)
                     newTrain.setBerth(newTrain.getCurrentBerth());
 
-                printCClass(String.format("%s: Cancel %s from %s", bodyMap.get("msg_type"), bodyMap.get("descr"), bodyMap.get("a_from")), false);
+                printCClass(String.format(/*"%s: */"Cancel %s from %s", /*bodyMap.get("msg_type"), */bodyMap.get("descr"), bodyMap.get("a_from")), false);
 
                 updateMap.put(bodyMap.get("a_from"), "");
             }
@@ -240,12 +240,9 @@ public class CClassHandler
         }
         catch (Exception e)
         {
-            printCClass("Exception in C-Class handler:", true);
-            e.printStackTrace();
+            printCClass("Exception in C-Class handler:\n" + String.valueOf(e), true);
         }
-        finally
-        {
-            return updateMap;
-        }
+        
+        return updateMap;
     }
 }

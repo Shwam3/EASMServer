@@ -1,6 +1,7 @@
 package eastangliamapserver;
 
 import java.net.Socket;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class Clients
@@ -12,7 +13,6 @@ public class Clients
     public static void addClient(Client client)
     {
         clients.add(client);
-        addClientLog(String.format("Client at %s:%s joined", client.address, client.port + (client.name != null ? " (" + client.name + ")" : "")));
 
         EastAngliaSignalMapServer.gui.updateClientList();
     }
@@ -102,6 +102,6 @@ public class Clients
 
     public static void addClientLog(String message)
     {
-        clientsHistory.add(EastAngliaSignalMapServer.sdfLog.format(new Date()) + message);
+        clientsHistory.add(0, new SimpleDateFormat("[dd/MM HH:mm] ").format(new Date()) + message);
     }
 }

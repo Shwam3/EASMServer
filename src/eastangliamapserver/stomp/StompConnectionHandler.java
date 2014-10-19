@@ -53,7 +53,7 @@ public class StompConnectionHandler
 
         if ((USERNAME != null && USERNAME.equals("")) || (PASSWORD != null && PASSWORD.equals("")))
         {
-            printStomp("Error retreiving login details", true);
+            printStomp("Error retreiving login details (u: " + USERNAME + ", p: " + PASSWORD + ")", true);
             return false;
         }
 
@@ -124,6 +124,14 @@ public class StompConnectionHandler
         return client.isConnected() && !client.isClosed();
     }
 
+    /*public static boolean isClosed()
+    {
+        if (client == null)
+            return false;
+
+        return client.isClosed();
+    }*/
+
     public static boolean isTimedOut()
     {
         return System.currentTimeMillis() - lastMessageTime >= 20000;
@@ -156,29 +164,32 @@ public class StompConnectionHandler
             public void run()
             {
                 if (wait >= timeoutWait)
-                    try
+                {
+                    wait = 0;
+
+                    long time = System.currentTimeMillis() - lastMessageTime;
+
+                    printStomp(String.format("Timeout: %02d:%02d:%02d", (time / (1000 * 60 * 60)) % 24, (time / (1000 * 60)) % 60, (time / 1000) % 60), isTimedOut() || !isConnected());
+
+                    if (isTimedOut() || !isConnected())
                     {
-                        wait = 0;
+                        timeoutWait = Math.min(120, timeoutWait + 10);
 
-                        long time = System.currentTimeMillis() - lastMessageTime;
+                        printStomp((isTimedOut() ? "Timed Out" : "") + (!isConnected() && isTimedOut() ? " & " : "") + (!isConnected() ? "Disconnected" : "") + " (" + timeoutWait + "s)", true);
 
-                        printStomp(String.format("Timeout: %02d:%02d:%02d", (time / (1000 * 60 * 60)) % 24, (time / (1000 * 60)) % 60, (time / 1000) % 60), isTimedOut() || !isConnected());
-
-                        if (isTimedOut() || !isConnected())
+                        try
                         {
-                            timeoutWait = Math.min(120, timeoutWait + 10);
-
-                            printStomp((isTimedOut() ? "Timed Out" : "") + (!isConnected() && isTimedOut() ? " & " : "") + (!isConnected() ? "Disconnected" : "") + " (" + timeoutWait + "s)", true);
-
                             reconnect();
                         }
-                        else
-                        {
-                            timeoutWait = 10;
-                            printStomp("No problems", false);
-                        }
+                        catch (Exception ex) { printStomp("Exception reconnecting:\n" + ex, true); }
+                        catch (Error er)     { printStomp("Error reconnecting:\n" + er, true); }
                     }
-                    finally {}
+                    else
+                    {
+                        timeoutWait = 10;
+                        printStomp("No problems", false);
+                    }
+                }
                 else
                     wait += 10;
             }

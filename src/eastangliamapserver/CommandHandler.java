@@ -209,13 +209,13 @@ public class CommandHandler
                     {
                         Desktop.getDesktop().browse(new URI("http://www.realtimetrains.co.uk/search/advancedhandler?type=advanced&qs=true&search=" + args[1].toUpperCase()));
                     }
-                    catch (IOException | URISyntaxException e) { printCommand("" + e, true); }
+                    catch (IOException | URISyntaxException e) { printCommand(String.valueOf(e), true); }
                 else
                     try
                     {
                         Desktop.getDesktop().browse(new URI("http://www.realtimetrains.co.uk/search/advancedhandler?type=advanced&qs=true&search=" + args[1].toUpperCase() + "&area=" + args[2].toUpperCase()));
                     }
-                    catch (IOException | URISyntaxException e) { printCommand("" + e, true); }
+                    catch (IOException | URISyntaxException e) { printCommand(String.valueOf(e), true); }
                 break;
 
             case GET:
@@ -341,7 +341,7 @@ public class CommandHandler
                         HashMap berthDetail = new HashMap();
                         berthDetail.put("headcode", berth.getHeadcode());
                         berthDetail.put("berth_hist", berth.getBerthsHistory());
-                        berthDetail.put("train_hist", berth.getTrainsHistory());
+                        //berthDetail.put("train_hist", berth.getTrainsHistory());
 
                         outMap.put((String) pairs.getKey(), berthDetail);
                     }
@@ -372,6 +372,14 @@ public class CommandHandler
                 }
                 break;
 
+            case "readmap":
+                if (args.length == 2 && args[1].toLowerCase().equals("force"))
+                    EastAngliaSignalMapServer.readSavedMap(true);
+                else
+                    EastAngliaSignalMapServer.readSavedMap(false);
+
+                break;
+
             case "reset":
                 ServerGui oldGui = EastAngliaSignalMapServer.gui;
 
@@ -387,6 +395,7 @@ public class CommandHandler
                 break;
 
             case "client_history":
+            case "cl_hist":
                 new ListDialog("Client history", "History of client stuffs", Clients.clientsHistory);
                 break;
 
