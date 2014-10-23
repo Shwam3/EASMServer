@@ -10,7 +10,7 @@ public class Berth
     private final String   BERTH_DESCRIPTION;
     private       String   name = "";
     private       Train    currentTrain;
-    private       boolean  isProblematic  = false;
+  //private       boolean  isProblematic  = false;
     public        int      isMonitoring   = 0;
     private       Train    suggestedTrain = null;
 
@@ -95,10 +95,10 @@ public class Berth
             trainHistory.remove(trainHistory.size() - 1);
     }
 
-    public void setProblematicBerth(boolean isProblematic)
+    /*public void setProblematicBerth(boolean isProblematic)
     {
         this.isProblematic = isProblematic;
-    }
+    }*/
 
     /**
      * When this berth is stepped from or cancelled the specified berth will be interposed with the moving train
@@ -218,10 +218,10 @@ public class Berth
         return currentTrain != null;
     }
 
-    public boolean isProperHeadcode()
+    /*public boolean isProperHeadcode()
     {
         return Berths.isProperHeadcode(getHeadcode());
-    }
+    }*/
 
     public boolean hasAdjacentBerths()
     {
@@ -262,10 +262,10 @@ public class Berth
         return BERTH_DESCRIPTION;
     }
 
-    boolean isProblematic()
+    /*boolean isProblematic()
     {
         return isProblematic;
-    }
+    }*/
 
     /*private void startMonitor(final String time)
     {

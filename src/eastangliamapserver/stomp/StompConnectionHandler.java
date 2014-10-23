@@ -3,6 +3,7 @@ package eastangliamapserver.stomp;
 import eastangliamapserver.*;
 import eastangliamapserver.stomp.handlers.CClassHandler;
 import java.io.*;
+import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.*;
 import javax.security.auth.login.LoginException;
@@ -18,7 +19,7 @@ public class StompConnectionHandler
     public  static       String TD_SUB_ID = "";
     public  static final String TD_TOPIC  = "/topic/TD_ANG_SIG_AREA";
 
-    public  static StompClient client;
+    private static StompClient client;
 
     private static ScheduledFuture<?> timeoutHandler = null;
     private static int   timeoutWait = 10;
@@ -37,7 +38,7 @@ public class StompConnectionHandler
             USERNAME = loginProps.getProperty("Username");
             PASSWORD = loginProps.getProperty("Password");
 
-            APP_ID = USERNAME + "-EastAngliaSignalMapServer-v" + EastAngliaSignalMapServer.BUILD + "-" + System.getProperty("user.name");
+            APP_ID = USERNAME + "-EastAngliaSignalMapServer-v" + EastAngliaSignalMapServer.VERSION + "-" + System.getProperty("user.name");
             TD_SUB_ID = APP_ID + "-TD";
         }
         catch (FileNotFoundException e)
@@ -82,10 +83,13 @@ public class StompConnectionHandler
             public void message(final Map headers, final String body)
             {
                 headers.put("nice-message-id", headers.get("message-id").toString().substring(38).replace(":", ""));
-                HashMap<String, String> updateMap = new CClassHandler(headers, body).parseMessage();
+                HashMap<String, String> updateMap = CClassHandler.parseMessage(body);
 
-                EastAngliaSignalMapServer.CClassMap.putAll(updateMap);
-                Clients.broadcastUpdate(updateMap);
+                if (!updateMap.isEmpty())
+                {
+                    EastAngliaSignalMapServer.CClassMap.putAll(updateMap);
+                    Clients.broadcastUpdate(updateMap);
+                }
 
                 lastMessageTime = System.currentTimeMillis();
                 EastAngliaSignalMapServer.gui.updateDataList();
@@ -116,21 +120,27 @@ public class StompConnectionHandler
         return true;
     }
 
+    public static void disconnect()
+    {
+        if (client != null && isConnected() && !isClosed())
+            client.disconnect();
+    }
+
     public static boolean isConnected()
     {
         if (client == null)
             return false;
 
-        return client.isConnected() && !client.isClosed();
+        return client.isConnected();
     }
 
-    /*public static boolean isClosed()
+    public static boolean isClosed()
     {
         if (client == null)
             return false;
 
         return client.isClosed();
-    }*/
+    }
 
     public static boolean isTimedOut()
     {
@@ -142,15 +152,23 @@ public class StompConnectionHandler
         if (client != null)
             client.disconnect();
 
+        if (wrappedConnect())
+            printStomp("Reconnected", false);
+    }
+
+    public static boolean wrappedConnect()
+    {
         try
         {
-            connect();
-            printStomp("Reconnected", false);
+            return connect();
         }
-        catch (LoginException e) { printStomp("Login Exception. Server already connected to NR Servers", true); }
-        catch (IOException e) { printStomp("IO Exception:\n" + e, true); }
-        catch (Exception e) { printStomp("Exception:\n" + e, true); }
-        catch (Throwable t) { printStomp("INVESTIGATE FURTHER:\n" + t, true); }
+        catch (LoginException e) { printStomp("Login Exception. (Another) Server already connected to NR Servers", true); }
+        catch (UnknownHostException e) { printStomp("Unable to resolve host (" + SERVER + ")", true); }
+        catch (IOException e) { printStomp("IO Exception:\n" + String.valueOf(e), true); }
+        catch (Exception e) { printStomp("Exception:\n" + String.valueOf(e), true); }
+        catch (Throwable t) { printStomp("INVESTIGATE FURTHER:\n" + String.valueOf(t), true); }
+
+        return false;
     }
 
     private static void startTimeoutTimer()
@@ -169,20 +187,24 @@ public class StompConnectionHandler
 
                     long time = System.currentTimeMillis() - lastMessageTime;
 
-                    printStomp(String.format("Timeout: %02d:%02d:%02d", (time / (1000 * 60 * 60)) % 24, (time / (1000 * 60)) % 60, (time / 1000) % 60), isTimedOut() || !isConnected());
+                    printStomp(String.format("Timeout: %02d:%02d:%02d", (time / (1000 * 60 * 60)) % 24, (time / (1000 * 60)) % 60, (time / 1000) % 60), isTimedOut() || !isConnected() || isClosed());
 
                     if (isTimedOut() || !isConnected())
                     {
-                        timeoutWait = Math.min(120, timeoutWait + 10);
+                        timeoutWait = Math.min(60, timeoutWait + 10);
 
-                        printStomp((isTimedOut() ? "Timed Out" : "") + (!isConnected() && isTimedOut() ? " & " : "") + (!isConnected() ? "Disconnected" : "") + " (" + timeoutWait + "s)", true);
+                        printStomp((isTimedOut() ? "Timed Out" : "") + (isTimedOut() && isClosed() ? ", " : "") + (isClosed() ? "Closed" : "") + ((isTimedOut() || isClosed()) && !isConnected() ? " & " : "") + (!isConnected() ? "Disconnected" : "") + " (" + timeoutWait + "s)", true);
 
                         try
                         {
                             reconnect();
+
+                            //EastAngliaSignalMapServer.server.close();
+                            //EastAngliaSignalMapServer.server = new ServerSocket(6321);
                         }
-                        catch (Exception ex) { printStomp("Exception reconnecting:\n" + ex, true); }
-                        catch (Error er)     { printStomp("Error reconnecting:\n" + er, true); }
+                        //catch (IOException ex) { printStomp("IOException reconnecting:\n" + String.valueOf(ex), true); }
+                        catch (Exception ex) { printStomp("Exception reconnecting:\n" + String.valueOf(ex), true); }
+                        catch (Error er)     { printStomp("Error reconnecting:\n" + String.valueOf(er), true); }
                     }
                     else
                     {
@@ -192,6 +214,8 @@ public class StompConnectionHandler
                 }
                 else
                     wait += 10;
+
+                System.gc();
             }
         }, 10, 10, TimeUnit.SECONDS);
     }

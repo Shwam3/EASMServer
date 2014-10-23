@@ -12,12 +12,12 @@ public class CommandHandler
 {
     private static final String HELP        = "help";
     private static final String STOP        = "stop";
-    private static final String SET_ADMIN   = "admin";
+  //private static final String SET_ADMIN   = "admin";
     private static final String KICK        = "kick";
     private static final String CLIENT_LIST = "clients";
     private static final String CANCEL      = "cancel";
     private static final String INTERPOSE   = "interpose";
-    private static final String PROBLEM     = "problem";
+  //private static final String PROBLEM     = "problem";
     private static final String GET         = "get";
     private static final String SEARCH      = "search";
     private static final String SEND_ALL    = "sendall";
@@ -29,6 +29,7 @@ public class CommandHandler
     private static final String MISSING     = "printmissing";
     private static final String ALL         = "printall";
     private static final String SAVE_MAP    = "savemap";
+    private static final String READ_MAP    = "readmap";
 
     public static void handle(String command, String... args)
     {
@@ -38,6 +39,9 @@ public class CommandHandler
                 //<editor-fold defaultstate="collapsed" desc="Help">
                 printCommand("stop", false);
                 printCommand("Stops the server", false);
+
+              //printCommand("admin", false);
+              //printCommand("Sets the specified client as an admin", false);
 
                 printCommand("kick", false);
                 printCommand("Disconnects the specified client", false);
@@ -51,8 +55,8 @@ public class CommandHandler
                 printCommand("interpose", false);
                 printCommand("Inserts the specified train into the spacified berth", false);
 
-                //printCommand("problem", false);
-                //printCommand("Sets the specified berth as having a problem", false);
+              //printCommand("problem", false);
+              //printCommand("Sets the specified berth as having a problem", false);
 
                 printCommand("get", false);
                 printCommand("Get the data (headcode) in the specified berth", false);
@@ -78,7 +82,6 @@ public class CommandHandler
                 break;
 
             case STOP:
-                printCommand("Stop server", false);
                 EastAngliaSignalMapServer.stop();
                 break;
 
@@ -141,7 +144,7 @@ public class CommandHandler
                     {
                         berth.interpose(new Train(args[2].toUpperCase(), berth));
 
-                        HashMap updateMap = new HashMap();
+                        HashMap<String, String> updateMap = new HashMap();
                         updateMap.put(args[1].toUpperCase(), args[2].toUpperCase());
                         Clients.broadcastUpdate(updateMap);
                         EastAngliaSignalMapServer.CClassMap.putAll(updateMap);
@@ -179,7 +182,7 @@ public class CommandHandler
                 }
                 break;
 
-            case PROBLEM:
+            /*case PROBLEM:
                 if (args.length != 3 || (!args[2].toLowerCase().equals("true") && !args[2].toLowerCase().equals("false")))
                     printCommand("Usage: problem <berth_id> <true|false>", true);
                 else
@@ -190,16 +193,16 @@ public class CommandHandler
                     {
                         berth.setProblematicBerth(args[2].toLowerCase().equals("true"));
 
-                        /*HashMap updateMap = new HashMap();
+                        HashMap updateMap = new HashMap();
                         updateMap.put(args[1].toUpperCase(), args[2].toLowerCase().equals("true"));
-                        Clients.broadcastUpdate(updateMap);*/
+                        Clients.broadcastUpdate(updateMap);
 
                         printCommand("Set berth " + args[1].toUpperCase() + " to " + (args[2].toLowerCase().equals("false") ? "not " : "") + "problematic", false);
                     }
                     else
                         printCommand("Unrecognised berth id", true);
                 }
-                break;
+                break;*/
 
             case SEARCH:
                 if (args.length != 2 && args.length != 3)
@@ -341,7 +344,6 @@ public class CommandHandler
                         HashMap berthDetail = new HashMap();
                         berthDetail.put("headcode", berth.getHeadcode());
                         berthDetail.put("berth_hist", berth.getBerthsHistory());
-                        //berthDetail.put("train_hist", berth.getTrainsHistory());
 
                         outMap.put((String) pairs.getKey(), berthDetail);
                     }
@@ -372,11 +374,78 @@ public class CommandHandler
                 }
                 break;
 
-            case "readmap":
+            case READ_MAP:
                 if (args.length == 2 && args[1].toLowerCase().equals("force"))
                     EastAngliaSignalMapServer.readSavedMap(true);
                 else
                     EastAngliaSignalMapServer.readSavedMap(false);
+
+                break;
+
+            case "server":
+                if (args.length != 2 && args.length != 1)
+                    printCommand("Usage: server [open|close]", true);
+                else if (args.length == 1)
+                    printCommand("Server " + (EastAngliaSignalMapServer.server.isClosed() ? "closed" : "open"), false);
+                else if (args[1].toLowerCase().equals("open"))
+                    if (EastAngliaSignalMapServer.server != null && !EastAngliaSignalMapServer.server.isClosed())
+                        printCommand("Server already open", false);
+                    else
+                        try
+                        {
+                            EastAngliaSignalMapServer.server = new ServerSocket(EastAngliaSignalMapServer.port, 2);
+                        }
+                        catch (IOException e) { printCommand("Unable to open server:\n" + String.valueOf(e), true); }
+                else if (args[1].toLowerCase().equals("close"))
+                    if (EastAngliaSignalMapServer.server != null && !EastAngliaSignalMapServer.server.isClosed())
+                        try
+                        {
+                            EastAngliaSignalMapServer.server.close();
+                        }
+                        catch (IOException e) { printCommand("Unable to close server:\n" + String.valueOf(e), true); }
+                    else
+                        printCommand("Server already closed", false);
+                else if (args[1].toLowerCase().equals("restart"))
+                    try
+                    {
+                        if (!EastAngliaSignalMapServer.server.isClosed())
+                            EastAngliaSignalMapServer.server.close();
+
+                        EastAngliaSignalMapServer.server = new ServerSocket(EastAngliaSignalMapServer.port, 2);
+
+                        printCommand("Server restarted", false);
+                    }
+                    catch (IOException e)
+                    {
+                        printCommand("Unable to restart server:\n" + String.valueOf(e), true);
+                    }
+                break;
+
+            case "stomp":
+                if (args.length != 2 && args.length != 1)
+                    printCommand("Usage: stomp [start|stop]", true);
+                else if (args.length == 1)
+                    printCommand("Stomp " + (!StompConnectionHandler.isConnected() ? "disconnected " : "")
+                            + (StompConnectionHandler.isClosed()? "closed " : "")
+                            + (StompConnectionHandler.isTimedOut() ? "timed out " : "")
+                            + (!StompConnectionHandler.isClosed() && StompConnectionHandler.isConnected() && !StompConnectionHandler.isTimedOut() ? "normal" : ""), false);
+                else if (args[1].toLowerCase().equals("start"))
+                    if (StompConnectionHandler.isConnected() && !StompConnectionHandler.isClosed())
+                        printCommand("Stomp already started", false);
+                    else
+                    {
+                        StompConnectionHandler.disconnect();
+                        
+                        if (StompConnectionHandler.wrappedConnect())
+                            printCommand("Stomp started", false);
+                        else
+                            printCommand("Unable to restart stomp", true);
+                    }
+                else if (args[1].toLowerCase().equals("stop"))
+                    if (StompConnectionHandler.isConnected() && !StompConnectionHandler.isClosed())
+                        StompConnectionHandler.disconnect();
+                    else
+                        printCommand("Stomp already stopped", false);
 
                 break;
 

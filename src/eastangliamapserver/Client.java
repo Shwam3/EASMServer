@@ -2,6 +2,7 @@ package eastangliamapserver;
 
 import java.io.*;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class Client implements Runnable
@@ -19,6 +20,8 @@ public class Client implements Runnable
     private boolean stop   = false;
     private int     errors = 0;
 
+    private List<String> history = new ArrayList<>();
+
     private long  lastMessageTime    = System.currentTimeMillis();
     private long  timeoutTime        = 30000;
     private final Timer timeoutTimer = new Timer("timeoutTimer:" + address);
@@ -35,7 +38,7 @@ public class Client implements Runnable
 
         printClient("Initialise client at " + name + "/" + address, false);
         //addClientLog(String.format("Client at %s:%s joined", client.address, client.port + (client.name != null ? " (" + client.name + ")" : "")));
-        addClientLog("Joined");
+        addClientLog("Connected", true);
 
         clientThread = new Thread(this, "Client-" + address);
         clientThread.start();
@@ -57,7 +60,7 @@ public class Client implements Runnable
 
                 if (obj instanceof Map)
                 {
-                    HashMap<String, Object> message = (HashMap) obj;
+                    HashMap<String, Object> message = (HashMap<String, Object>) obj;
                     MessageType type = MessageType.getType((int) message.get("type"));
 
                     lastMessageTime = System.currentTimeMillis();
@@ -66,40 +69,40 @@ public class Client implements Runnable
                     {
                         case SOCKET_CLOSE:
                             printClient("Closing connection", false);
-                            addClientLog("Close connection");
+                            addClientLog("Close connection", true);
 
                             stop = true;
                             break;
 
                         case HEARTBEAT_REQUEST:
-                            printClient("Sending heartbeat", false);
-                            //addClientLog("Heartbeat ->");
+                            //printClient("Sending heartbeat", false);
+                            addClientLog("Heartbeat ->", false);
 
                             sendHeartbeatReply();
                             break;
 
                         case HEARTBEAT_REPLY:
-                            printClient("Received heartbeat", false);
-                            //addClientLog("Heartbeat <-");
+                            //printClient("Received heartbeat", false);
+                            addClientLog("Heartbeat <-", false);
                             break;
 
                         case REQUEST_ALL:
                             printClient("Sending full map", false);
-                            addClientLog("Full map");
+                            addClientLog("Full map", true);
 
                             sendAll();
                             break;
 
                         case REQUEST_HIST_TRAIN:
                             printClient("Sending history of train " + message.get("headcode"), false);
-                            addClientLog("Train history: " + message.get("headcode") + " (" + message.get("berth_id") + ")");
+                            addClientLog("Train history: " + message.get("headcode") + " (" + message.get("berth_id") + ")", true);
 
                             sendHistoryOfTrain((String) message.get("id"));
                             break;
 
                         case REQUEST_HIST_BERTH:
                             printClient("Sending history of berth " + message.get("berth_id"), false);
-                            addClientLog("Berth history: " + message.get("berth_id"));
+                            addClientLog("Berth history: " + message.get("berth_id"), true);
 
                             sendHistoryOfBerth((String) message.get("berth_id"));
                             break;
@@ -108,7 +111,7 @@ public class Client implements Runnable
                             String newName = (String) message.get("name");
 
                             printClient("Set name to '" + newName + "'", false);
-                            addClientLog("Re-Name: " + name + " --> " + newName);
+                            addClientLog("Re-Name: " + name + " --> " + newName, true);
 
                             name = newName;
 
@@ -121,9 +124,9 @@ public class Client implements Runnable
 
                 errors = 0;
             }
-            catch (EOFException e) { errors++; }
-            catch (IOException  e) { errors++; }
-            catch (ClassNotFoundException e) {}
+            catch (EOFException e) { errors++; addClientLog(String.valueOf(e), false); }
+            catch (IOException  e) { errors++; addClientLog(String.valueOf(e), false); }
+            catch (ClassNotFoundException e) { addClientLog(String.valueOf(e), false); }
             finally { testErrors(); }
         }
 
@@ -151,7 +154,7 @@ public class Client implements Runnable
         message.put("type", MessageType.SOCKET_CLOSE.getValue());
 
         try { new ObjectOutputStream(out).writeObject(message); errors = 0; }
-        catch (IOException e) {}
+        catch (IOException e) { addClientLog(String.valueOf(e), false); }
     }
     //</editor-fold>
 
@@ -255,7 +258,7 @@ public class Client implements Runnable
     private void sendMessage(Object message)
     {
         try { new ObjectOutputStream(out).writeObject(message); errors = 0; }
-        catch (IOException e) { errors++; }
+        catch (IOException e) { errors++; addClientLog(String.valueOf(e), false); }
 
         testErrors();
     }
@@ -311,7 +314,7 @@ public class Client implements Runnable
                     else
                     {
                         printClient("Connection timed out", true);
-                        addClientLog("Timed out (" + (System.currentTimeMillis() - lastMessageTime) + ")");
+                        addClientLog("Timed out (" + (System.currentTimeMillis() - lastMessageTime) + ")", true);
                         sendSocketClose();
                         closeSocket();
                         timeoutTime = 30000;
@@ -342,8 +345,16 @@ public class Client implements Runnable
             return "";
     }
 
-    private void addClientLog(String message)
+    private void addClientLog(String message, boolean addToGlobal)
     {
-        Clients.addClientLog("[" + name + "/" + address + "] " + message);
+        history.add(0, new SimpleDateFormat("[dd/MM HH:mm] ").format(new Date()) + message);
+
+        if (addToGlobal)
+            Clients.addClientLog("[" + name + "/" + address + "] " + message);
+    }
+
+    public List<String> getHistory()
+    {
+        return history;
     }
 }

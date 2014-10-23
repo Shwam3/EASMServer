@@ -8,16 +8,7 @@ import java.util.*;
 
 public class CClassHandler
 {
-    private final Map<String, String> header;
-    private final String body;
-
-    public CClassHandler(Map header, String body)
-    {
-        this.header = header;
-        this.body   = body;
-    }
-
-    public HashMap<String, String> parseMessage()
+    public static synchronized HashMap<String, String> parseMessage(String body)
     {
         HashMap<String, String> updateMap = new HashMap<>();
 
@@ -242,7 +233,9 @@ public class CClassHandler
         {
             printCClass("Exception in C-Class handler:\n" + String.valueOf(e), true);
         }
-        
-        return updateMap;
+        finally
+        {
+            return updateMap;
+        }
     }
 }

@@ -5,6 +5,7 @@ import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.*;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
 
@@ -15,10 +16,7 @@ public class ListDialog
     public ListDialog(String title, String message, List<String> list)
     {
         if (list == null)
-        {
-            JOptionPane.showMessageDialog(null, "Problem with Dialog parameters (1)", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+            list = new ArrayList<>();
 
         dialog = new JDialog();
 
@@ -31,14 +29,17 @@ public class ListDialog
         dialog.setModalityType(ModalityType.APPLICATION_MODAL);
 
         JPanel pnl = new JPanel(null);
-        pnl.setBounds(10, 10, 269, 261);
+        pnl.setBounds(10, 10, 279, 271);
 
-        JLabel lblMessage = new JLabel(message);
-        lblMessage.setVerticalAlignment(SwingConstants.CENTER);
-        lblMessage.setHorizontalAlignment(SwingConstants.LEFT);
-        lblMessage.setBounds(0, 0, pnl.getWidth(), 15);
-        lblMessage.setToolTipText(message);
-        pnl.add(lblMessage);
+        if (message != null && !message.equals(""))
+        {
+            JLabel lblMessage = new JLabel(message);
+            lblMessage.setVerticalAlignment(SwingConstants.CENTER);
+            lblMessage.setHorizontalAlignment(SwingConstants.LEFT);
+            lblMessage.setBounds(0, 0, pnl.getWidth(), 15);
+            lblMessage.setToolTipText(message);
+            pnl.add(lblMessage);
+        }
 
         JList jList = new JList(list.toArray());
         jList.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
@@ -47,7 +48,12 @@ public class ListDialog
         JScrollPane jListSP = new JScrollPane(jList);
         jListSP.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         jListSP.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        jListSP.setBounds(0, 25, pnl.getWidth(), pnl.getHeight() - 58);
+
+        if (message != null && !message.equals(""))
+            jListSP.setBounds(0, 25, pnl.getWidth(), pnl.getHeight() - 58);
+        else
+            jListSP.setBounds(0, 0, pnl.getWidth(), pnl.getHeight() - 38);
+
         pnl.add(jListSP);
 
         JButton okButton = new JButton("OK");
@@ -61,7 +67,6 @@ public class ListDialog
             }
         });
         pnl.add(okButton);
-
 
         dialog.add(pnl);
         dialog.setResizable(false);

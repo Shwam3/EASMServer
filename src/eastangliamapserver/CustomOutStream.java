@@ -19,12 +19,19 @@ public class CustomOutStream extends OutputStream
     @Override
     public void write(int b) throws IOException
     {
-        boolean scrollToEnd = textArea.getCaretPosition() == textArea.getDocument().getLength();
-        textArea.append(String.valueOf((char) b));
+        //synchronized (EastAngliaSignalMapServer.gui.logLock)
+        //{
+            try
+            {
+                boolean scrollToEnd = textArea.getCaretPosition() == textArea.getDocument().getLength();
+                textArea.append(String.valueOf((char) b));
 
-        if (scrollToEnd)
-            textArea.setCaretPosition(textArea.getDocument().getLength());
+                if (scrollToEnd)
+                    textArea.setCaretPosition(textArea.getDocument().getLength());
 
-        defaultStream.write(b);
+                defaultStream.write(b);
+            }
+            catch (Error er) {}
+        //}
     }
 }

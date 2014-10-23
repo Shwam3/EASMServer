@@ -5,7 +5,6 @@ import static eastangliamapserver.stomp.StompConnectionHandler.printCClass;
 import java.lang.management.ManagementFactory;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.regex.Pattern;
 
 public class Berths
 {
@@ -40,7 +39,7 @@ public class Berths
         }
     }
 
-    public static boolean isProperHeadcode(String headcode)
+    /*public static boolean isProperHeadcode(String headcode)
     {
         try
         {
@@ -50,7 +49,7 @@ public class Berths
         {
             return false;
         }
-    }
+    }*/
 
     public static Berth getBerth(String berthId)
     {
@@ -139,7 +138,7 @@ public class Berths
 
     public static HashMap<String, Object> getTrain(String uuid)
     {
-        HashMap train = trainMap.get(uuid);
+        HashMap<String, Object> train = trainMap.get(uuid);
 
         if ((train.get("berth") == null || !((Berth) train.get("berth")).getHeadcode().equals((String) train.get("headcode"))) && train.get("end") == null)
         {
@@ -168,7 +167,7 @@ public class Berths
                         (time / (60000)) % 60,
                         (time / 1000) % 60)
                     + (!StompConnectionHandler.isConnected() ? " - disconnected" : "")
-                    //+ (!StompConnectionHandler.isClosed()? " - closed" : "")
+                    + (StompConnectionHandler.isClosed()? " - closed" : "")
                     + (StompConnectionHandler.isTimedOut() ? " - timed out" : ""));
         time = System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime();
         CClassMapList.add(String.format("Server Uptime: %02dd %02dh %02dm %02ds (%s)",
@@ -176,7 +175,8 @@ public class Berths
                         (time / (3600000)) % 24,
                         (time / (60000)) % 60,
                         (time / 1000) % 60,
-                        new SimpleDateFormat("dd/MM HH:mm:ss").format(ManagementFactory.getRuntimeMXBean().getStartTime())));
+                        new SimpleDateFormat("dd/MM HH:mm:ss").format(ManagementFactory.getRuntimeMXBean().getStartTime()))
+                    + (EastAngliaSignalMapServer.server.isClosed() ? " - closed" : ""));
         CClassMapList.add(String.format("Memory use:    %s mb"/* (f %s, t %s, m %s)"*/, (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576/*, Runtime.getRuntime().freeMemory(), Runtime.getRuntime().totalMemory(), Runtime.getRuntime().maxMemory()*/));
         CClassMapList.add(" ");
 
@@ -199,9 +199,7 @@ public class Berths
         }
 
         if (!EastAngliaSignalMapServer.CClassMap.isEmpty() && !missingBerths.isEmpty())
-        {
             CClassMapList.add(" ");
-        }
 
         if (!EastAngliaSignalMapServer.CClassMap.isEmpty())
         {

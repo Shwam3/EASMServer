@@ -24,6 +24,8 @@ public class ServerGui
     private final JTextArea                logTextArea;
     private final JTextField               commandInput;
 
+    public final Object logLock = new Object();
+
     public ServerGui(int x, int y, int width, int height)
     {
         this();
@@ -34,7 +36,7 @@ public class ServerGui
 
     public ServerGui()
     {
-        frame = new JFrame("East Anglia Signal Map - Server (v" + EastAngliaSignalMapServer.BUILD + ")");
+        frame = new JFrame("East Anglia Signal Map - Server (v" + EastAngliaSignalMapServer.VERSION + ")");
 
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         frame.setLocationByPlatform(true);
@@ -77,8 +79,28 @@ public class ServerGui
         catch (FileNotFoundException e) {}
         catch (IOException e) {}
 
-        System.setOut(new PrintStream(new CustomOutStream(logTextArea, System.out), true));
-        System.setErr(new PrintStream(new CustomOutStream(logTextArea, System.err), true));
+        System.setOut(new PrintStream(new CustomOutStream(logTextArea, System.out), true)
+        {
+            @Override
+            public void println(String message)
+            {
+                synchronized (logLock)
+                {
+                    super.println(message);
+                }
+            }
+        });
+        System.setErr(new PrintStream(new CustomOutStream(logTextArea, System.err), true)
+        {
+            @Override
+            public void println(String message)
+            {
+                synchronized (logLock)
+                {
+                    super.println(message);
+                }
+            }
+        });
 
         logPanel.add(new JScrollPane(logTextArea), BorderLayout.CENTER);
 
@@ -100,10 +122,10 @@ public class ServerGui
         JPanel monitorPanel = new JPanel(new BorderLayout());
         monitorPanel.setPreferredSize(new Dimension(854, 241));
 
-        clientListModel = new DefaultListModel();
+        clientListModel = new DefaultListModel<>();
         JList<String> clientList = new JList<>(clientListModel);
 
-        /*clientList.addMouseListener(new MouseAdapter()
+        clientList.addMouseListener(new MouseAdapter()
         {
             @Override
             public void mouseClicked(MouseEvent evt)
@@ -113,7 +135,7 @@ public class ServerGui
                 if (SwingUtilities.isRightMouseButton(evt) && !list.isSelectionEmpty() && list.locationToIndex(evt.getPoint()) == list.getSelectedIndex())
                     new ClientContextMenu(list, evt.getX(), evt.getY());
             }
-        });*/
+        });
 
         clientList.setFont(new Font("Monospaced", 0, 12));
 
@@ -153,6 +175,7 @@ public class ServerGui
                                     (time / (60000)) % 60,
                                     (time / 1000) % 60)
                             + (!StompConnectionHandler.isConnected() ? " - disconnected" : "")
+                            + (StompConnectionHandler.isClosed()? " - closed" : "")
                             + (StompConnectionHandler.isTimedOut() ? " - timed out" : ""), 1);
                     time = System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime();
                     model.setElementAt(String.format("Server Uptime: %02dd %02dh %02dm %02ds (%s)",
