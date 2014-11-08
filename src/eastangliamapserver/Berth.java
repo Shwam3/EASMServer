@@ -6,38 +6,25 @@ import java.util.*;
 
 public class Berth
 {
-    private final String[] BERTH_IDs;
-    private final String   BERTH_DESCRIPTION;
-    private       String   name = "";
-    private       Train    currentTrain;
-  //private       boolean  isProblematic  = false;
-    public        int      isMonitoring   = 0;
-    private       Train    suggestedTrain = null;
+    private final String  BERTH_ID;
+    private final String  BERTH_DESCRIPTION;
+    private       String  name = "";
+    private       Train   currentTrain;
+  //private       boolean isProblematic  = false;
+    public        int     isMonitoring   = 0;
+    private       Train   suggestedTrain = null;
 
     //private final HashMap<String, HashMap<String, String>> possibleAddresses = new HashMap<>();
-    private final List<Berth>                   adjacentBerths = new ArrayList<>();
-    private       List<String>                  trainHistory   = new ArrayList<>();
-    private final List<HashMap<String, String>> stepToBerths   = new ArrayList<>();
+    private final ArrayList<Berth>                   adjacentBerths = new ArrayList<>();
+    private       ArrayList<String>                  trainHistory   = new ArrayList<>();
+    private final ArrayList<HashMap<String, String>> stepToBerths   = new ArrayList<>();
 
-    public Berth(String... berthIds)
+    public Berth(String berthId)
     {
-        this.BERTH_IDs = berthIds;
+        this.BERTH_ID = berthId;
 
-        StringBuilder desc = new StringBuilder();
-
-        for (int i = 0; i < BERTH_IDs.length; i++)
-        {
-            if (i == 0)
-                desc.append(BERTH_IDs[i]);
-            else if (i == BERTH_IDs.length - 1)
-                desc.append(" & " + BERTH_IDs[i]);
-            else
-                desc.append(", " + BERTH_IDs[i]);
-
-            Berths.putBerth(BERTH_IDs[i], this);
-        }
-
-        BERTH_DESCRIPTION = desc.toString();
+        Berths.putBerth(berthId, this);
+        BERTH_DESCRIPTION = berthId;
     }
 
     public void setName(String name) { this.name = name.trim(); }
@@ -66,21 +53,25 @@ public class Berth
             if (newTrain.getTrainsHistory().size() < currentTrain.getTrainsHistory().size())
                 return;
 
-        if (suggestedTrain != null)
+        if (!BERTH_ID.startsWith("XX"))
         {
-            if (newTrain.getHeadcode().equals(suggestedTrain.getHeadcode()))
+            if (suggestedTrain != null)
             {
-                printCClass(String.format("Using suggested train for %s, %s (%s%s)", BERTH_DESCRIPTION, suggestedTrain.getHeadcode(), suggestedTrain.UUID, suggestedTrain != newTrain ? " (vs " + newTrain.UUID + ")" : ""), false);
-                newTrain = suggestedTrain;
+                if (newTrain.getHeadcode().equals(suggestedTrain.getHeadcode()))
+                {
+                    printCClass(String.format("[%s] Using suggested: %s (%s%s)", BERTH_DESCRIPTION, suggestedTrain.getHeadcode(), suggestedTrain.UUID, suggestedTrain != newTrain ? " (vs " + newTrain.UUID + ")" : ""), false);
+                    newTrain = suggestedTrain;
+                }
+                else
+                    printCClass(String.format("[%s] Discarding suggested: %s (%s%s)", BERTH_DESCRIPTION, suggestedTrain.getHeadcode(), suggestedTrain.UUID, suggestedTrain != newTrain ? " (vs " + newTrain.UUID + ")" : ""), false);
             }
             else
-                printCClass(String.format("Discarding suggested train for %s, %s (%s%s)", BERTH_DESCRIPTION, suggestedTrain.getHeadcode(), suggestedTrain.UUID, suggestedTrain != newTrain ? " (vs " + newTrain.UUID + ")" : ""), false);
-        }
-        else
-            if (currentTrain != null && !currentTrain.equals(newTrain) && (currentTrain.getCurrentBerth() == this || currentTrain.getTrainsHistory().size() <= 2))
-                currentTrain.setBerth(null);
+                if (currentTrain != null && !currentTrain.equals(newTrain) && (currentTrain.getCurrentBerth() == this || currentTrain.getTrainsHistory().size() <= 2))
+                    currentTrain.setBerth(null);
 
-        suggestedTrain = null;
+            suggestedTrain = null;
+        }
+        
         currentTrain = newTrain;
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM HH:mm:ss");
@@ -91,8 +82,9 @@ public class Berth
             currentTrain.setBerth(this);
         }
 
-        while (trainHistory.size() > 256)
-            trainHistory.remove(trainHistory.size() - 1);
+        if (!BERTH_ID.startsWith("XX"))
+            while (trainHistory.size() > 256)
+                trainHistory.remove(trainHistory.size() - 1);
     }
 
     /*public void setProblematicBerth(boolean isProblematic)
@@ -128,9 +120,9 @@ public class Berth
      *
      * @return Berths that can be stepped into using the given toBerth
      */
-    public List<String> getStepToBerthsFor(String toBerthId, String fromBerthId)
+    public ArrayList<String> getStepToBerthsFor(String toBerthId, String fromBerthId)
     {
-        List<String> stepToBerthList = new ArrayList<>();
+        ArrayList<String> stepToBerthList = new ArrayList<>();
 
         for (HashMap<String, String> hm : stepToBerths)
             if (hm.get("realToBerthId").equals(toBerthId) && hm.get("fromBerthId").equals(fromBerthId))
@@ -201,14 +193,14 @@ public class Berth
                 if (!adjacentBerths.contains(berth))
                 {
                     adjacentBerths.add(berth);
-                    berth.addAdjacentBerths(this.getIds()[0]);
+                    berth.addAdjacentBerths(this.getId());
                 }
         }
 
         return this;
     }
 
-    public List<Berth> getAdjacentBerths()
+    public ArrayList<Berth> getAdjacentBerths()
     {
         return adjacentBerths;
     }
@@ -228,9 +220,9 @@ public class Berth
         return adjacentBerths.size() > 0;
     }
 
-    public List<Train> getAdjacentTrains()
+    public ArrayList<Train> getAdjacentTrains()
     {
-        List<Train> trainList = new ArrayList<>();
+        ArrayList<Train> trainList = new ArrayList<>();
 
         for (Berth berth : getAdjacentBerths())
             if (berth.hasTrain())
@@ -247,9 +239,9 @@ public class Berth
         return currentTrain.getHeadcode();
     }
 
-    public String[] getIds()
+    public String getId()
     {
-        return BERTH_IDs;
+        return BERTH_ID;
     }
 
     public Train getTrain()
@@ -332,17 +324,17 @@ public class Berth
         return !possibleAddresses.isEmpty();
     }*/
 
-    public List<String> getBerthsHistory()
+    public ArrayList<String> getBerthsHistory()
     {
         return trainHistory;
     }
 
-    public void setHistory(List<String> history)
+    public void setHistory(ArrayList<String> history)
     {
         this.trainHistory = history;
     }
 
-    public List<String> getTrainsHistory()
+    public ArrayList<String> getTrainsHistory()
     {
         if (currentTrain == null)
             return null;
@@ -353,6 +345,6 @@ public class Berth
     @Override
     public String toString()
     {
-        return "eastangliamap.Berth=[description=" + BERTH_DESCRIPTION + ",berthIds=" + Arrays.deepToString(BERTH_IDs) + ",train=" + String.valueOf(currentTrain) + "]";
+        return "eastangliamap.Berth=[description=" + BERTH_DESCRIPTION + ",berthId=" + BERTH_ID + ",train=" + String.valueOf(currentTrain) + "]";
     }
 }

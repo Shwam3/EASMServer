@@ -1,17 +1,10 @@
 package eastangliamapserver.stomp;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import javax.security.auth.login.LoginException;
-import net.ser1.stomp.Command;
-import net.ser1.stomp.MessageReceiver;
-import net.ser1.stomp.Receiver;
-import net.ser1.stomp.Stomp;
+import net.ser1.stomp.*;
 
 public class StompClient extends Stomp implements MessageReceiver
 {
@@ -20,11 +13,13 @@ public class StompClient extends Stomp implements MessageReceiver
     private InputStream  input;
     private Socket       socket;
 
+    private String subscriptionID = "";
+
     public StompClient(String server, int port, String login, String pass, String clientId) throws IOException, LoginException
     {
         socket = new Socket(server, port);
-        input  = socket.getInputStream();
-        output = socket.getOutputStream();
+        input  = /*new BufferedInputStream(*/socket.getInputStream()/*)*/;
+        output = /*new BufferedOutputStream(*/socket.getOutputStream()/*)*/;
 
         listener = new Receiver(this, input);
         listener.start();
@@ -73,13 +68,13 @@ public class StompClient extends Stomp implements MessageReceiver
         _connected = false;
     }
 
-    public void ack(String subscriptionId, String messageId)
+    public void ack(String messageId)
     {
         try
         {
             StringBuilder message = new StringBuilder("ACK\n");
 
-            message.append("subscription:" + subscriptionId + "\n");
+            message.append("subscription:" + subscriptionID + "\n");
             message.append("message-id:"   + messageId      + "\n");
 
             message.append("\n");
@@ -91,6 +86,12 @@ public class StompClient extends Stomp implements MessageReceiver
         {
             receive(Command.ERROR, null, e.getMessage());
         }
+    }
+
+    public void subscribe(String name, Listener listener, String subID, Map headers)
+    {
+        subscriptionID = subID;
+        super.subscribe(name, listener, headers);
     }
 
     @Override

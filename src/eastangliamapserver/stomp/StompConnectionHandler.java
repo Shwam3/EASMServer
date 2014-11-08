@@ -11,14 +11,6 @@ import net.ser1.stomp.Listener;
 
 public class StompConnectionHandler
 {
-    private static final String SERVER    = "datafeeds.networkrail.co.uk";
-    private static final int    PORT      = 61618;
-    private static       String USERNAME  = "";
-    private static       String PASSWORD  = "";
-    private static       String APP_ID    = "";
-    public  static       String TD_SUB_ID = "";
-    public  static final String TD_TOPIC  = "/topic/TD_ANG_SIG_AREA";
-
     private static StompClient client;
 
     private static ScheduledFuture<?> timeoutHandler = null;
@@ -29,17 +21,21 @@ public class StompConnectionHandler
     public static boolean connect() throws LoginException, IOException
     {
         FileInputStream in = null;
+        String username = "";
+        String password = "";
+        String appID = "";
+        String subID = "";
         try
         {
             Properties loginProps = new Properties();
             in = new FileInputStream("NROD_Login.properties");
             loginProps.load(in);
 
-            USERNAME = loginProps.getProperty("Username");
-            PASSWORD = loginProps.getProperty("Password");
+            username = loginProps.getProperty("Username");
+            password = loginProps.getProperty("Password");
 
-            APP_ID = USERNAME + "-EastAngliaSignalMapServer-v" + EastAngliaSignalMapServer.VERSION + "-" + System.getProperty("user.name");
-            TD_SUB_ID = APP_ID + "-TD";
+            appID = username + "-EastAngliaSignalMapServer-v" + EastAngliaSignalMapServer.VERSION + "-" + System.getProperty("user.name");
+            subID = appID + "-TD";
         }
         catch (FileNotFoundException e)
         {
@@ -52,22 +48,21 @@ public class StompConnectionHandler
                 in.close();
         }
 
-        if ((USERNAME != null && USERNAME.equals("")) || (PASSWORD != null && PASSWORD.equals("")))
+        if ((username != null && username.equals("")) || (password != null && password.equals("")))
         {
-            printStomp("Error retreiving login details (u: " + USERNAME + ", p: " + PASSWORD + ")", true);
+            printStomp("Error retreiving login details (usr: " + username + ", pwd: " + password + ")", true);
             return false;
         }
 
+        client = new StompClient("datafeeds.networkrail.co.uk", 61618, username, password, appID);
         startTimeoutTimer();
-
-        client = new StompClient(SERVER, PORT, USERNAME, PASSWORD, APP_ID);
 
         if (client.isConnected())
         {
-            printStomp("Connected to \"" + SERVER + ":" + PORT + "\"", false);
-            printStomp("    ID:       " + APP_ID,   false);
-            printStomp("    Username: " + USERNAME, false);
-            printStomp("    Password: " + PASSWORD, false);
+            printStomp("Connected to \"datafeeds.networkrail.co.uk:" + 61618 + "\"", false);
+            printStomp("    ID:       " + appID,    false);
+            printStomp("    Username: " + username, false);
+            printStomp("    Password: " + password, false);
         }
         else
         {
@@ -82,6 +77,7 @@ public class StompConnectionHandler
             @Override
             public void message(final Map headers, final String body)
             {
+                printCClass(String.format("Message \"%s\" (%s)", String.valueOf(headers.get("message-id")).substring(38), EastAngliaSignalMapServer.sdf.format(new Date(Long.parseLong(String.valueOf(headers.get("timestamp")))))), false);
                 headers.put("nice-message-id", headers.get("message-id").toString().substring(38).replace(":", ""));
                 HashMap<String, String> updateMap = CClassHandler.parseMessage(body);
 
@@ -90,11 +86,13 @@ public class StompConnectionHandler
                     EastAngliaSignalMapServer.CClassMap.putAll(updateMap);
                     Clients.broadcastUpdate(updateMap);
                 }
+                else
+                    printCClass("Empty map", false);
 
                 lastMessageTime = System.currentTimeMillis();
                 EastAngliaSignalMapServer.gui.updateDataList();
 
-                StompConnectionHandler.client.ack(StompConnectionHandler.TD_SUB_ID, headers.get("message-id").toString());
+                StompConnectionHandler.client.ack(headers.get("message-id").toString());
             }
         };
 
@@ -109,13 +107,13 @@ public class StompConnectionHandler
 
         HashMap header = new HashMap();
         header.put("ack", "client-individual");
+        header.put("id", subID);
+        header.put("activemq.subscriptionName", subID); // actual name unknown
 
-        header.put("id", TD_SUB_ID);
-        header.put("activemq.subscriptionName", TD_SUB_ID); // actual name unknown
-        client.subscribe(TD_TOPIC, TDListener, header);
+        client.subscribe("/topic/TD_ANG_SIG_AREA", TDListener, subID, header);
 
-        printStomp("Subscribed to \"" + TD_TOPIC + "\"", false);
-        printStomp("Subscription id \"" + TD_SUB_ID + "\"", false);
+        printStomp("Subscribed to \"/topic/TD_ANG_SIG_AREA\"", false);
+        printStomp("Subscription id \"" + subID + "\"", false);
 
         return true;
     }
@@ -147,28 +145,29 @@ public class StompConnectionHandler
         return System.currentTimeMillis() - lastMessageTime >= 20000;
     }
 
-    public static void reconnect()
-    {
-        if (client != null)
-            client.disconnect();
-
-        if (wrappedConnect())
-            printStomp("Reconnected", false);
-    }
-
     public static boolean wrappedConnect()
     {
         try
         {
             return connect();
         }
-        catch (LoginException e) { printStomp("Login Exception. (Another) Server already connected to NR Servers", true); }
-        catch (UnknownHostException e) { printStomp("Unable to resolve host (" + SERVER + ")", true); }
+        catch (LoginException e)
+        {
+            printStomp("Login Exception. (Another) Server already is connected to NR Servers", true);
+            printStomp(e.toString(), true);
+            /*try { Thread.sleep(50); }
+            catch (InterruptedException ex) { return false; }
+
+            wrappedConnect();*/
+        }
+        catch (UnknownHostException e) { printStomp("Unable to resolve host (datafeeds.networkrail.co.uk)", true); }
         catch (IOException e) { printStomp("IO Exception:\n" + String.valueOf(e), true); }
         catch (Exception e) { printStomp("Exception:\n" + String.valueOf(e), true); }
         catch (Throwable t) { printStomp("INVESTIGATE FURTHER:\n" + String.valueOf(t), true); }
-
-        return false;
+        finally
+        {
+            return false;
+        }
     }
 
     private static void startTimeoutTimer()
@@ -197,14 +196,16 @@ public class StompConnectionHandler
 
                         try
                         {
-                            reconnect();
+                            if (client != null)
+                                client.disconnect();
 
-                            //EastAngliaSignalMapServer.server.close();
-                            //EastAngliaSignalMapServer.server = new ServerSocket(6321);
+                            connect();
                         }
+                        catch (LoginException e) { printStomp("Login Exception", true); e.printStackTrace(); }
                         //catch (IOException ex) { printStomp("IOException reconnecting:\n" + String.valueOf(ex), true); }
                         catch (Exception ex) { printStomp("Exception reconnecting:\n" + String.valueOf(ex), true); }
                         catch (Error er)     { printStomp("Error reconnecting:\n" + String.valueOf(er), true); }
+                        finally { return; }
                     }
                     else
                     {

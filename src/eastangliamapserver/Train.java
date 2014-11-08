@@ -13,7 +13,7 @@ public class Train
     private       String  headcode = "";
     private       Berth   currentBerth;
     public        boolean isCancelled = false;
-    private final List<String> history = new ArrayList<>();
+    private final ArrayList<String> history = new ArrayList<>();
 
     public Train(String headcode, Berth startBerth)
     {
@@ -88,7 +88,7 @@ public class Train
 
     public Berth getCurrentBerth() { return currentBerth; }
 
-    public List<String> getTrainsHistory()
+    public ArrayList<String> getTrainsHistory()
     {
         return history;
     }
@@ -105,7 +105,7 @@ public class Train
         if (obj instanceof Train)
         {
             Train train = (Train) obj;
-            return this.headcode == train.getHeadcode();// && this.UUID == train.UUID;
+            return headcode.equals(train.getHeadcode());// && this.UUID == train.UUID;
         }
 
         return false;

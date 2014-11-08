@@ -8,23 +8,20 @@ import java.util.*;
 public class Client implements Runnable
 {
     private final Socket client;
-    public  String address = "0.0.0.0";
+    public  String address = "--.--.--.--";
     public  String port    = "";
     public  String name    = "Unnamed";
-
-    private InputStream  in;
-    private OutputStream out;
 
     private Thread clientThread;
 
     private boolean stop   = false;
     private int     errors = 0;
 
-    private List<String> history = new ArrayList<>();
+    private ArrayList<String> history = new ArrayList<>();
 
     private long  lastMessageTime    = System.currentTimeMillis();
     private long  timeoutTime        = 30000;
-    private final Timer timeoutTimer = new Timer("timeoutTimer:" + address);
+    private       Timer timeoutTimer;
 
     public Client(Socket client) throws IOException
     {
@@ -33,17 +30,16 @@ public class Client implements Runnable
         address = client.getInetAddress().getHostAddress();
         port    = Integer.toString(client.getPort());
 
-        in  = client.getInputStream();
-        out = client.getOutputStream();
-
         printClient("Initialise client at " + name + "/" + address, false);
         //addClientLog(String.format("Client at %s:%s joined", client.address, client.port + (client.name != null ? " (" + client.name + ")" : "")));
         addClientLog("Connected", true);
 
+        try { timeoutTimer = new Timer("timeoutTimer:" + address); }
+        catch (IllegalStateException e) {}
+        startTimeoutTimer();
+
         clientThread = new Thread(this, "Client-" + address);
         clientThread.start();
-
-        startTimeoutTimer();
     }
 
     @Override
@@ -53,7 +49,7 @@ public class Client implements Runnable
         {
             try
             {
-                Object obj = new ObjectInputStream(in).readObject();
+                Object obj = new ObjectInputStream(client.getInputStream()).readObject();
 
                 if (obj == null)
                     continue;
@@ -147,13 +143,16 @@ public class Client implements Runnable
     }
 
     //<editor-fold defaultstate="collapsed" desc="SOCKET_CLOSE">
-    public void sendSocketClose()
+    public void sendSocketClose(String reason)
     {
+        printClient("Socket closed sent (" + reason + ")", false);
         HashMap<String, Object> message = new HashMap<>();
 
         message.put("type", MessageType.SOCKET_CLOSE.getValue());
+        if (reason != null && !reason.equals(""))
+            message.put("reason", reason);
 
-        try { new ObjectOutputStream(out).writeObject(message); errors = 0; }
+        try { new ObjectOutputStream(client.getOutputStream()).writeObject(message); errors = 0; }
         catch (IOException e) { addClientLog(String.valueOf(e), false); }
     }
     //</editor-fold>
@@ -185,8 +184,11 @@ public class Client implements Runnable
     {
         HashMap<String, Object> message = new HashMap<>();
 
+        HashMap map = EastAngliaSignalMapServer.CClassMap;
+        map.put("XXMOTD", Berths.getBerth("XXMOTD").getHeadcode());
+
         message.put("type", MessageType.SEND_ALL.getValue());
-        message.put("message", EastAngliaSignalMapServer.CClassMap);
+        message.put("message", map);
 
         sendMessage(message);
     }
@@ -217,7 +219,7 @@ public class Client implements Runnable
             message.put("type",     MessageType.SEND_HIST_TRAIN.getValue());
             message.put("berth_id", (String) train.get("berth_id"));
             message.put("headcode", (String) train.get("headcode"));
-            message.put("history",  (List<String>) train.get("history"));
+            message.put("history",  (ArrayList<String>) train.get("history"));
 
             sendMessage(message);
         }
@@ -257,8 +259,13 @@ public class Client implements Runnable
 
     private void sendMessage(Object message)
     {
-        try { new ObjectOutputStream(out).writeObject(message); errors = 0; }
-        catch (IOException e) { errors++; addClientLog(String.valueOf(e), false); }
+        try { new ObjectOutputStream(client.getOutputStream()).writeObject(message); errors = 0; }
+        catch (IOException e)
+        {
+            errors++;
+            addClientLog(String.valueOf(e), false);
+            e.printStackTrace();
+        }
 
         testErrors();
     }
@@ -267,7 +274,7 @@ public class Client implements Runnable
     {
         if (errors > 3)
         {
-            sendSocketClose();
+            sendSocketClose("Errors:" + errors);
             closeSocket();
         }
     }
@@ -277,14 +284,14 @@ public class Client implements Runnable
         try
         {
             client.shutdownOutput();
-            out.close();
+            client.getOutputStream().close();
         }
         catch (IOException e) {}
 
         try
         {
             client.shutdownInput();
-            in.close();
+            client.getInputStream().close();
         }
         catch (IOException e) {}
 
@@ -292,38 +299,48 @@ public class Client implements Runnable
         catch (IOException e) {}
 
         stop = true;
-        timeoutTimer.cancel();
+
+        try { timeoutTimer.cancel(); }
+        catch (IllegalStateException e) {}
 
         Clients.remove(this);
     }
 
     private void startTimeoutTimer()
     {
-        timeoutTimer.scheduleAtFixedRate(new TimerTask()
+        try
         {
-            @Override
-            public void run()
+            timeoutTimer.scheduleAtFixedRate(new TimerTask()
             {
-                if (System.currentTimeMillis() - lastMessageTime >= timeoutTime)
+                @Override
+                public void run()
                 {
-                    if (timeoutTime == 30000)
+                    if (System.currentTimeMillis() - lastMessageTime >= timeoutTime)
                     {
-                        timeoutTime = 60000;
-                        sendHeartbeatRequest();
-                    }
-                    else
+                        if (timeoutTime == 30000)
+                        {
+                            timeoutTime = 60000;
+                            sendHeartbeatRequest();
+                        } else
+                        {
+                            printClient("Connection timed out", true);
+                            addClientLog("Timed out (" + (System.currentTimeMillis() - lastMessageTime) + ")", true);
+                            sendSocketClose("Timed Out");
+                            closeSocket();
+                            timeoutTime = 30000;
+                        }
+                    } else
                     {
-                        printClient("Connection timed out", true);
-                        addClientLog("Timed out (" + (System.currentTimeMillis() - lastMessageTime) + ")", true);
-                        sendSocketClose();
-                        closeSocket();
                         timeoutTime = 30000;
                     }
                 }
-                else
-                    timeoutTime = 30000;
-            }
-        }, 30000, 30000);
+            }, 30000, 30000);
+        }
+        catch (IllegalStateException e)
+        {
+            printClient("safe: " + e, true);
+            e.printStackTrace();
+        }
     }
 
     public Socket getSocket()
@@ -331,9 +348,9 @@ public class Client implements Runnable
         return client;
     }
 
-    public void disconnect()
+    public void disconnect(String resaon)
     {
-        sendSocketClose();
+        sendSocketClose(resaon);
         closeSocket();
     }
 
@@ -353,7 +370,7 @@ public class Client implements Runnable
             Clients.addClientLog("[" + name + "/" + address + "] " + message);
     }
 
-    public List<String> getHistory()
+    public ArrayList<String> getHistory()
     {
         return history;
     }

@@ -11,7 +11,7 @@ import javax.swing.*;
 
 public class EastAngliaSignalMapServer
 {
-    public  static String VERSION = "5";
+    public  static String VERSION = "6";
 
     public  static final int    port = 6321;
     public  static ServerSocket server;
@@ -44,10 +44,14 @@ public class EastAngliaSignalMapServer
 
         sdfLog = new SimpleDateFormat("[dd/MM/YY HH:mm:ss] ");
 
-        TimerMethods.sleep(false);
+        SignalMap.createBerthObjects();
         readSavedMap(false);
+        TimerMethods.sleep(false);
 
         if (StompConnectionHandler.wrappedConnect())
+            printServer("Stomp open", false);
+        else
+            printServer("Unble to start Stomp", true);
 
         /*try
         {
@@ -71,54 +75,7 @@ public class EastAngliaSignalMapServer
             @Override
             public void run()
             {
-                File out = new File("C:\\Users\\Shwam\\Documents\\GitHub\\EastAngliaSignalMapServer\\dist", "EastAngliaSigMap.save");
-
-                if (out.exists())
-                    out.delete();
-
-                HashMap<String, HashMap<String, Object>> outMap = new HashMap();
-
-                HashMap<String, Object> dateMap = new HashMap();
-                dateMap.put("date-time", new Date());
-                outMap.put("date-time", dateMap);
-
-                for (Map.Entry pairs : EastAngliaSignalMapServer.CClassMap.entrySet())
-                {
-                    Berth berth = Berths.getBerth((String) pairs.getKey());
-
-                    if (berth != null)
-                    {
-                        HashMap berthDetail = new HashMap();
-                        berthDetail.put("headcode", berth.getHeadcode());
-                        berthDetail.put("berth_hist", berth.getBerthsHistory());
-
-                        outMap.put((String) pairs.getKey(), berthDetail);
-                    }
-                    else
-                    {
-                        HashMap berthDetail = new HashMap();
-                        berthDetail.put("headcode", (String) pairs.getValue());
-
-                        outMap.put((String) pairs.getKey(), berthDetail);
-                    }
-                }
-
-                try
-                {
-                    FileOutputStream outStream = new FileOutputStream(out);
-                    ObjectOutputStream oos = new ObjectOutputStream(outStream);
-
-                    oos.writeObject(outMap);
-
-                    oos.close();
-                    outStream.close();
-
-                    EastAngliaSignalMapServer.printOut("[Persistance] Saved map");
-                }
-                catch (IOException e)
-                {
-                    printErr("[Persistance] Failed to save map\n" + e);
-                }
+                saveMap();
             }
         });
 
@@ -211,9 +168,19 @@ public class EastAngliaSignalMapServer
         //{
         if (message != null && !message.equals(""))
         {
-            String output = sdfLog.format(new Date()) + message;
-            System.out.println(output);
-            filePrint(output);
+            if (!message.contains("\n"))
+            {
+                String output = sdfLog.format(new Date()) + message;
+                System.out.println(output);
+                filePrint(output);
+            }
+            else
+                for (String msgPart : message.split("\n"))
+                {
+                    String output = sdfLog.format(new Date()) + msgPart;
+                    System.out.println(output);
+                    filePrint(output);
+                }
         }
         //}
     }
@@ -224,9 +191,19 @@ public class EastAngliaSignalMapServer
         //{
         if (message != null && !message.equals(""))
         {
-            String output = sdfLog.format(new Date()) + "!!!> " + message + " <!!!";
-            System.err.println(output);
-            filePrint(output);
+            if (!message.contains("\n"))
+            {
+                String output = sdfLog.format(new Date()) + "!!!> " + message + " <!!!";
+                System.err.println(output);
+                filePrint(output);
+            }
+            else
+                for (String msgPart : message.split("\n"))
+                {
+                    String output = sdfLog.format(new Date()) + msgPart;
+                    System.out.println(output);
+                    filePrint(output);
+                }
         }
         //}
     }
@@ -254,6 +231,7 @@ public class EastAngliaSignalMapServer
         catch (IOException | NullPointerException e) {}
 
         printServer("Closed", false);
+        saveMap();
 
         try { Thread.sleep(1000); }
         catch (InterruptedException e) {}
@@ -280,51 +258,113 @@ public class EastAngliaSignalMapServer
 
     public static void readSavedMap(boolean force)
     {
-        try
-        {
-            File mapSave = new File("C:\\Users\\Shwam\\Documents\\GitHub\\EastAngliaSignalMapServer\\dist", "EastAngliaSigMap.save");
-
-            if (mapSave.exists())
+        if (SignalMap.isCreated)
+            try
             {
-                ObjectInputStream in = new ObjectInputStream(new FileInputStream(mapSave));
+                File mapSave = new File("C:\\Users\\Shwam\\Documents\\GitHub\\EastAngliaSignalMapServer\\dist", "EastAngliaSigMap.save");
 
-                HashMap<String, Object> hm = (HashMap<String, Object>) in.readObject();
-
-                HashMap<String, Object> hm2 = ((HashMap<String, Object>) hm.get("date-time"));
-                Date date = (Date) hm2.get("date-time");
-
-                if (date == null)
-                    date = new Date(mapSave.lastModified());
-
-                if (date.after(new Date(System.currentTimeMillis() - 60000 * 20)) || force)
+                if (mapSave.exists())
                 {
+                    ObjectInputStream in = new ObjectInputStream(new FileInputStream(mapSave));
+
+                    HashMap<String, Object> hm = (HashMap<String, Object>) in.readObject();
+
+                    HashMap<String, Object> hm2 = ((HashMap<String, Object>) hm.get("date-time"));
+                    Date date = (Date) hm2.get("date-time");
+                    hm.remove("date-time");
+
+                    if (date == null)
+                        date = new Date(mapSave.lastModified());
+
+                    boolean isOld = true;
+                    if (date.after(new Date(System.currentTimeMillis() - 60000 * 20)) || force)
+                        isOld = false;
+                    else
+                        printOut("Saved map file is out of date");
+
                     HashMap<String, String> newCClassMap = new HashMap<>();
                     for (Map.Entry pairs : hm.entrySet())
                     {
-                        newCClassMap.put((String) pairs.getKey(), (String) ((HashMap<String, Object>) pairs.getValue()).get("headcode"));
+                        if (String.valueOf(pairs.getKey()).startsWith("XX"))
+                            continue;
+
+                        if (!isOld)
+                            newCClassMap.put((String) pairs.getKey(), (String) ((HashMap<String, Object>) pairs.getValue()).get("headcode"));
 
                         Berth berth = Berths.getBerth((String) pairs.getKey());
-                        if (berth != null)
-                            berth.setHistory((List<String>) ((HashMap<String, Object>) pairs.getValue()).get("berth_hist"));
+                        if (berth != null && ((HashMap<String, Object>) pairs.getValue()).get("berth_hist") != null)
+                            berth.setHistory((ArrayList<String>) ((HashMap<String, Object>) pairs.getValue()).get("berth_hist"));
                         else
                             Berths.addMissingBerths((String) pairs.getKey());
                     }
-
-                    System.currentTimeMillis();
 
                     EastAngliaSignalMapServer.CClassMap.putAll(newCClassMap);
 
                     printOut("[Persistance] Read map save file");
                 }
                 else
-                    printOut("Saved map file is out of date");
+                    printOut("No map save file");
+
+            }
+            catch (FileNotFoundException e) {}
+            catch (ClassNotFoundException e) { EastAngliaSignalMapServer.printErr("[Persistance] Exception parsing map save file:\n" + e); }
+            catch (IOException e) { EastAngliaSignalMapServer.printErr("[Persistance] Exception reading map save file:\n" + e); }
+        else
+            printServer("Not read save file", true);
+    }
+
+    public static void saveMap()
+    {
+        File out = new File("C:\\Users\\Shwam\\Documents\\GitHub\\EastAngliaSignalMapServer\\dist", "EastAngliaSigMap.save");
+
+        if (out.exists())
+            out.delete();
+
+        HashMap<String, HashMap<String, Object>> outMap = new HashMap();
+
+        HashMap<String, Object> dateMap = new HashMap();
+        dateMap.put("date-time", new Date());
+        outMap.put("date-time", dateMap);
+
+        for (Map.Entry pairs : EastAngliaSignalMapServer.CClassMap.entrySet())
+        {
+            if (String.valueOf(pairs.getKey()).startsWith("XX"))
+                continue;
+
+            Berth berth = Berths.getBerth((String) pairs.getKey());
+
+            if (berth != null)
+            {
+                HashMap berthDetail = new HashMap();
+                berthDetail.put("headcode", berth.getHeadcode());
+                berthDetail.put("berth_hist", berth.getBerthsHistory());
+
+                outMap.put((String) pairs.getKey(), berthDetail);
             }
             else
-                printOut("No map save file");
+            {
+                HashMap berthDetail = new HashMap();
+                berthDetail.put("headcode", (String) pairs.getValue());
 
+                outMap.put((String) pairs.getKey(), berthDetail);
+            }
         }
-        catch (FileNotFoundException e) {}
-        catch (ClassNotFoundException e) { EastAngliaSignalMapServer.printErr("[Persistance] Exception parsing map save file:\n" + e); }
-        catch (IOException e) { EastAngliaSignalMapServer.printErr("[Persistance] Exception reading map save file:\n" + e); }
+
+        try
+        {
+            FileOutputStream outStream = new FileOutputStream(out);
+            ObjectOutputStream oos = new ObjectOutputStream(outStream);
+
+            oos.writeObject(outMap);
+
+            oos.close();
+            outStream.close();
+
+            EastAngliaSignalMapServer.printOut("[Persistance] Saved map");
+        }
+        catch (IOException e)
+        {
+            printErr("[Persistance] Failed to save map\n" + e);
+        }
     }
 }

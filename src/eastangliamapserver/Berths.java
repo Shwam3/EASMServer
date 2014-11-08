@@ -10,16 +10,16 @@ public class Berths
 {
     private static HashMap<String, HashMap<String, Object>> trainMap = new HashMap<>();
     private static HashMap<String, Berth> berthMap = new HashMap<>();
-    private static List<String> missingBerths = new ArrayList<>();
+    private static ArrayList<String> missingBerths = new ArrayList<>();
 
-    public static Berth createOrGetBerth(String... berthIds)
+    public static Berth createOrGetBerth(String berthId)
     {
-        Berth berth = getBerth(berthIds[0]);
+        Berth berth = getBerth(berthId);
 
         if (berth != null)
             return berth;
         else
-            return new Berth(berthIds);
+            return new Berth(berthId);
     }
 
     public static boolean containsBerth(String berthId)
@@ -39,18 +39,6 @@ public class Berths
         }
     }
 
-    /*public static boolean isProperHeadcode(String headcode)
-    {
-        try
-        {
-            return Pattern.matches("([0-9][A-Z][0-9][0-9]|[0-9][0-9][0-9][A-Z])", headcode);
-        }
-        catch (Exception e)
-        {
-            return false;
-        }
-    }*/
-
     public static Berth getBerth(String berthId)
     {
         if (berthMap.containsKey(berthId))
@@ -61,13 +49,13 @@ public class Berths
 
     public static Object[] getAsArray()
     {
-        List<String> list = new ArrayList<>();
+        ArrayList<String> list = new ArrayList<>();
 
         for (Map.Entry pairs : berthMap.entrySet())
         {
             Berth berth = (Berth) pairs.getValue();
 
-            list.addAll(Arrays.asList(berth.getIds()));
+            list.addAll(Arrays.asList(berth.getId()));
         }
 
         return list.toArray();
@@ -87,7 +75,7 @@ public class Berths
     {
         printCClass("Missing Berth Ids:", false);
 
-        List<String> berthIds = new ArrayList<>();
+        ArrayList<String> berthIds = new ArrayList<>();
 
         for (String berthId : missingBerths)
             if (getBerth(berthId) != null)
@@ -103,11 +91,14 @@ public class Berths
 
     public static void addMissingBerths(String berthId)
     {
-        for (String missingBerth : missingBerths)
-            if (missingBerth.equals(berthId))
-                return;
+        if (getBerth(berthId) == null)
+        {
+            for (String missingBerth : missingBerths)
+                if (missingBerth.equals(berthId))
+                    return;
 
-         missingBerths.add(berthId);
+            missingBerths.add(berthId);
+        }
     }
 
     public static void clearMaps()
@@ -144,7 +135,7 @@ public class Berths
         {
             train.put("end", new Date());
 
-            List hist = (List) train.get("history");
+            ArrayList hist = (ArrayList) train.get("history");
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM HH:mm:ss");
             hist.set(0, "Start: " + sdf.format(train.get("start")) + ", End (approx): " + sdf.format(train.get("end")) + ": " + train.get("headcode") + " (" + uuid + ")");
             train.put("history", hist);
@@ -155,9 +146,9 @@ public class Berths
         return train;
     }
 
-    public static List<String> getCClassData(boolean skipBlanks)
+    public static ArrayList<String> getCClassData(boolean skipBlanks)
     {
-        List<String> CClassMapList = new ArrayList<>();
+        ArrayList<String> CClassMapList = new ArrayList<>();
 
         long time = System.currentTimeMillis() - StompConnectionHandler.lastMessageTime;
         CClassMapList.add("Current Time:  " + EastAngliaSignalMapServer.sdf.format(new Date()));
@@ -176,8 +167,13 @@ public class Berths
                         (time / (60000)) % 60,
                         (time / 1000) % 60,
                         new SimpleDateFormat("dd/MM HH:mm:ss").format(ManagementFactory.getRuntimeMXBean().getStartTime()))
-                    + (EastAngliaSignalMapServer.server.isClosed() ? " - closed" : ""));
+                    + (EastAngliaSignalMapServer.server == null || EastAngliaSignalMapServer.server.isClosed() ? " - closed" : ""));
         CClassMapList.add(String.format("Memory use:    %s mb"/* (f %s, t %s, m %s)"*/, (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576/*, Runtime.getRuntime().freeMemory(), Runtime.getRuntime().totalMemory(), Runtime.getRuntime().maxMemory()*/));
+
+        Berth motdBerth = Berths.getBerth("XXMOTD");
+        if (motdBerth != null && !motdBerth.getHeadcode().trim().equals(""))
+            CClassMapList.add("<html><pre>MOTD:          &quot;" + motdBerth.getHeadcode().trim() + "&quot;</pre></html>");
+
         CClassMapList.add(" ");
 
         if (EastAngliaSignalMapServer.CClassMap.isEmpty() && missingBerths.isEmpty())
@@ -203,18 +199,18 @@ public class Berths
 
         if (!EastAngliaSignalMapServer.CClassMap.isEmpty())
         {
-            List<String> mapKeys = new ArrayList<>(EastAngliaSignalMapServer.CClassMap.keySet());
+            ArrayList<String> mapKeys = new ArrayList<>(EastAngliaSignalMapServer.CClassMap.keySet());
             Collections.sort(mapKeys);
 
             CClassMapList.add("Full C-Class Data Map (No. Berths: " + berthMap.size() + ")");
 
             for (String key : mapKeys)
-                if (skipBlanks)
-                    if (EastAngliaSignalMapServer.CClassMap.get(key) != null && !EastAngliaSignalMapServer.CClassMap.get(key).equals(""))
+                if (!key.startsWith("XX"))
+                    if (skipBlanks)
+                        if (EastAngliaSignalMapServer.CClassMap.get(key) != null && !EastAngliaSignalMapServer.CClassMap.get(key).trim().equals(""))
+                        { CClassMapList.add(key + ": " + EastAngliaSignalMapServer.CClassMap.get(key)); }
+                    else
                         CClassMapList.add(key + ": " + EastAngliaSignalMapServer.CClassMap.get(key));
-                    else {} // For Syntax
-                else
-                    CClassMapList.add(key + ": " + EastAngliaSignalMapServer.CClassMap.get(key));
         }
 
         return CClassMapList;

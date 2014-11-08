@@ -6,14 +6,13 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.*;
 import java.util.ArrayList;
-import java.util.List;
 import javax.swing.*;
 
 public class ListDialog
 {
     private JDialog dialog;
 
-    public ListDialog(String title, String message, List<String> list)
+    public ListDialog(String title, String message, ArrayList<String> list)
     {
         if (list == null)
             list = new ArrayList<>();

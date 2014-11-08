@@ -30,8 +30,20 @@ public class CustomOutStream extends OutputStream
                     textArea.setCaretPosition(textArea.getDocument().getLength());
 
                 defaultStream.write(b);
+
+                /*int line = textArea.getLineOfOffset(textArea.getSelectionEnd());
+
+                textArea.setSelectionStart(0);
+                textArea.setSelectionEnd(0);
+
+                while (textArea.getLineCount() >= 500)
+                    textArea.replaceRange("", 0, textArea.getLineEndOffset(0));
+
+                textArea.setSelectionStart(textArea.getLineEndOffset(line));
+                textArea.setSelectionEnd(textArea.getLineEndOffset(line));*/
+
             }
-            catch (Error er) {}
+            catch (/*BadLocationException | */Error e) {}
         //}
     }
 }

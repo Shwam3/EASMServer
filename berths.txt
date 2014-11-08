@@ -1,0 +1,2004 @@
+id=CC0392
+id=CC0393
+id=CC0395
+id=CC0396
+id=CC0413
+id=CC0415
+id=CC0416
+id=CC0422
+id=CC0423
+id=CC0424
+id=CC0427
+id=CC0429
+id=CC0430,name=DIS Plat 2 Up
+id=CC0433,name=DIS Plat 2 Dn
+id=CC0431,name=DIS Plat 1
+id=CC0436
+id=CC0439
+id=CC0442
+id=CC0443
+id=CC0447
+id=CC0448
+id=CC0453
+id=CC0454
+id=CC0460
+id=CC0499
+id=CC0500
+id=CC0501
+id=CC0531
+id=CC0533
+id=CC0535
+id=CC0541
+id=CC0543
+id=CC0546
+id=CC0549
+id=CC0550
+id=CC0552
+id=CC0554
+id=CC0557
+id=CC0559
+id=CC0561
+id=CC0564
+id=CC0565
+id=CC0566
+id=CC0567
+id=CC0570
+id=CC0572
+id=CC0574,name=NRW Plat 1
+id=CC0576,name=NRW Plat 2
+id=CC0578,name=NRW Plat 3
+id=CC0580,name=NRW Plat 4
+id=CC0584,name=NRW Plat 5
+id=CC0586,name=NRW Plat 6
+id=CC0588
+id=CC0679
+id=CC0680,step=[from=CC0680,fkTo=CCB050,to=CCBURD,=interpose]
+id=CC0689
+id=CC0691
+id=CC0692
+id=CC0698
+id=CC0699
+id=CC0877
+id=CC0878,step=[from=CC0878,fkTo=EN8246,to=CC8246,type=suggest]
+id=CC0889
+id=CC0890
+id=CC0891
+id=CC1413
+id=CC1408
+id=CC1409
+id=CC1411
+id=CC1416
+id=CC1491
+id=CC1574,name=NRW Plat 1
+id=CC1576,name=NRW Plat 2
+id=CC1578,name=NRW Plat 3
+id=CC1580,name=NRW Plat 4
+id=CC1584,name=NRW Plat 5
+id=CC1586,name=NRW Plat 6
+id=CC1762
+id=CC1792
+id=CC8237
+id=CC8246
+id=CCBL03
+id=CCBL28
+id=CCBURD
+id=CCCPT1
+id=CCCPT2
+id=CCCSDG
+id=CCENGN
+id=CCFUEL
+id=CCL533
+id=CCL535
+id=CCLSR1
+id=CCLSR2
+id=CCJUBS
+id=CCR574,name=NRW Plat 1
+id=CCR576,name=NRW Plat 2
+id=CCR578,name=NRW Plat 3
+id=CCR580,name=NRW Plat 4
+id=CCR584,name=NRW Plat 5
+id=CCR586,name=NRW Plat 6
+id=CCTB02
+id=CCTB03
+id=CCTB04
+id=CCTB05
+id=CCTB06
+id=CCTB09
+id=CCTB10
+id=CCTB13
+id=CCTB14
+id=CCTB17
+id=CCTB18
+id=CCTB21
+id=CCTB25
+id=CCTB26
+id=CCTB28
+id=CCTB31
+id=CCTB32
+id=CCTB33
+id=CCTB34
+id=CCHSSD
+id=CCMSDG
+id=CCX034
+id=CCX032
+id=CCYARD
+
+
+//NRW - ELY
+id=ENA808
+id=ENC877
+id=EN8019
+id=EN8024,step=[from=EN8024,fkTo=CA0808,to=ENA808,type=suggest]
+id=EN8034
+id=EN8041
+id=EN8044
+id=EN8061
+id=EN8063
+id=EN8064
+id=EN8066
+id=EN8069
+id=EN8078
+id=EN8081
+id=EN8083
+id=EN8084
+id=EN8086
+id=EN8103
+id=EN8104
+id=EN8109
+id=EN8110
+id=EN8113
+id=EN8118
+id=EN8114
+id=EN8129
+id=EN8134
+id=EN8148
+id=EN8149
+id=EN8153
+id=EN8155
+id=EN8158
+id=EN8164
+id=EN8167
+id=EN8173
+id=EN8176
+id=EN8177
+id=EN8178
+id=EN8179
+id=EN8195
+id=EN8198
+id=EN8219
+id=EN8221
+id=EN8223
+id=EN8225
+id=EN8230
+id=EN8234
+id=EN8236
+id=EN8237,step=[from=EN8237,fkTo=CC0877,to=ENC877,type=suggest]
+id=EN8246
+
+//KLN - ELY
+id=CAK22A
+id=CAK22B
+id=CAK22R
+id=CAK23A
+id=CAK23B
+id=CAK23R
+id=CAKL7A
+id=CAKL24
+id=CAKL25
+id=CAKL35
+id=CAKL36
+id=CAKL43
+id=CAKL44
+id=CAKL45
+id=CADM02
+id=CADM03
+id=CADM11
+id=CADM26
+id=CADM27
+id=CALDAP
+id=CALT04
+id=CALT05
+id=CALT06
+id=CALT22
+id=CALT24
+id=CAMR01
+id=CAMR02
+id=CAMR03
+id=CAMR04
+id=CAMR05
+id=CAMR06
+id=CAMUAP
+
+//MNE - ELY
+id=CA0301
+id=CA0908
+id=CA0911
+id=CA0912
+id=CA0915
+id=CA0916
+id=CA0917
+id=CA0919
+id=CA0920
+id=CA0921
+id=CA0922
+id=CA0923
+id=CA0924
+id=CAM043
+id=CAM002
+id=CAM021
+id=CAM003
+
+//Ely North Jnc
+id=CA0296
+id=CA0298
+id=CA0303
+id=CA0305
+id=CA0306
+id=CA0307
+id=CA0308
+id=CA0311
+id=CA0774
+id=CA0800
+id=CA0801
+id=CA0802
+id=CA0803,step=[from=CA0803,fkTo=EN8019,to=CA8019,type=suggest]
+id=CA0804
+id=CA0808
+id=CA8019
+id=CALAPP
+id=CALSCM
+id=CAR4AB
+id=CASAPP
+
+//BSE - CBG & ELY
+id=CA0401
+id=CA0402
+id=CA0483
+id=CA0486
+id=CA0488
+id=CA0491
+id=CA0494
+id=CA0495
+id=CA0498
+id=CCB001
+id=CCB002
+id=CCB013
+id=CCB017
+id=CCB019
+id=CCB032
+id=CCB033
+id=CCB048
+id=CCB049
+id=CCB050
+id=CCB302,step=[from=CCB302,fkTo=CACM14,to=cancel,type=suggest]
+id=CCB303
+id=CCB306
+id=CCB307
+id=CCB310
+id=CACM02
+id=CACM04
+id=CACM05,step=[from=CACM05,fkTo=CCB303,to=cancel,type=suggest]
+id=CACM14
+id=CACAPP
+id=CAD002
+id=CAD003
+id=CAD004
+id=CAD005
+id=CAX200
+
+
+id=CA0019
+id=CA0020,step=[from=CA0020,fkTo=WG1188,to=CAL188,type=suggest]
+id=CA0021
+id=CA0022
+id=CA0023
+id=CA0024
+id=CA0026
+id=CA0027
+id=CA0028
+id=CA0029
+id=CA0030
+id=CA0031
+id=CA0032
+id=CA0033
+id=CA0034
+id=CA0037
+id=CA0038
+id=CA0039
+id=CA0040
+id=CA0041
+id=CA0042
+id=CA0043
+id=CA0044
+id=CA0047
+id=CA0045
+id=CA0050
+id=CA0051
+id=CA0052
+id=CA0053
+id=CA0054
+id=CA0055
+id=CA0056
+id=CA0057
+id=CA0058
+id=CA0059
+id=CA0060
+id=CA0061
+id=CA0062
+id=CA0064
+id=CA0066
+id=CA0067
+id=CA0072
+id=CA0073
+id=CA0074
+id=CA0075
+id=CA0076
+id=CA0077
+id=CA0079
+id=CAL187
+id=CAL188
+
+id=CA0078
+id=CA0080
+id=CA0082
+id=CA0083
+id=CA0084
+id=CA0085
+id=CA0087
+id=CA0090
+id=CA0091
+id=CA0092
+id=CA0093
+id=CA0094
+id=CA0095
+id=CA0096
+id=CA0097
+id=CA0099
+id=CA0100
+id=CA0103
+id=CA0104
+id=CA0105
+id=CA0106
+id=CA0107
+id=CA0108
+id=CA0109
+id=CA0110
+id=CA0113
+id=CA0114
+id=CA0115
+id=CA0116
+id=CA0117
+id=CA0118
+id=CA0119
+id=CA0120
+id=CA0123
+id=CA0140
+id=CA0141
+id=CA0142
+id=CA0143
+id=CA0144
+id=CA0145
+id=CA0147
+id=CA0148
+id=CA0149
+id=CA0150,name=CBG Plat 3
+id=CA0152,name=CBG Plat 2
+id=CA0154,name=CBG Plat 1 Up
+id=CA0156
+id=CA0158,name=CBG Plat 7 Up
+id=CA0160,name=CBG Plat 8 Up
+id=CA0161,name=CBG Plat 1 Dn
+id=CA0162,name=CBG Plat 4 Up
+id=CA0163
+id=CA0164
+id=CA0171,name=CBG Plat 6
+id=CA0173,name=CBG Plat 5
+id=CA0175,name=CBG Plat 4 Dn
+id=CA0177
+id=CA0179,name=CBG Plat 7 Dn
+id=CA0181,name=CBG Plat 8 Dn
+id=CA0180
+id=CA0188
+id=CA0190
+id=CA0193
+id=CA0195
+id=CA0200
+id=CA0210
+id=CA0653
+id=CA0655
+id=CADAPP
+id=CAX150,name=CBG Plat 3
+id=CAX152,name=CBG Plat 2
+id=CAX171,name=CBG Plat 6
+id=CAX173,name=CBG Plat 5
+id=CA0981
+id=CA0986
+
+id=CA0211
+id=CA0212
+id=CA0220
+id=CA0223
+id=CA0225
+id=CA0228
+id=CA0229
+id=CA0230
+id=CA0231
+id=CA0232
+id=CA0235
+id=CA0236
+id=CA0237
+id=CA0238
+id=CA0239
+id=CA0240
+id=CA0241
+id=CA0244
+id=CA0245
+id=CA0246
+id=CA0247
+id=CA0248
+id=CA0249
+id=CA0250
+id=CA0251
+id=CA0252
+id=CA0253
+id=CA0254
+id=CA0255
+id=CA0257
+id=CA0259
+id=CA0262
+id=CA0270
+id=CA0271
+id=CA0272
+id=CA0273
+id=CA0274,name=ELY Plat 3 Up
+id=CA0276,name=ELY Plat 2 Up
+id=CA0278,name=ELY Plat 1 Up
+id=CA0281,name=ELY Plat 1 Dn
+id=CA0283,name=ELY Plat 2 Dn
+id=CA0285,name=ELY Plat 3 Dn
+id=CA0287
+id=CA0288
+id=CA0290
+id=CA0293
+id=CA0295
+id=CA0765
+id=CA1765
+id=CA1273
+
+
+id=CC0290
+id=CC0295
+id=CC0292
+id=CC0294
+id=CC0297
+id=CC0302,name=IPS Plat 4 Up
+id=CC0304,name=IPS Plat 3 Up (DM)
+id=CC0306,name=IPS Up (TL)
+id=CC0308,name=IPS Plat 2 Up (U&DL)
+id=CC0311,name=IPS Plat 4 Dn
+id=CC0313,name=IPS Plat 3 Dn (DM)
+id=CC0315,name=IPS Dn (TL)
+id=CC0317,name=IPS Plat 2 Dn (U&DL)
+id=CC0319,name=IPS Plat 1
+id=CC0322
+id=CC0337
+id=CC0326
+id=CC0328
+id=CC0331
+id=CC0333
+id=CC0335
+id=CC0341
+id=CC0343
+id=CC0346
+id=CC0348
+id=CC0351
+id=CC0352
+id=CC0366
+id=CC0367
+id=CC0369
+id=CC0370
+id=CC0371
+id=CC0374
+id=CC0375
+id=CC0377
+id=CC1372
+id=CC0378
+id=CC0379
+id=CC0380,name=NMT (UM)
+id=CC0381
+id=CC0383,name=NMT (DM)
+id=CC0384
+id=CC0385
+id=CC0386
+id=CC0388,name=SMK Plat 1 (UM)
+id=CC0389
+id=CC0391,name=SMK Plat 2 Dn (DM)
+id=CC0390,name=SMK Plat 2 Up (DM)
+id=CC0400
+id=CC0401
+id=CC0403
+id=CC0404
+id=CC0405
+id=CC0611,step=[from=CC0611,fkTo=SX2003,to=CC2003,type=suggest]
+id=CC0612,name=WFI (UES)
+id=CC0613
+id=CC0614
+id=CC0615,name=DBR (DF)
+id=CC0616
+id=CC0617
+id=CC0618,name=DBR (UF)
+id=CC0619
+id=CC0620
+id=CC0621
+id=CC0622
+id=CC0624
+id=CC0626
+id=CC0632
+id=CC0634
+id=CC0641
+id=CC0642
+id=CC0644
+id=CC0797
+id=CC0799
+id=CCLOCS
+id=CC0812
+id=CC0814
+id=CC0816
+id=CC0818
+id=CC0827
+id=CC0829
+id=CC0831
+id=CC0834
+id=CC0835
+id=CC0841
+id=CC1319,name=IPS Plat 1
+id=CC2003
+id=CC2012
+id=CCBARS
+id=CCFDAP
+id=CCFDLS
+id=CCFTSN,name=FLX (U&DF)
+id=CCIPYA
+id=CCNQ02
+id=CCNQ04
+id=CCR290
+id=CCR388
+id=CCSDCR
+id=CCSDG1
+id=CCSDG2
+id=CCULAP
+
+id=SX2003,name=WFI (DES)
+id=SX2004,step=[from=SX2004,fkTo=CC0614,to=SXC614,type=suggest],name=WDB (UES)
+id=SX2006,name=WDB (DES)
+id=SX2011,name=WDB (DES)
+id=SX2012
+id=SX2028,name=SAX Plat 1 (UES)
+id=SX2029
+id=SX2032
+id=SX2033,name=SAX Plat 2 (DES)
+id=SX2035
+id=SX2042
+id=SX2045,name=HAS Plat 2 (DES)
+id=SX2046,name=HAS Plat 1 (UES)
+id=SX2052
+id=SX2055
+id=SX2056,name=BCC Plat 2 (UBL)
+id=SX2057,name=BCC Plat 1 (DBL)
+id=SX2058,name=BCC Plat 1 (DBL)
+id=SX2060
+id=SX2066,name=OUS Up (U&DES)
+id=SXB21R
+id=SXC405
+id=SXC611
+id=SXC612
+id=SXC614
+id=SXLSOB
+id=SXOB18
+id=SXOB19,name=OUS Dn (U&DES)
+id=SXOB21
+id=SXOSTO
+
+
+id=CC1088
+id=CC1091
+id=CC1092
+id=CC1093
+id=CC1094
+id=CC1095
+id=CC1096
+id=CC1099
+id=CC1100
+id=CC1101
+id=CC1102
+id=CC1103
+id=CC1104
+id=CC1105
+id=CC1109
+id=CC1110
+id=CC1111
+id=CC1114
+id=CC1115
+id=CC1118
+id=CC1121
+id=CC1122
+id=CC1125
+id=CC1128
+id=CC1133
+id=CC1134
+id=CC1136
+id=CC1137
+id=CC1138
+id=CC1144
+id=CC1145
+id=CC1146
+id=CC1147
+id=CC1152
+id=CC1154
+id=CC1157
+id=CC1172
+id=CC1173
+id=CC1174
+id=CC1176
+id=CC1177
+id=CCAPP1
+id=CCAPP2
+id=CCR096
+
+id=CC1158
+id=CC1159
+id=CC1160
+id=CC1164
+id=CC1165
+id=CC1168
+id=CCWARR
+
+id=CCCN26
+id=CCCN27
+id=CCCN42
+id=CCCN44
+id=CCCN48
+id=CCCN55
+id=CCCN60
+
+
+id=CC0190
+id=CC0191
+id=CC0194,name=MNG Plat 2 Up (UM)
+id=CC0196
+id=CC0197,name=MNG Plat 3 (DM)
+id=CC0198
+id=CC0199,name=MNG Plat 2 Dn (UM)
+id=CC0201,name=MNG Plat 1
+id=CC0203
+id=CC0205
+id=CC0207
+id=CC0209
+id=CC0211
+id=CC0228
+id=CC0229
+id=CC0230
+id=CC0231
+id=CC0232
+id=CC0233
+id=CC0234
+id=CC0268
+id=CC0269
+id=CC0270
+id=CC0271
+id=CC0272
+id=CC0273
+id=CC0274
+id=CC0275
+id=CC0276
+id=CC0277
+id=CC0278
+id=CC0279
+id=CC0280
+id=CC0281
+id=CC0282
+id=CC0283
+id=CC0284
+id=CC0285
+id=CC0286
+id=CC0753
+id=CC0766
+id=CCAPIP
+id=CCAPPA
+id=CCP001
+id=CCP002
+id=CCP003
+id=CCP004
+id=CCP005
+id=CCP006
+id=CCP007
+id=CCP008
+id=CCP009
+id=CCP010
+id=CCP012
+id=CCP014
+id=CCP021
+id=CCP022,name=HPQ Plat 1
+id=CCP024
+id=CCP026,name=HPQ Plat 2 Up (U&DH)
+id=CCP028,name=HPQ Plat 3
+id=CCP037,name=HPQ Plat 1 Dn
+id=CCP039,name=HPQ Plat 2 Dn (U&DH)
+id=CCP050
+id=CCP057
+id=CCP058
+id=CCP065
+id=CCP074,name=HWC Plat 1 (U&DH)
+id=CCPKSD
+id=CCPKTP
+id=CCR201,name=MNG Plat 1
+
+id=CC0177
+id=CC0178
+id=CC0179
+id=CC0180
+id=CC0181
+id=CC0182
+id=CC0183
+id=CC0184
+id=CC0185
+id=CC0186
+id=CC0187
+id=CC0188
+id=CC0189
+id=CC1004,step=[from=CC1004,fkTo=SE0882,to=CCL882,type=suggest]
+id=CC1005
+id=CC1006
+id=CC1007
+id=CC1008
+id=CC1009
+id=CC1010
+id=CC1011
+id=CC1020
+id=CC1021
+id=CC1022
+id=CC1023
+id=CC1027
+id=CC1028
+id=CC1030
+id=CC1033
+id=CC1034
+id=CC1035
+id=CC1036
+id=CC1039
+id=CC1040,name=COL Plat 3 Up (UM)
+id=CC1046
+id=CC1047
+id=CC1048,name=COL Plat 6
+id=CC1051
+id=CC1054,name=COL Plat 1 Up (DPL)
+id=CC1055
+id=CC1056,name=COL Plat 2 Up (DM)
+id=CC1057
+id=CC1058,name=COL Plat 4 Up
+id=CC1059
+id=CC1063,name=COL Plat 3 Dn (UM)
+id=CC1065,name=COL Plat 1 Dn (DPL)
+id=CC1067,name=COL Plat 2 Dn (DM)
+id=CC1069,name=COL Plat 4 Dn
+id=CC1071,name=COL Plat 5
+id=CC1072
+id=CC1073
+id=CC1074
+id=CC1075
+id=CC1076
+id=CC1080
+id=CC1083
+id=CC1085
+id=CC4006
+id=CC4009
+id=CC4010
+id=CC4013
+id=CCAPDM
+id=CCAPUM
+id=CCP5AR
+id=CCP6AR
+
+
+id=WG1061
+id=WG1062
+id=WG1063
+id=WG1064
+id=WG1065
+id=WG1066
+id=WG1067
+id=WG1068
+id=WG1069
+id=WG1070
+id=WG1071
+id=WG1072
+id=WG1073
+id=WG1074
+id=WG1077
+id=WG1080
+id=WG1081
+id=WG1083
+id=WG1085
+id=WG1086
+id=WG1088
+id=WG1089
+id=WG1090
+id=WG1091
+id=WG1092
+id=WG1094
+id=WG1095
+id=WG1097
+id=WG1098
+id=WG1099
+id=WG1100
+id=WG1101
+id=WG1103
+id=WG1104
+id=WG1106
+id=WG1108
+id=WG1109
+id=WG1110
+id=WG1111
+id=WG1115
+id=WG1116
+id=WG1118
+id=WG1121
+id=WG1122
+id=WG1224
+id=WG1226
+id=WG1455
+id=WG1459
+id=WG1461
+id=WG1463
+id=WG1465
+id=WG1494
+id=WG1480
+id=WG1484
+id=WG1490
+id=WG5315
+id=WG5319
+id=WG5321
+id=WG5322
+id=WG5325
+id=WG5327
+id=WG5328
+id=WG5329
+id=WG5331
+id=WG5342
+id=WGHMYD
+id=WGSDG1
+id=WGSDG2
+
+id=WG1123
+id=WG1125
+id=WG1126
+id=WG1128
+id=WG1129
+id=WG1130
+id=WG1131
+id=WG1133
+id=WG1134
+id=WG1135
+id=WG1136
+id=WG1139
+id=WG1138
+id=WG1140
+id=WG1142
+id=WG1145
+id=WG1147
+id=WG1148
+id=WG1150
+id=WG1151
+id=WG1153
+id=WG1154
+id=WG1155
+id=WG1157
+id=WG1163
+id=WG1165
+id=WG1167
+id=WG1168
+id=WG1169
+id=WG1173
+id=WG1175
+id=WG1183,step=[from=WG1183,fkTo=CA0019,to=WG1187,type=suggest]
+id=WG1187
+id=WG1158
+id=WG1160
+id=WG1162
+id=WG1170
+id=WG1172
+id=WG1174
+id=WG1176
+id=WG1178
+id=WG1184
+id=WG1186
+id=WG1188
+id=WG1281
+id=WG1284
+id=WG1492
+id=WG1493
+id=WG1496
+id=WG1497
+id=WG1498
+id=WG5383
+id=WG5385
+id=WG5387
+id=WG5396
+id=WG5397
+id=WGGF03
+id=WGUPSD
+
+id=WG1230
+id=WG1231
+id=WG1232
+id=WG1233
+id=WG1234
+id=WG1236
+id=WG1237
+id=WG1238
+id=WG1239
+id=WG1240
+id=WG1241
+id=WG1242
+id=WG1243
+id=WG1244
+id=WG1245
+id=WG1246
+id=WG1247
+id=WG1252
+id=WG1253
+id=WG1254
+id=WG1255
+id=WG1256
+id=WG1257
+id=WGA262
+id=WGA264
+id=WGB262
+id=WGB264
+id=WGR262
+id=WGR264
+
+id=WG1143
+id=WG1192
+id=WG1193
+id=WG1194
+id=WG1196
+id=WG1197
+id=WG1198
+id=WG1199
+id=WG1201
+id=WG1202
+id=WG1213,step=[from=WG1213,fkTo=CA0019,to=WG1187,type=suggest]
+id=WG1220
+id=WG1366
+id=WGA168
+id=WGA206
+id=WGA370
+id=WGB168
+id=WGB206
+id=WGB370
+id=WGC168
+id=WGC206
+id=WGC370
+id=WGR168
+id=WGR206
+id=WGR370
+
+
+//Cambs heath - Clapton Jnc
+id=LS0120
+id=LS0121
+id=LS0122
+id=LS0123
+id=LS0124
+id=LS0125
+id=LS0126
+id=LS0127
+id=LS0128
+id=LS1271
+id=LS0129
+id=LS0130
+id=LS0131
+id=LS0132
+id=LS0134
+id=LS0135
+id=LS0136
+id=LS0137
+id=LS0139
+id=LS0140
+id=LS0141
+id=LS0142
+id=LS0145
+id=LS0147
+id=LS0156
+id=LS0157
+id=LS0158
+id=LS0159
+id=LS0160
+id=LS0161
+id=LS0162
+id=LS0164
+id=LS0165
+id=LS0166
+id=LS0167,step=[from=LS0167,fkTo=WG1007,to=cancel,type=suggest]
+id=LS0170
+id=LS1302
+id=LS1303
+id=LS1304
+id=LS1305,step=[from=LS1305,fkTo=WG1307,to=cancel,type=suggest]
+id=LS1404
+id=LS1405
+id=LS1407
+
+//Clapton Jnc - Chingford
+id=LS1408
+id=LS1410
+id=LS1411
+id=LS1412
+id=LS1413
+id=LS1414
+id=LS1415
+id=LS1418
+id=LS1419
+id=LS1420
+id=LS1421
+id=LS1422
+id=LS1423
+id=LS1424
+id=LS1425
+id=LS1427
+id=LS1428
+id=LS1429
+id=LS1430
+id=LS1431
+id=LS1433
+id=LS1432
+id=LS1434
+id=LS1438
+id=LS1440
+id=LS1442
+id=LS5557
+id=LS5561
+id=LSA444
+id=LSA446
+id=LSA448
+id=LSB444
+id=LSB446
+id=LSB448
+id=LSR444
+id=LSR446
+id=LSR448
+id=LSCHAC
+id=LSCHAL
+
+//Hackney - Bury St Jnc
+id=WG1306,step=[from=WG1306,fkTo=LS1304,to=cancel,type=suggest]
+id=WG1307
+id=WG1308
+id=WG1310
+id=WG1311
+id=WG1312
+id=WG1315
+id=WG1316
+id=WG1317
+id=WG1318
+id=WG1319
+id=WG1320
+id=WG1321
+id=WG1324
+id=WG1325
+id=WG1326
+id=WG1327
+id=WG1329
+id=WG1330
+id=WG1331
+id=WG1332
+id=WG1333
+id=WG1334
+id=WG1336
+id=WG1337
+id=WG1338
+id=WG1339
+id=WG1340
+id=WG1341
+id=WG1342
+id=WG1344
+id=WG1345
+id=WG1346
+id=WG1347
+id=WG1348
+id=WG1349
+id=WG1351
+id=WG1353
+id=WG1368
+id=WG1371
+id=WG1372
+id=WG1373
+id=WG1375
+
+//Bury St Jnc - Enfield Town
+id=WG1350
+id=WG1352
+id=WG1356
+id=WGA360
+id=WGA362
+id=WGA364
+id=WGB360
+id=WGB362
+id=WGB364
+id=WGR360
+id=WGR362
+id=WGR364
+id=WG1361
+id=WG1363
+id=WG1365
+
+//Temple Mills/Southbury - Cheshunt
+id=WG1003
+id=WG1005
+id=WG1004
+id=WG1007
+id=WG1009
+id=WG1010,step=[from=WG1010,fkTo=LS0170,to=cancel,type=suggest],step=[from=WG1010,fkTo=SIS718,to=cancel,type=suggest]
+id=WG1011
+id=WG1012
+id=WG1013
+id=WG1014
+id=WG1015
+id=WG1016
+id=WG1017
+id=WG1018
+id=WG1020
+id=WG1021
+id=WG1022
+id=WG1023
+id=WG1025
+id=WG1026
+id=WG1027
+id=WG1028
+id=WG1029
+id=WG1030
+id=WG1031
+id=WG1033
+id=WG1034
+id=WG1036
+id=WG1037
+id=WG1038
+id=WG1039
+id=WG1040
+id=WG1041
+id=WG1042
+id=WG1044
+id=WG1045
+id=WG1046
+id=WG1047
+id=WG1049
+id=WG1050
+id=WG1052
+id=WG1053
+id=WG1054
+id=WG1055
+id=WG1056
+id=WG1057
+id=WG1058
+id=WG1059
+id=WG1060
+id=WG1144
+id=WG1374
+id=WG1376
+id=WG1377
+id=WG1378
+id=WG1379
+id=WG1380
+id=WG1381
+id=WG1382
+id=WG1383
+id=WG1384
+id=WG1385
+id=WG1386
+id=WG1387
+id=WG1388
+id=WG1389
+id=WG1390
+id=WG1391
+id=WG1392
+id=WG1393
+id=WG1394
+id=WG1395
+id=WGR144
+
+
+id=SE0669
+id=SE0671
+id=SE0675
+id=SE0677
+id=SE0679
+id=SE0683,name=INT Plat 2 Dn (DM)
+id=SE0685
+id=SE0687
+id=SE0691
+id=SE0693
+id=SE0695
+id=SE0697
+id=SE0701
+id=SE0703
+id=SE0705
+id=SE0710
+id=SE0711
+id=SE0712,name=INT Plat 2 Up (DM)
+id=SE0713
+id=SE0714,name=INT Plat 1 (UM)
+id=SE0715,name=CHM Plat 2 Dn (DM)
+id=SE0716
+id=SE0717,name=CHM Plat 1 Up (UM)
+id=SE0718
+id=SE0722
+id=SE0723
+id=SE0724
+id=SE0725
+id=SE0726
+id=SE0727
+id=SE0729
+id=SE0730
+id=SE0732
+id=SE0734
+id=SE0736
+id=SE0740
+id=SE0742
+id=SE0756
+id=SE0758,name=CHM Plat 2 Up (DM)
+id=SE0760,name=CHM Plat 1 Dn (UM)
+id=SE0762
+id=SE0764
+id=SE0766
+id=SE0770
+id=SE0772
+
+id=SE0731
+id=SE0733
+id=SE0735
+id=SE0737
+id=SE0739
+id=SE0741
+id=SE0747
+id=SE0751,name=HAP Plat 2 Dn (DM)
+id=SE0753,name=HAP Plat 1 Dn (UM)
+id=SE0755
+id=SE0759
+id=SE0761
+id=SE0763
+id=SE0765,name=WTM Plat 4 Dn (DPL)
+id=SE0769
+id=SE0767
+id=SE0769,name=WTM Plat 3 Dn (DM)
+id=SE0771,name=WTM Plat 2 Dn (UM)
+id=SE0773,name=WTM Plat 1 Dn (UPL)
+id=SE0778
+id=SE0779
+id=SE0781
+id=SE0782
+id=SE0784
+id=SE0785
+id=SE0786
+id=SE0787
+id=SE0788
+id=SE0789
+id=SE0790
+id=SE0791
+id=SE0792
+id=SE0793
+id=SE0794,name=HAP Plat 2 Up (DM)
+id=SE0796,name=HAP Plat 1 Up (UM)
+id=SE0799,name=KEL Plat 2 Dn (DM)
+id=SE0800
+id=SE0801
+id=SE0803
+id=SE0804
+id=SE0805
+id=SE0806
+id=SE0807
+id=SE0810,name=WTM Plat 4 Up (DPL)
+id=SE0812,name=WTM Plat 3 Up (DM)
+id=SE0814,name=WTM Plat 2 Up (UM)
+id=SE0815
+id=SE0816,name=WTM Plat 1 Up (UPL)
+id=SE0819
+id=SE0817
+id=SE0818
+id=SE0820
+id=SE0822
+id=SE0823
+id=SE0824
+id=SE0825,name=MKT Plat 3 Dn (U&DS)
+id=SE0826
+id=SE0827,name=MKT Plat 2 Dn (DM)
+id=SE0828
+id=SE0829,name=MKT Plat 1 Dn (UM)
+id=SE0830
+id=SE0832
+id=SE0834
+id=SE0836
+id=SE0837,step=[from=SE0837,fkTo=CC1005,to=SE1005,type=suggest]
+id=SE0839
+id=SE0844,name=KEL Plat 2 Up (DM)
+id=SE0846,name=KEL Plat 1 (UM)
+id=SE0848
+id=SE0850
+id=SE0854
+id=SE0856
+id=SE0858
+id=SE0860
+id=SE0862,name=MKT Plat 2 Up (DM)
+id=SE0864,name=MKT Plat 1 Up (UM)
+id=SE0868,name=MKT Plat 3 Up (U&DS)
+id=SE0874
+id=SE0876
+id=SE0878
+id=SE0882
+id=SE0884
+id=SE0896
+id=SE0898
+id=SE5202
+id=SE5203
+id=SECRES
+id=SEDEPO
+id=SER896
+id=SER898
+id=SESHAL
+id=SEUSDG
+
+
+id=SE0445
+id=SE0447,name=HRO Plat 4 (DE)
+id=SE0449,name=HRO Plat 2 (DM)
+id=SE0451
+id=SE0453
+id=SE0455
+id=SE0457
+id=SE0459
+id=SE0461
+id=SE0463
+id=SE0465
+id=SE0467
+id=SE0469
+id=SE0471
+id=SE0473
+id=SE0475,name=BRE Plat 4 (DE)
+id=SE0477,name=BRE Plat 2 (DM)
+id=SE0478,step=[from=SE0478,fkTo=SI0474,to=SE0474,type=suggest],name=HRO Plat 3 (UE)
+id=SE0479
+id=SE0480,step=[from=SE0480,fkTo=SI0476,to=cancel,type=suggest],name=HRO Plat 1 (UM)
+id=SE0481
+id=SE0482
+id=SE0483
+id=SE0484
+id=SE0485
+id=SE0487
+id=SE0489
+id=SE0486
+id=SE0488
+id=SE0490
+id=SE0491
+id=SE0492
+id=SE0493
+id=SE0494
+id=SE0495,name=SNF Plat 5 Dn (DE)
+id=SE0496
+id=SE0497,name=SNF Plat 4 Dn (UE)
+id=SE0498,name=BRE Plat 3 (UE)
+id=SE0499,name=SNF Plat 3 Dn (DM)
+id=SE0500,name=BRE Plat 1 (UM)
+id=SE0501,name=SNF Plat 2 Dn (UM)
+id=SE0502
+id=SE0503,name=SNF Plat 1 Dn (USD)
+id=SE0504
+id=SE0505
+id=SE0506
+id=SE0507
+id=SE0508
+id=SE0509
+id=SE0510
+id=SE0511
+id=SE0512
+id=SE0513
+id=SE0514
+id=SE0515
+id=SE0516,name=SNF Plat 5 Up (DE)
+id=SE0518,name=SNF Plat 4 Up (UE)
+id=SE0522,name=SNF Plat 2 Up (UM)
+id=SE0524,name=SNF Plat 1 Up (USD)
+id=SE0528
+id=SE0530
+id=SE0534
+id=SE0536
+id=SE0538
+id=SE0540
+id=SE0542
+id=SE0544
+id=SE0552
+id=SE0554
+id=SE5132,name=SNF Plat 3 Up (DM)
+id=SE5134
+id=SE5137
+id=SE5139
+id=SEA136
+id=SEA138
+id=SEDNSG
+id=SER136
+id=SER138
+id=SESMS1
+id=SESMS2
+id=SEUPSG
+
+id=SE0517
+id=SE0519
+id=SE0521
+id=SE0558
+id=SE0523
+id=SE0525
+id=SE0527
+id=SE0529
+id=SE0533,name=BIC Plat 2 (DSD)
+id=SE0535,name=BIC Plat 1 Dn (USD)
+id=SE0537
+id=SE0539
+id=SE0541
+id=SE0543
+id=SE0545
+id=SE0547
+id=SE0549
+id=SE0550
+id=SE0551
+id=SE0553,name=WIC Plat 3 Dn (USD)
+id=SE0554,name=WIC Plat 2 Up (DSD)
+id=SE0555,name=WIC Plat 4
+id=SE0556
+id=SE0557,name=WIC Plat 1
+id=SE0559,name=WIC Plat 2 Dn (DSD)
+id=SE0560
+id=SE0562
+id=SE0564
+id=SE0566
+id=SE0568
+id=SE0569
+id=SE0570,name=BIC Plat 1 Dn (USD)
+id=SE0571
+id=SE0572
+id=SE0573
+id=SE0574
+id=SE0575
+id=SE0576
+id=SE0577
+id=SE0578
+id=SE0579
+id=SE0580
+id=SE0581
+id=SE0582
+id=SE0584
+id=SE0586
+id=SE0588
+id=SE0592,name=WIC Plat 3 Up (USD)
+id=SE0594
+id=SE0596
+id=SE0602
+id=SE0604
+id=SE0606
+id=SE0608
+id=SE0610
+id=SE0612
+id=SE0614
+id=SE0616
+id=SEWDNS
+
+id=SE0583,name=RLG Plat 2 (DSD)
+id=SE0585
+id=SE0587
+id=SE0589
+id=SE0591
+id=SE0593
+id=SE0595
+id=SE0597,name=HOC Plat 2 (DSD)
+id=SE0599,name=HOC Plat 1 Dn (USD)
+id=SE0603
+id=SE0605
+id=SE0607
+id=SE0609
+id=SE0611,name=RFD Plat 2 (DSD)
+id=SE0613,name=RFD Plat 1 Dn (USD)
+id=SE0615
+id=SE0618,name=RLG Plat 1 (USD)
+id=SE0619,name=SIA Plat 2 Dn (DSD)
+id=SE0620
+id=SE0621
+id=SE0622
+id=SE0623
+id=SE0624
+id=SE0625,name=PRL Plat 2 (DSD)
+id=SE0626
+id=SE0627,name=PRL Plat 1 Dn (USD)
+id=SE0628
+id=SE0629
+id=SE0630
+id=SE0631
+id=SE0634,name=HOC Plat 1 Up (USD)
+id=SE0636
+id=SE0638
+id=SE0639
+id=SE0640
+id=SE0642
+id=SE0644
+id=SE0646
+id=SE0648,name=RFD Plat 1 Up (USD)
+id=SE0649
+id=SE0650
+id=SE0651
+id=SE0652,name=SIA Plat 2 Up (DSD)
+id=SE0654,name=SIA Plat 1 (USD)
+id=SE0658
+id=SE0660
+id=SE0662,name=PRL Plat 1 Up (USD)
+id=SE0664
+id=SE0666
+id=SEA668,name=SOV Plat 1a
+id=SEA670,name=SOV Plat 2a
+id=SEA672,name=SOV Plat 3a
+id=SEA674,name=SOV Plat 4a
+id=SEB668,name=SOV Plat 1b
+id=SEB670,name=SOV Plat 2b
+id=SEB672,name=SOV Plat 3b
+id=SEB674,name=SOV Plat 4b
+id=SEC668,name=SOV Plat 1c
+id=SEC670,name=SOV Plat 2c
+id=SEC672,name=SOV Plat 3c
+id=SEC674,name=SOV Plat 4c
+id=SER668,name=SOV Plat 1
+id=SER670,name=SOV Plat 2
+id=SER672,name=SOV Plat 3
+id=SER674,name=SOV Plat 4
+id=SE0694
+id=SE0696
+id=SE0708
+id=SE5146
+id=SE5157
+id=SE5165
+id=SE5167
+id=SE5170
+id=SEBURN
+id=SEDNSS
+id=SEDNSN
+id=SER708
+id=SEUPSN
+id=SEUPSS
+
+
+id=SI0383
+id=SI0385
+id=SI0387,name=CTH Plat 4 (DE)
+id=SI0389,name=CTH Plat 2 (DM)
+id=SI0391
+id=SI0393
+id=SI0395
+id=SI0397
+id=SI0399
+id=SI0401
+id=SI0403
+id=SI0405
+id=SI0407
+id=SI0409
+id=SI0410
+id=SI0411
+id=SI0412
+id=SI0413
+id=SI0414,name=CTH Plat 3 (UE)
+id=SI0415
+id=SI0416,name=CTH Plat 1 Up (UM)
+id=SI0417,name=RMF Plat 5 Dn (DE)
+id=SI0418
+id=SI0419,name=RMF Plat 3 (DM)
+id=SI0420
+id=SI0421
+id=SI0422
+id=SI0423
+id=SI0424
+id=SI0425
+id=SI0426
+id=SI0427
+id=SI0428
+id=SI0429
+id=SI0430
+id=SI0431,name=GDP Plat 4 Dn (DE)
+id=SI0432
+id=SI0433
+id=SI0435,name=GDP Plat 2 (DM)
+id=SI0436
+id=SI0438
+id=SI0439
+id=SI0440
+id=SI0441,step=[from=SI0441,fkTo=SE0445,to=SI0445,type=suggest]
+id=SI0442,name=RMF Plat 4 (UE)
+id=SI0443,step=[from=SI0443,fkTo=SE0449,to=SI0449,type=suggest]
+id=SI0444,name=RMF Plat 2 Up (UM)
+id=SI0446
+id=SI0448
+id=SI0450
+id=SI0452
+id=SI0454
+id=SI0456
+id=SI0458,name=GDP Plat 4 Up (UM)
+id=SI0460,name=GDP Plat 3 Up (UE)
+id=SI0462,name=GDP Plat 1 (UM)
+id=SI0464
+id=SI0468
+id=SI0470
+id=SI0472
+id=SI0474
+id=SI0476
+id=SI5099
+id=SI5101,name=CTH Plat 1 Dn (UM)
+id=SI5102,name=RMF Plat 5 Up (DE)
+id=SI5104
+id=SI5105
+id=SI5107
+id=SI5100
+id=SI5111,name=RMF Plat 2 Dn (UM)
+id=SI5113,name=GDP Plat 3 Dn (UE)
+id=SI5114
+id=SI5116
+id=SI5125
+id=SI5139
+id=SIRCHS
+id=SIRGP1
+id=SIRGP2
+id=SIRGP3
+id=SIRGP4
+id=SIRGP5
+id=SIRGP6
+id=SIRGPC
+id=SIRGPL
+id=SIROM1,name=RMF Plat 1
+id=SIRRED
+id=SIRROM,name=RMF Plat 1
+id=SIUMIN
+
+id=SI0321
+id=SI0323
+id=SI0325
+id=SI0327,name=MNP Plat 2 (DE)
+id=SI0329,name=MNP Plat 4 (DM)
+id=SI0331
+id=SI0333
+id=SI0335
+id=SI0336,name=MNP UPA
+id=SI0338,name=MNP Plat 1 (UE)
+id=SI0339
+id=SI0340,name=MNP Plat 3 (UM)
+id=SI0341
+id=SI0343
+id=SI0345
+id=SI0346
+id=SI0347
+id=SI0349,name=IFD Plat 4 (DE)
+id=SI0350
+id=SI0351,name=IFD Plat 2 (DM)
+id=SI0352
+id=SI0353
+id=SI0354
+id=SI0355
+id=SI0356
+id=SI0357
+id=SI0358
+id=SI0359
+id=SI0360
+id=SI0361
+id=SI0362,name=IFD Plat 3 (UE)
+id=SI0363
+id=SI0364,name=IFD Plat 1 (UM)
+id=SI0365,name=SVK Plat 4 (DE)
+id=SI0367
+id=SI0368
+id=SI0369,name=SVK Plat 2 (DM)
+id=SI0370
+id=SI0371
+id=SI0372
+id=SI0373
+id=SI0374
+id=SI0375
+id=SI0376
+id=SI0377,name=GMY Plat 4 (DE)
+id=SI0378
+id=SI0379,name=GMY Plat 2 (DM)
+id=SI0380
+id=SI0381
+id=SI0382
+id=SI0384
+id=SI0386
+id=SI0388
+id=SI0390,name=SVK Palt 1 (UM)
+id=SI0392,name=SVK Plat 3 (UE)
+id=SI0394
+id=SI0396
+id=SI0398
+id=SI0400,name=GMY Plat 1 (UM)
+id=SI0402
+id=SI0404,name=GMY Plat 3 (UE)
+id=SI0406
+id=SI0408
+id=SI5087
+id=SI5078
+id=SI5080
+id=SI5082
+id=SI5084
+id=SI5086
+id=SI5088
+id=SIA366,name=IFD Plat 5a
+id=SIB366,name=IFD Plat 5b
+id=SIICIN
+id=SIR366,name=IFD Plat 5
+id=SIRAS1
+id=SIRAS2
+id=SIRAS3
+id=SIRAS4
+id=SIRAS5
+id=SIRIFC
+id=SIRIFL
+
+
+id=LSR009,name=LST Plat 1
+id=LSFC09 addAdjacentBerths LSFA09, LSFB09, LSR009,name=LST Plat 1
+id=LSFB09 addAdjacentBerths LSFA09, LSFC09, LSR009,name=LST Plat 1
+id=LSFA09 addAdjacentBerths LSFB09, LSFC09, LSR009,name=LST Plat 1
+
+id=LSR011,name=LST Plat 2
+id=LSFC11 addAdjacentBerths LSFA11, LSFB11, LSR011,name=LST Plat 2
+id=LSFB11 addAdjacentBerths LSFA11, LSFB11, LSR011,name=LST Plat 2
+id=LSFA11 addAdjacentBerths LSFA11, LSFB11, LSR011,name=LST Plat 2
+
+id=LSR013,name=LST Plat 3
+id=LSFC13 addAdjacentBerths LSFA13, LSFB13, LSR013,name=LST Plat 3
+id=LSFB13 addAdjacentBerths LSFA13, LSFB13, LSR013,name=LST Plat 3
+id=LSFA13 addAdjacentBerths LSFA13, LSFB13, LSR013,name=LST Plat 3
+
+id=LSR015,name=LST Plat 4
+id=LSFC15 addAdjacentBerths LSFA15, LSFB15, LSR015,name=LST Plat 4
+id=LSFB15 addAdjacentBerths LSFA15, LSFB15, LSR015,name=LST Plat 4
+id=LSFA15 addAdjacentBerths LSFA15, LSFB15, LSR015,name=LST Plat 4
+
+id=LSR017,name=LST Plat 5
+id=LSFC17 addAdjacentBerths LSFA17, LSFB17, LSR017, LS0055, LS0057,name=LST Plat 5
+id=LSFB17 addAdjacentBerths LSFA17, LSFB17, LSR017, LS0055, LS0057,name=LST Plat 5
+id=LSFA17 addAdjacentBerths LSFA17, LSFB17, LSR017, LS0055, LS0057,name=LST Plat 5
+
+id=LSR019,name=LST Plat 6
+id=LSFC19 addAdjacentBerths LSFA19, LSFB19, LSR019, LS0055, LS0057,name=LST Plat 6
+id=LSFB19 addAdjacentBerths LSFA19, LSFB19, LSR019, LS0055, LS0057,name=LST Plat 6
+id=LSFA19 addAdjacentBerths LSFA19, LSFB19, LSR019, LS0055, LS0057,name=LST Plat 6
+
+id=LSR021,name=LST Plat 7
+id=LSFC21 addAdjacentBerths LSFA21, LSFB21, LSR021, LS0055, LS0057,name=LST Plat 7
+id=LSFB21 addAdjacentBerths LSFA21, LSFB21, LSR021, LS0055, LS0057,name=LST Plat 7
+id=LSFA21 addAdjacentBerths LSFA21, LSFB21, LSR021, LS0055, LS0057,name=LST Plat 7
+
+id=LSR023,name=LST Plat 8
+id=LSFC23 addAdjacentBerths LSFA23, LSFB23, LSR023, LS0055, LS0057,name=LST Plat 8
+id=LSFB23 addAdjacentBerths LSFA23, LSFB23, LSR023, LS0055, LS0057,name=LST Plat 8
+id=LSFA23 addAdjacentBerths LSFA23, LSFB23, LSR023, LS0055, LS0057,name=LST Plat 8
+
+id=LSR025,name=LST Plat 9
+id=LSFC25 addAdjacentBerths LSFA25, LSFB25, LSR025, LS0027,name=LST Plat 9
+id=LSFB25 addAdjacentBerths LSFA25, LSFC25, LSR025, LS0027,name=LST Plat 9
+id=LSFA25 addAdjacentBerths LSFB25, LSFC25, LSR025, LS0027,name=LST Plat 9
+id=LS0027 addAdjacentBerths LSFA25, LSFB25, LSFC25, LSR025
+
+id=LSR029,name=LST Plat 10
+id=LSFC29 addAdjacentBerths LSFA29, LSFB29, LSR029, LS0031,name=LST Plat 10
+id=LSFB29 addAdjacentBerths LSFA29, LSFC29, LSR029, LS0031,name=LST Plat 10
+id=LSFA29 addAdjacentBerths LSFB29, LSFC29, LSR029, LS0031,name=LST Plat 10
+id=LS0031 addAdjacentBerths LSFA29, LSFB29, LSFC29, LSR029
+
+id=LSR033,name=LST Plat 11
+id=LSFC33 addAdjacentBerths LBFA33, LSFB33, LSR033, LS0035,name=LST Plat 11
+id=LSFB33 addAdjacentBerths LBFA33, LSFC33, LSR033, LS0035,name=LST Plat 11
+id=LSFA33 addAdjacentBerths LBFB33, LSFC33, LSR033, LS0035,name=LST Plat 11
+id=LS0035 addAdjacentBerths LSFA33, LBFB33, LSFC33, LSR033
+
+id=LSR037,name=LST Plat 12
+id=LSFC37 addAdjacentBerths LBFA37, LSFB37, LSR037, LS0039,name=LST Plat 12
+id=LSFB37 addAdjacentBerths LBFA37, LSFC37, LSR037, LS0039,name=LST Plat 12
+id=LSFA37 addAdjacentBerths LBFB37, LSFC37, LSR037, LS0039,name=LST Plat 12
+id=LS0039 addAdjacentBerths LSFA37, LSFB37, LSFC37, LSR037
+
+id=LSR041,name=LST Plat 13
+id=LSFC41 addAdjacentBerths LBFA29, LSFB29, LS0031,name=LST Plat 13
+id=LSFB41 addAdjacentBerths LBFA29, LSFC29, LS0031,name=LST Plat 13
+id=LSFA41 addAdjacentBerths LBFB29, LSFC29, LS0031,name=LST Plat 13
+
+id=LSR043,name=LST Plat 14
+id=LSFC43 addAdjacentBerths LBFA29, LSFB29, LS0031,name=LST Plat 14
+id=LSFB43 addAdjacentBerths LBFA29, LSFC29, LS0031,name=LST Plat 14
+id=LSFA43 addAdjacentBerths LBFB29, LSFC29, LS0031,name=LST Plat 14
+
+id=LSR045,name=LST Plat 15
+id=LSFC45 addAdjacentBerths LBFA45, LBFB45, LSR045, LS0047,name=LST Plat 15
+id=LSFB45 addAdjacentBerths LBFA45, LBFC45, LSR045, LS0047,name=LST Plat 15
+id=LSFA45 addAdjacentBerths LBFB45, LBFC45, LSR045, LS0047,name=LST Plat 15
+id=LS0047 addAdjacentBerths LSFA45, LSFB45, LSFC45, LSR045
+
+id=LSR049,name=LST Plat 16
+id=LSFC49 addAdjacentBerths LSFA17, LSFB17, LSR017, ,name=LST Plat 16
+id=LSFB49 addAdjacentBerths LSFA17, LSFB17, LSR017, ,name=LST Plat 16
+id=LSFA49 addAdjacentBerths LSFA17, LSFB17, LSR017, ,name=LST Plat 16
+
+id=LSR051,name=LST Plat 17
+id=LSFC51 addAdjacentBerths LSFA17, LSFB17, LSR017, ,name=LST Plat 17
+id=LSFB51 addAdjacentBerths LSFA17, LSFB17, LSR017, ,name=LST Plat 17
+id=LSFA51 addAdjacentBerths LSFA17, LSFB17, LSR017, ,name=LST Plat 17
+
+id=LSR053,name=LST Plat 18
+id=LSFC53 addAdjacentBerths LSFA17, LSFB17, LSR017, ,name=LST Plat 18
+id=LSFB53 addAdjacentBerths LSFA17, LSFB17, LSR017, ,name=LST Plat 18
+id=LSFA53 addAdjacentBerths LSFA17, LSFB17, LSR017, ,name=LST Plat 18
+
+id=LS0054
+id=LS0055
+id=LS0056
+id=LS0057
+id=LS0058
+id=LS0059
+id=LS0060
+id=LS0061
+id=LS0063
+id=LS0064
+id=LS0065
+id=LS0066
+id=LS0068
+id=LS0070
+id=LS0071
+id=LS0072
+id=LS0073
+id=LS0074
+id=LS0075
+id=LS0080
+id=LS0081
+id=LS0082
+id=LS0083
+id=LS0084
+id=LS0085
+id=LS0086
+id=LS0090,name=BET Plat 1 (DS)
+id=LS0091,name=BET Plat 2 (US)
+id=LS0092,name=BET UM
+id=LS0093,name=BET DM
+id=LS0094,name=BET UE
+id=LS0095,name=BET DE
+id=LS0100
+id=LS0101
+id=LS0102
+id=LS0103
+id=LS0110
+id=LS0112
+id=LS0200
+id=LS0201,step=[from=LS0201,fkTo=SI0221,to=LS0221,type=suggest]
+id=LS0202
+id=LS0203,step=[from=LS0203,fkTo=SI0223,to=LS0223,type=suggest]
+id=LS0210
+id=LS0212
+
+id=SI0220,step=[from=SI0220,fkTo=LS0210,to=cancel,type=suggest]
+id=SI0221
+id=SI0222,step=[from=SI0222,fkTo=LS0212,to=cancel,type=suggest]
+id=SI0223
+id=SI0224
+id=SI0225
+id=SI0226
+id=SI0227
+id=SI0228
+id=SI0229
+id=SI0230
+id=SI0231
+id=SI0234
+id=SI0235
+id=SI0237
+id=SI0239
+id=SI0241
+id=SI0240
+id=SI0242
+id=SI0244
+id=SI0245
+id=SI0248
+id=SI0249
+id=SI0250
+id=SI0251
+id=SI0252
+id=SI0253
+id=SI0254
+id=SI0255
+id=SI0256
+id=SI0257
+id=SI0258
+id=SI0259
+id=SI0261
+id=SI0265
+id=SI0262,name=SRA Plat 10 Up (DM)
+id=SI0263
+id=SI0264,name=SRA Plat 9 Up (UM)
+id=SI0266,name=SRA Plat 8 Up (DE)
+id=SI0267
+id=SI0268,name=SRA Plat 5 Up (UE)
+id=SI0269
+id=SI0270,name=SRA Plat 10 Up (DM)
+id=SI0273,name=SRA Plat 10 Dn (DM)
+id=SI0274,name=SRA Plat 12 Up (DTM)
+id=SI0275,name=SRA Plat 9 Dn (UM)
+id=SI0276,name=SRA Plat 11 Up (UTM)
+id=SI0277,name=SRA Plat 8 Dn (DE)
+id=SI0278,name=SRA Plat 10a Up (DA)
+id=SI0279,name=SRA Plat 5 Dn (UE)
+id=SI0281,name=SRA Plat 10a Dn (DA)
+id=SI0283
+id=SI0284
+id=SI0285
+id=SI0286
+id=SI0288
+id=SI0287
+id=SI0289,name=MYL Plat 4 Dn (DM)
+id=SI0290,name=MYL Plat 4 Up (DM)
+id=SI0291
+id=SI0292,name=MYL Plat 3 (UM)
+id=SI0293,name=MYL Plat 2 (DE)
+id=SI0294
+id=SI0295
+id=SI0296,name=MYL Plat 1 (UE)
+id=SI0297
+id=SI0298
+id=SI0299
+id=SI0300
+id=SI0303
+id=SI0304
+id=SI0305
+id=SI0306,name=FOG Plat 3 (UM)
+id=SI0307,name=FOG Plat 2 (DE)
+id=SI0308
+id=SI0309,name=FOG Plat 4 (DM)
+id=SI0310
+id=SI0313
+id=SI0314,name=FOG Plat 1 (UE)
+id=SI0317
+id=SI0316
+id=SI0320
+id=SI0324
+id=SI0326
+id=SI0330
+id=SI0332
+id=SI0334
+id=SI0909
+id=SI0911
+id=SI1292
+id=SI1296
+id=SI1424
+id=SI5065
+id=SI5070
+id=SILSBY
+id=SIS697,name=SRA Plat 12 Dn (DTM)
+id=SIS901,name=SRA Plat 11 Dn (UTM)
+id=SIU518
+id=SI1294
+
+id=SI0032
+id=SI1003
+id=SIS700
+id=SIS701
+id=SIS703
+id=SIS704
+id=SIS705
+id=SIS706
+id=SIS707
+id=SIS708
+id=SIS712
+id=SIS713,step=[from=SIS713,fkTo=WG1003,to=SI1003,type=suggest]
+id=SIS715
+id=SIS716
+id=SIS717
+id=SIS718
+id=SIS767
+id=SIS770
+id=SIS772

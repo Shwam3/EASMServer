@@ -158,7 +158,7 @@ public class ServerGui
         monitorPanel.add(dataScrollPane, BorderLayout.CENTER);
         updateDataList();
 
-        new /*javax.swing.*/Timer(250, new ActionListener()
+        new Timer(250, new ActionListener()
         {
             @Override
             public void actionPerformed(ActionEvent e)
@@ -170,20 +170,23 @@ public class ServerGui
                     long time = System.currentTimeMillis() - StompConnectionHandler.lastMessageTime;
                     model.setElementAt("Current Time:  " + EastAngliaSignalMapServer.sdf.format(new Date()), 0);
                     model.setElementAt(String.format("Last Message:  %s (%02d:%02d:%02d)",
-                                    EastAngliaSignalMapServer.sdf.format(new Date(StompConnectionHandler.lastMessageTime)),
-                                    (time / (3600000)) % 24,
-                                    (time / (60000)) % 60,
-                                    (time / 1000) % 60)
+                                EastAngliaSignalMapServer.sdf.format(new Date(StompConnectionHandler.lastMessageTime)),
+                                (time / (3600000)) % 24,
+                                (time / (60000)) % 60,
+                                (time / 1000) % 60)
                             + (!StompConnectionHandler.isConnected() ? " - disconnected" : "")
                             + (StompConnectionHandler.isClosed()? " - closed" : "")
                             + (StompConnectionHandler.isTimedOut() ? " - timed out" : ""), 1);
+
                     time = System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime();
                     model.setElementAt(String.format("Server Uptime: %02dd %02dh %02dm %02ds (%s)",
-                                    (time / (86400000)),
-                                    (time / (3600000)) % 24,
-                                    (time / (60000)) % 60,
-                                    (time / 1000) % 60,
-                                    new SimpleDateFormat("dd/MM HH:mm:ss").format(ManagementFactory.getRuntimeMXBean().getStartTime())), 2);
+                                (time / (86400000)),
+                                (time / (3600000)) % 24,
+                                (time / (60000)) % 60,
+                                (time / 1000) % 60,
+                                new SimpleDateFormat("dd/MM HH:mm:ss").format(ManagementFactory.getRuntimeMXBean().getStartTime()))
+                            + (EastAngliaSignalMapServer.server == null || EastAngliaSignalMapServer.server.isClosed() ? " - closed" : ""), 2);
+
                     model.setElementAt(String.format("Memory use:    %s mb"/* (f %s, t %s, m %s)"*/, (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576/*, Runtime.getRuntime().freeMemory(), Runtime.getRuntime().totalMemory(), Runtime.getRuntime().maxMemory()*/), 3);
 
                     dataList.setModel(model);

@@ -6,6 +6,7 @@ import eastangliamapserver.stomp.StompConnectionHandler;
 import java.awt.Desktop;
 import java.io.*;
 import java.net.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class CommandHandler
@@ -96,19 +97,19 @@ public class CommandHandler
 
             case KICK:
                 if (args.length != 2 || args[1].equals("help"))
-                    printCommand("Usage: kick <all|client_name|client_address>", true);
+                    printCommand("Usage: kick <all|client_name|client_address> [reason]", true);
                 else
                 {
                     if (args[1].equals("all"))
                     {
-                        Clients.kickAll();
+                        Clients.kickAll(args.length == 3 ? args[2] : null);
                         printCommand("Kicked all clients", false);
                     }
                     else
                     {
                         if (Clients.hasMultiple(args[1]))
                         {
-                            printCommand("Multiple clients by the same name, use IP to kick", false);
+                            printCommand("Multiple clients by the same name, use IP address to kick", false);
                             return;
                         }
 
@@ -118,7 +119,7 @@ public class CommandHandler
                         if (client == null)
                             printCommand("Unrecognised client name/address", true);
                         else
-                            client.disconnect();
+                            client.disconnect("You have been kicked" + (args.length == 3 && args[2] != null && !args[2].equals("") ? ": " + args[2] : ""));
                     }
                 }
                 break;
@@ -264,8 +265,8 @@ public class CommandHandler
                 break;
 
             case RECONNECT:
-                StompConnectionHandler.reconnect();
-
+                StompConnectionHandler.disconnect();
+                StompConnectionHandler.wrappedConnect();
                 break;
 
             case SLEEP:
@@ -386,7 +387,10 @@ public class CommandHandler
                 if (args.length != 2 && args.length != 1)
                     printCommand("Usage: server [open|close]", true);
                 else if (args.length == 1)
+                {
                     printCommand("Server " + (EastAngliaSignalMapServer.server.isClosed() ? "closed" : "open"), false);
+                    printCommand(String.valueOf(EastAngliaSignalMapServer.server), false);
+                }
                 else if (args[1].toLowerCase().equals("open"))
                     if (EastAngliaSignalMapServer.server != null && !EastAngliaSignalMapServer.server.isClosed())
                         printCommand("Server already open", false);
@@ -435,7 +439,7 @@ public class CommandHandler
                     else
                     {
                         StompConnectionHandler.disconnect();
-                        
+
                         if (StompConnectionHandler.wrappedConnect())
                             printCommand("Stomp started", false);
                         else
@@ -459,13 +463,39 @@ public class CommandHandler
                     int[] dims = oldGui.getDims();
                     EastAngliaSignalMapServer.gui = new ServerGui(dims[0], dims[1], dims[2], dims[3]);
                 }
+                SignalMap.createBerthObjects();
 
                 oldGui.dispose();
                 break;
 
             case "client_history":
-            case "cl_hist":
+            case "clhist":
                 new ListDialog("Client history", "History of client stuffs", Clients.clientsHistory);
+                break;
+
+            case "motd":
+                Berth berth = Berths.getBerth("XXMOTD");
+                if (args.length == 1)
+                    printCommand("MOTD: \"" + (berth != null ? berth.getHeadcode() : "") + "\"", false);
+                else if (berth != null)
+                {
+                    String motd = "";//new SimpleDateFormat("dd/MM HH:mm:ss:").format(new Date());
+                    for (int i = 1; i < args.length; i++)
+                        motd += " " + args[i];
+
+                    motd = motd.replaceAll("%date%", new SimpleDateFormat("dd/MM").format(new Date()));
+                    motd = motd.replaceAll("%time%", new SimpleDateFormat("HH:mm:ss").format(new Date()));
+
+                    berth.interpose(new Train(motd.trim(), berth));
+
+                    HashMap motdMap = new HashMap();
+                    motdMap.put("XXMOTD", motd.trim());
+                    Clients.broadcastUpdate(motdMap);
+
+                    printCommand("MOTD (literal): \"" + motd + "\"", false);
+
+                    EastAngliaSignalMapServer.gui.updateDataList();
+                }
                 break;
 
             case "gc":

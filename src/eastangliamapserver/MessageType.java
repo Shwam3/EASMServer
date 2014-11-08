@@ -16,7 +16,9 @@ public enum MessageType
     SEND_HIST_TRAIN (0x21, "SEND_HIST_TRAIN"),
     SEND_HIST_BERTH (0x22, "SEND_HIST_BERTH"),
     SEND_PROB_BERTH (0x23, "SEND_PROB_BERTH"),
-    SEND_UPDATE     (0x24, "SEND_UPDATE");
+    SEND_UPDATE     (0x24, "SEND_UPDATE"),
+
+    SEND_MESSAGE (0x30, "SEND_MESSGE");
 
     private final int    value;
     private final String name;

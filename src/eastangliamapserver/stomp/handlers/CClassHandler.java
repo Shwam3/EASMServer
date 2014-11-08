@@ -15,6 +15,8 @@ public class CClassHandler
         try
         {
             List<String> splitBody = Arrays.asList(body.replace("},{", ";").replace("[", "").replace("]", "").replace("\"", "").replace("{", "").replace("}", "").split(";"));
+            int parsed = 0;
+
             //Needs to be done in this order
             //<editor-fold defaultstate="collapsed" desc="Interpose">
             for (String bodyBit : splitBody)
@@ -25,6 +27,7 @@ public class CClassHandler
                 if (!bodyBit.contains("msg_type:CC,"))
                     continue;
 
+                parsed++;
                 bodyBit = bodyBit.substring(7);
                 HashMap<String, String> bodyMap = new HashMap<>();
 
@@ -42,7 +45,7 @@ public class CClassHandler
 
                 if (toBerth != null)
                 {
-                    List<Train> adjTrains = toBerth.getAdjacentTrains();
+                    ArrayList<Train> adjTrains = toBerth.getAdjacentTrains();
 
                     for (Train train : adjTrains)
                         if (train.getHeadcode().equals(toBerth.getHeadcode()))
@@ -79,6 +82,7 @@ public class CClassHandler
                 if (!bodyBit.contains("msg_type:CA,"))
                     continue;
 
+                parsed++;
                 bodyBit = bodyBit.substring(7);
                 HashMap<String, String> bodyMap = new HashMap<>();
 
@@ -193,6 +197,7 @@ public class CClassHandler
                 if (!bodyBit.contains("msg_type:CB,"))
                     continue;
 
+                parsed++;
                 bodyBit = bodyBit.substring(7);
                 HashMap<String, String> bodyMap = new HashMap<>();
 
@@ -228,14 +233,23 @@ public class CClassHandler
                 updateMap.put(bodyMap.get("a_from"), "");
             }
             //</editor-fold>
+
+            for (String bodyBit : splitBody)
+            {
+                if (bodyBit.contains("area_id:AW,") || bodyBit.contains("area_id:UR,") || bodyBit.contains("area_id:U2,") || bodyBit.contains("area_id:U3,")
+                        || bodyBit.contains("msg_type:SF,") || bodyBit.contains("msg_type:SG,") || bodyBit.contains("msg_type:SH,") || bodyBit.contains("msg_type:CT,"))
+                    parsed++;
+            }
+
+            if (parsed != body.split("_MSG").length - 1)
+                printCClass("Done (" + parsed + "/" + (body.split("_MSG").length - 1) + ")", true);
         }
         catch (Exception e)
         {
-            printCClass("Exception in C-Class handler:\n" + String.valueOf(e), true);
+            printCClass("Exception in C-Class handler: " + String.valueOf(e), true);
+            e.printStackTrace();
         }
-        finally
-        {
-            return updateMap;
-        }
+
+        return updateMap;
     }
 }

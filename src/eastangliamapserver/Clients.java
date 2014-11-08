@@ -3,23 +3,27 @@ package eastangliamapserver;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import javax.swing.JOptionPane;
 
 public class Clients
 {
-    private static final List<Client> clients = new ArrayList<>();
-
-    public static final List<String> clientsHistory = new ArrayList<>();
+    private static final ArrayList<Client> clients = new ArrayList<>();
+    public  static final ArrayList<String> clientsHistory = new ArrayList<>();
 
     public static void addClient(Client client)
     {
-        clients.add(client);
-
-        EastAngliaSignalMapServer.gui.updateClientList();
+        if (hasSpace())
+        {
+            clients.add(client);
+            EastAngliaSignalMapServer.gui.updateClientList();
+        }
+        else
+            client.disconnect("Server full");
     }
 
-    public static List<String> getClientList()
+    public static ArrayList<String> getClientList()
     {
-        List<String> clientList = new ArrayList<>();
+        ArrayList<String> clientList = new ArrayList<>();
 
         try
         {
@@ -32,12 +36,20 @@ public class Clients
         return clientList;
     }
 
-    public static void kickAll()
+    public static void kickAll(String reason)
     {
-        for (Client client : clients.toArray(new Client[0]))
-            client.disconnect();
+        if (reason == null)
+            reason = JOptionPane.showInputDialog(EastAngliaSignalMapServer.gui.frame, "Add a message to kickAll:");
 
-        addClientLog("Kicked all clients");
+        if (reason != null && !reason.equals(""))
+            reason = "You have been kicked: " + reason;
+        else
+            reason = "You have been kicked";
+
+        for (Client client : clients)
+            client.disconnect(reason);
+
+        addClientLog("Kicked all clients (" + reason + ")");
     }
 
     public static boolean hasClient(Socket clientSocket)
@@ -73,8 +85,7 @@ public class Clients
         {
             client.printClient("Closing connection", false);
 
-            client.sendSocketClose();
-            client.closeSocket();
+            client.disconnect("Server closed");
         }
 
         addClientLog("Closed all clients");
@@ -103,5 +114,10 @@ public class Clients
     public static void addClientLog(String message)
     {
         clientsHistory.add(0, new SimpleDateFormat("[dd/MM HH:mm] ").format(new Date()) + message);
+    }
+
+    public static boolean hasSpace()
+    {
+        return clients.size() < 5;
     }
 }

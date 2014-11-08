@@ -4,6 +4,8 @@ import java.util.*;
 
 public class SignalMap
 {
+    protected static boolean isCreated = false;
+
     public static void createBerthObjects()
     {
         initStratford();
@@ -18,6 +20,10 @@ public class SignalMap
         initCambridgeCA();
         initCambridgeEN();
         initNorwich();
+
+        Berths.createOrGetBerth("XXMOTD"); // Message to client
+
+        isCreated = true;
     }
 
     //<editor-fold defaultstate="collapsed" desc="Norwich">
@@ -1083,7 +1089,7 @@ public class SignalMap
         Berths.createOrGetBerth("LS1405");
         Berths.createOrGetBerth("LS1407");
 
-        //Clpton Jnc - Chingford
+        //Clapton Jnc - Chingford
         Berths.createOrGetBerth("LS1408");
         Berths.createOrGetBerth("LS1410");
         Berths.createOrGetBerth("LS1411");
@@ -1168,6 +1174,7 @@ public class SignalMap
         Berths.createOrGetBerth("WG1372");
         Berths.createOrGetBerth("WG1373");
         Berths.createOrGetBerth("WG1375");
+        Berths.createOrGetBerth("WG5514");
 
         //Bury St Jnc - Enfield Town
         Berths.createOrGetBerth("WG1350");
@@ -1265,52 +1272,6 @@ public class SignalMap
     //<editor-fold defaultstate="collapsed" desc="Witham">
     private static void initWitham()
     {
-        Berths.createOrGetBerth("SE0669");
-        Berths.createOrGetBerth("SE0671");
-        Berths.createOrGetBerth("SE0675");
-        Berths.createOrGetBerth("SE0677");
-        Berths.createOrGetBerth("SE0679");
-        Berths.createOrGetBerth("SE0683").setName("INT Plat 2 Dn (DM)");
-        Berths.createOrGetBerth("SE0685");
-        Berths.createOrGetBerth("SE0687");
-        Berths.createOrGetBerth("SE0691");
-        Berths.createOrGetBerth("SE0693");
-        Berths.createOrGetBerth("SE0695");
-        Berths.createOrGetBerth("SE0697");
-        Berths.createOrGetBerth("SE0701");
-        Berths.createOrGetBerth("SE0703");
-        Berths.createOrGetBerth("SE0705");
-        Berths.createOrGetBerth("SE0710");
-        Berths.createOrGetBerth("SE0711");
-        Berths.createOrGetBerth("SE0712").setName("INT Plat 2 Up (DM)");
-        Berths.createOrGetBerth("SE0713");
-        Berths.createOrGetBerth("SE0714").setName("INT Plat 1 (UM)");
-        Berths.createOrGetBerth("SE0715").setName("CHM Plat 2 Dn (DM)");
-        Berths.createOrGetBerth("SE0716");
-        Berths.createOrGetBerth("SE0717").setName("CHM Plat 1 Up (UM)");
-        Berths.createOrGetBerth("SE0718");
-        Berths.createOrGetBerth("SE0722");
-        Berths.createOrGetBerth("SE0723");
-        Berths.createOrGetBerth("SE0724");
-        Berths.createOrGetBerth("SE0725");
-        Berths.createOrGetBerth("SE0726");
-        Berths.createOrGetBerth("SE0727");
-        Berths.createOrGetBerth("SE0729");
-        Berths.createOrGetBerth("SE0730");
-        Berths.createOrGetBerth("SE0732");
-        Berths.createOrGetBerth("SE0734");
-        Berths.createOrGetBerth("SE0736");
-        Berths.createOrGetBerth("SE0740");
-        Berths.createOrGetBerth("SE0742");
-        Berths.createOrGetBerth("SE0756");
-        Berths.createOrGetBerth("SE0758").setName("CHM Plat 2 Up (DM)");
-        Berths.createOrGetBerth("SE0760").setName("CHM Plat 1 Dn (UM)");
-        Berths.createOrGetBerth("SE0762");
-        Berths.createOrGetBerth("SE0764");
-        Berths.createOrGetBerth("SE0766");
-        Berths.createOrGetBerth("SE0770");
-        Berths.createOrGetBerth("SE0772");
-
         Berths.createOrGetBerth("SE0731");
         Berths.createOrGetBerth("SE0733");
         Berths.createOrGetBerth("SE0735");
@@ -1403,6 +1364,53 @@ public class SignalMap
         Berths.createOrGetBerth("SER898");
         Berths.createOrGetBerth("SESHAL");
         Berths.createOrGetBerth("SEUSDG");
+
+        Berths.createOrGetBerth("SE0669");
+        Berths.createOrGetBerth("SE0671");
+        Berths.createOrGetBerth("SE0675");
+        Berths.createOrGetBerth("SE0677");
+        Berths.createOrGetBerth("SE0679");
+        Berths.createOrGetBerth("SE0683").setName("INT Plat 2 Dn (DM)");
+        Berths.createOrGetBerth("SE0685");
+        Berths.createOrGetBerth("SE0687");
+        Berths.createOrGetBerth("SE0691");
+        Berths.createOrGetBerth("SE0693");
+        Berths.createOrGetBerth("SE0695");
+        Berths.createOrGetBerth("SE0697");
+        Berths.createOrGetBerth("SE0701");
+        Berths.createOrGetBerth("SE0703");
+        Berths.createOrGetBerth("SE0705");
+        Berths.createOrGetBerth("SE0710");
+        Berths.createOrGetBerth("SE0711");
+        Berths.createOrGetBerth("SE0712").setName("INT Plat 2 Up (DM)");
+        Berths.createOrGetBerth("SE0713");
+        Berths.createOrGetBerth("SE0714").setName("INT Plat 1 (UM)");
+        Berths.createOrGetBerth("SE0715").setName("CHM Plat 2 Dn (DM)");
+        Berths.createOrGetBerth("SE0716");
+        Berths.createOrGetBerth("SE0717").setName("CHM Plat 1 Up (UM)");
+        Berths.createOrGetBerth("SE0718");
+        Berths.createOrGetBerth("SE0722");
+        Berths.createOrGetBerth("SE0723");
+        Berths.createOrGetBerth("SE0724");
+        Berths.createOrGetBerth("SE0725");
+        Berths.createOrGetBerth("SE0726");
+        Berths.createOrGetBerth("SE0727");
+        Berths.createOrGetBerth("SE0729");
+        Berths.createOrGetBerth("SE0730");
+        Berths.createOrGetBerth("SE0732");
+        Berths.createOrGetBerth("SE0734");
+        Berths.createOrGetBerth("SE0736");
+        Berths.createOrGetBerth("SE0740");
+        Berths.createOrGetBerth("SE0742");
+        Berths.createOrGetBerth("SE0756");
+        Berths.createOrGetBerth("SE0758").setName("CHM Plat 2 Up (DM)");
+        Berths.createOrGetBerth("SE0760").setName("CHM Plat 1 Dn (UM)");
+        Berths.createOrGetBerth("SE0762");
+        Berths.createOrGetBerth("SE0764");
+        Berths.createOrGetBerth("SE0766");
+        Berths.createOrGetBerth("SE0770");
+        Berths.createOrGetBerth("SE0772");
+        Berths.createOrGetBerth("SE5186");
     }
     //</editor-fold>
 
@@ -1628,6 +1636,7 @@ public class SignalMap
         Berths.createOrGetBerth("SEDNSS");
         Berths.createOrGetBerth("SEDNSN");
         Berths.createOrGetBerth("SER708");
+        Berths.createOrGetBerth("SEX708");
         Berths.createOrGetBerth("SEUPSN");
         Berths.createOrGetBerth("SEUPSS");
     }
@@ -1723,6 +1732,7 @@ public class SignalMap
         Berths.createOrGetBerth("SIROM1").setName("RMF Plat 1");
         Berths.createOrGetBerth("SIRRED");
         Berths.createOrGetBerth("SIRROM").setName("RMF Plat 1");
+        Berths.createOrGetBerth("SIXROM");
         Berths.createOrGetBerth("SIUMIN");
 
         Berths.createOrGetBerth("SI0321");
@@ -2021,6 +2031,7 @@ public class SignalMap
         Berths.createOrGetBerth("SI0298");
         Berths.createOrGetBerth("SI0299");
         Berths.createOrGetBerth("SI0300");
+        Berths.createOrGetBerth("SI0301");
         Berths.createOrGetBerth("SI0303");
         Berths.createOrGetBerth("SI0304");
         Berths.createOrGetBerth("SI0305");
@@ -2029,13 +2040,17 @@ public class SignalMap
         Berths.createOrGetBerth("SI0308");
         Berths.createOrGetBerth("SI0309").setName("FOG Plat 4 (DM)");
         Berths.createOrGetBerth("SI0310");
+        Berths.createOrGetBerth("SI0311");
         Berths.createOrGetBerth("SI0313");
         Berths.createOrGetBerth("SI0314").setName("FOG Plat 1 (UE)");
-        Berths.createOrGetBerth("SI0317");
+        Berths.createOrGetBerth("SI0315");
         Berths.createOrGetBerth("SI0316");
+        Berths.createOrGetBerth("SI0317");
+        Berths.createOrGetBerth("SI0319");
         Berths.createOrGetBerth("SI0320");
         Berths.createOrGetBerth("SI0324");
         Berths.createOrGetBerth("SI0326");
+        Berths.createOrGetBerth("SI0328");
         Berths.createOrGetBerth("SI0330");
         Berths.createOrGetBerth("SI0332");
         Berths.createOrGetBerth("SI0334");
@@ -2078,6 +2093,9 @@ public class SignalMap
     {
         for (Map.Entry pairs : Berths.getEntrySet())
         {
+            if (String.valueOf(pairs.getKey()).startsWith("XX"))
+                continue;
+
             Berth berth = (Berth) pairs.getValue();
 
             if (EastAngliaSignalMapServer.CClassMap.containsKey(pairs.getKey().toString()))

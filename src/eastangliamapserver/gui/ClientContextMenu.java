@@ -25,8 +25,10 @@ public class ClientContextMenu extends JPopupMenu
                     String clientName = (String) invoker.getSelectedValue();
                     Client client = Clients.getClient(clientName.substring(clientName.lastIndexOf("(") + 1, clientName.length() - 1));
 
+                    String reason = JOptionPane.showInputDialog(EastAngliaSignalMapServer.gui.frame, "Add a kick message:");
+
                     if (client != null)
-                        client.disconnect();
+                        client.disconnect("You have been kicked" + (reason != null && !reason.equals("") ? ": " + reason : ""));
                 }
             }
             else if (evt.getSource() == history)
