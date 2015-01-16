@@ -13,7 +13,7 @@ public class Train
     private       String  headcode = "";
     private       Berth   currentBerth;
     public        boolean isCancelled = false;
-    private final ArrayList<String> history = new ArrayList<>();
+    private       List<String> history = new ArrayList<>();
 
     public Train(String headcode, Berth startBerth)
     {
@@ -33,6 +33,9 @@ public class Train
     public Train(String headcode, String UID, String trustId)
     {
         UUID = EastAngliaSignalMapServer.getNextUUID();
+
+        while (headcode.length() < 4)
+            headcode += " ";
 
         this.UID = UID;
         TRUST_ID = trustId;
@@ -68,7 +71,7 @@ public class Train
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM HH:mm:ss");
             history.add(1, sdf.format(new Date()) + ": " + currentBerth.getBerthDescription() + (currentBerth.getName().equals("") ? "" : " (" + currentBerth.getName() + ")"));
 
-            HashMap<String, Object> historyMap = new HashMap<>();
+            Map<String, Object> historyMap = new HashMap<>();
 
             historyMap.put("start",    start);
             historyMap.put("end",      end);
@@ -76,7 +79,7 @@ public class Train
             historyMap.put("headcode", headcode);
             historyMap.put("history",  history);
             historyMap.put("changed",  new Date());
-            Berths.trainHistory(UUID,  historyMap);
+            Berths.addTrainHistory(UUID,  historyMap);
         }
     }
 
@@ -88,9 +91,14 @@ public class Train
 
     public Berth getCurrentBerth() { return currentBerth; }
 
-    public ArrayList<String> getTrainsHistory()
+    public List<String> getTrainsHistory()
     {
         return history;
+    }
+
+    public void clean()
+    {
+        history = new ArrayList<>(history);
     }
 
     @Override
@@ -105,7 +113,7 @@ public class Train
         if (obj instanceof Train)
         {
             Train train = (Train) obj;
-            return headcode.equals(train.getHeadcode());// && this.UUID == train.UUID;
+            return headcode.equals(train.getHeadcode()) && this.UUID.equals(train.UUID);
         }
 
         return false;

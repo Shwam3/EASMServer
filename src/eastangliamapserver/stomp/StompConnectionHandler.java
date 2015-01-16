@@ -2,51 +2,50 @@ package eastangliamapserver.stomp;
 
 import eastangliamapserver.*;
 import eastangliamapserver.stomp.handlers.CClassHandler;
+import eastangliamapserver.stomp.handlers.RTPPMHandler;
+import eastangliamapserver.stomp.handlers.SClassHandler;
 import java.io.*;
 import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.*;
 import javax.security.auth.login.LoginException;
+import jsonparser.JSONParser;
 import net.ser1.stomp.Listener;
+import net.ser1.stomp.Version;
 
 public class StompConnectionHandler
 {
     private static StompClient client;
 
     private static ScheduledFuture<?> timeoutHandler = null;
-    private static int   timeoutWait = 10;
-    private static int   wait = 0;
-    public  static long  lastMessageTime = System.currentTimeMillis();
+    private static int    timeoutWait = 10;
+    private static int    wait = 0;
+    public  static long   lastMessageTime = System.currentTimeMillis();
+    private static String appID = "";
 
     public static boolean connect() throws LoginException, IOException
     {
-        FileInputStream in = null;
-        String username = "";
-        String password = "";
-        String appID = "";
-        String subID = "";
-        try
+        printStomp(Version.VERSION, false);
+
+        String username;
+        String password;
+
+        File loginFile = new File(EastAngliaSignalMapServer.storageDir, "NROD_Login.properties");
+        try (FileInputStream in = new FileInputStream(loginFile))
         {
             Properties loginProps = new Properties();
-            in = new FileInputStream("NROD_Login.properties");
             loginProps.load(in);
 
-            username = loginProps.getProperty("Username");
-            password = loginProps.getProperty("Password");
-
-            appID = username + "-EastAngliaSignalMapServer-v" + EastAngliaSignalMapServer.VERSION + "-" + System.getProperty("user.name");
-            subID = appID + "-TD";
+            username = loginProps.getProperty("Username", "");
+            password = loginProps.getProperty("Password", "");
         }
         catch (FileNotFoundException e)
         {
-            printStomp("Unable to find login properties file: (" + System.getProperty("user.dir") + "\\NROD_Login.properties)\n" + e, true);
+            printStomp("Unable to find login properties file (" + loginFile + ")", true);
             return false;
         }
-        finally
-        {
-            if (in != null)
-                in.close();
-        }
+
+        appID = username + "-EastAngliaSignalMapServer-v" + EastAngliaSignalMapServer.VERSION;
 
         if ((username != null && username.equals("")) || (password != null && password.equals("")))
         {
@@ -54,19 +53,19 @@ public class StompConnectionHandler
             return false;
         }
 
-        client = new StompClient("datafeeds.networkrail.co.uk", 61618, username, password, appID);
         startTimeoutTimer();
+        client = new StompClient("datafeeds.networkrail.co.uk", 61618, username, password, appID);
 
         if (client.isConnected())
         {
-            printStomp("Connected to \"datafeeds.networkrail.co.uk:" + 61618 + "\"", false);
+            printStomp("Connected to \"datafeeds.networkrail.co.uk:61618\"", false);
             printStomp("    ID:       " + appID,    false);
             printStomp("    Username: " + username, false);
             printStomp("    Password: " + password, false);
         }
         else
         {
-            printStomp("Could not connect to server", true);
+            printStomp("Could not connect to network rails servers", true);
             return false;
         }
 
@@ -75,45 +74,87 @@ public class StompConnectionHandler
         Listener TDListener = new Listener()
         {
             @Override
-            public void message(final Map headers, final String body)
+            public void message(final Map<String, String> headers, final String body)
             {
-                printCClass(String.format("Message \"%s\" (%s)", String.valueOf(headers.get("message-id")).substring(38), EastAngliaSignalMapServer.sdf.format(new Date(Long.parseLong(String.valueOf(headers.get("timestamp")))))), false);
-                headers.put("nice-message-id", headers.get("message-id").toString().substring(38).replace(":", ""));
-                HashMap<String, String> updateMap = CClassHandler.parseMessage(body);
+                printStomp(String.format("Message received (topic: %s, time: %s, expires: %s, id: %s)", headers.get("destination").substring(7), EastAngliaSignalMapServer.sdf.format(new Date(Long.parseLong(headers.get("timestamp")))), EastAngliaSignalMapServer.sdf.format(new Date(Long.parseLong(headers.get("expires")))), headers.get("message-id").replace("\\c", ":").substring(38)), false);
+
+                List<Map<String, Map<String, String>>> messageList = (List<Map<String, Map<String, String>>>) JSONParser.parseJSON("{\"TDMessage\":" + body + "}").get("TDMessage");
+
+                Map<String, String> CClass = CClassHandler.parseMessage(messageList);
+                Map<String, String> SClass = SClassHandler.parseMessage(messageList);
+
+                Map<String, String> updateMap = new HashMap<>(CClass.size() + SClass.size());
+                updateMap.putAll(CClass);
+                updateMap.putAll(SClass);
+
+                if (!CClass.isEmpty())
+                    EastAngliaSignalMapServer.CClassMap.putAll(CClass);
+                else if (!body.contains("\"CT\""))
+                    printCClass("No messages", false);
+
+                int heartbeats = (body.length() - body.replace("CT", "").length()) / 2;
+                if (heartbeats > 0)
+                    printCClass(heartbeats + " heartbeat(s)", false);
+
+                if (SClass.isEmpty())
+                    printSClass("No messages", false);
 
                 if (!updateMap.isEmpty())
-                {
-                    EastAngliaSignalMapServer.CClassMap.putAll(updateMap);
                     Clients.broadcastUpdate(updateMap);
-                }
-                else
-                    printCClass("Empty map", false);
 
                 lastMessageTime = System.currentTimeMillis();
                 EastAngliaSignalMapServer.gui.updateDataList();
 
-                StompConnectionHandler.client.ack(headers.get("message-id").toString());
+                StompConnectionHandler.client.ack(headers.get("ack")/*, "TD"*/);
+            }
+        };
+
+        Listener PPMListener = new Listener()
+        {
+            @Override
+            public void message(Map<String, String> headers, String body)
+            {
+                printStomp(String.format("Message received (topic: %s, time: %s, expires: %s, id: %s)", headers.get("destination").substring(7), EastAngliaSignalMapServer.sdf.format(new Date(Long.parseLong(headers.get("timestamp")))), EastAngliaSignalMapServer.sdf.format(new Date(Long.parseLong(headers.get("expires")))), headers.get("message-id").replace("\\c", ":").substring(38)), false);
+                RTPPMHandler.parseMessage(body);
+
+                lastMessageTime = System.currentTimeMillis();
+                EastAngliaSignalMapServer.gui.updateDataList();
+
+                StompConnectionHandler.client.ack(headers.get("ack")/*, "RTPPM"*/);
+            }
+        };
+
+        Listener GenericListener = new Listener()
+        {
+            @Override
+            public void message(Map<String, String> headers, String body)
+            {
+                printStomp(String.format("Message received (topic: %s, time: %s, expires: %s, id: %s)", headers.get("destination").substring(7), EastAngliaSignalMapServer.sdf.format(new Date(Long.parseLong(headers.get("timestamp")))), EastAngliaSignalMapServer.sdf.format(new Date(Long.parseLong(headers.get("expires")))), headers.get("message-id").substring(38)), false);
+                if (!headers.get("destination").substring(7).contains("VSTP"))
+                    printStomp(body, false);
+
+                StompConnectionHandler.client.ack(headers.get("ack")/*, "VSTP"*/);
             }
         };
 
         client.addErrorListener(new Listener()
         {
             @Override
-            public void message(Map headers, String body)
+            public void message(Map<String, String> headers, String body)
             {
-                printStomp("Stomp message error\n" + headers.get("message"), true);
+                printStomp(headers.get("message"), true);
+
+                if (body != null && !body.isEmpty())
+                    printStomp(body.replace("\n", "\n[Stomp]"), true);
             }
         });
 
-        HashMap header = new HashMap();
-        header.put("ack", "client-individual");
-        header.put("id", subID);
-        header.put("activemq.subscriptionName", subID); // actual name unknown
+        client.subscribe("/topic/TD_ANG_SIG_AREA", "TD",    TDListener);
+        client.subscribe("/topic/RTPPM_ALL",       "RTPPM", PPMListener);
+        client.subscribe("/topic/TSR_ANG_ROUTE",   "TSR",   GenericListener);
+        client.subscribe("/topic/VSTP_ALL",        "VSTP",  GenericListener);
 
-        client.subscribe("/topic/TD_ANG_SIG_AREA", TDListener, subID, header);
-
-        printStomp("Subscribed to \"/topic/TD_ANG_SIG_AREA\"", false);
-        printStomp("Subscription id \"" + subID + "\"", false);
+        RTPPMHandler.initPPM();
 
         return true;
     }
@@ -151,23 +192,13 @@ public class StompConnectionHandler
         {
             return connect();
         }
-        catch (LoginException e)
-        {
-            printStomp("Login Exception. (Another) Server already is connected to NR Servers", true);
-            printStomp(e.toString(), true);
-            /*try { Thread.sleep(50); }
-            catch (InterruptedException ex) { return false; }
-
-            wrappedConnect();*/
-        }
+        catch (LoginException e)       { printStomp("Login Exception: " + e.getLocalizedMessage().split("\n")[0], true); }
         catch (UnknownHostException e) { printStomp("Unable to resolve host (datafeeds.networkrail.co.uk)", true); }
-        catch (IOException e) { printStomp("IO Exception:\n" + String.valueOf(e), true); }
-        catch (Exception e) { printStomp("Exception:\n" + String.valueOf(e), true); }
-        catch (Throwable t) { printStomp("INVESTIGATE FURTHER:\n" + String.valueOf(t), true); }
-        finally
-        {
-            return false;
-        }
+        catch (IOException e)          { printStomp("IO Exception:", true); EastAngliaSignalMapServer.printThrowable(e, "Stomp"); }
+        catch (Exception e)            { printStomp("Exception:", true); EastAngliaSignalMapServer.printThrowable(e, "Stomp"); }
+        catch (Throwable t)            { printStomp("INVESTIGATE FURTHER:", true); EastAngliaSignalMapServer.printThrowable(t, "Stomp"); }
+
+        return false;
     }
 
     private static void startTimeoutTimer()
@@ -175,7 +206,7 @@ public class StompConnectionHandler
         if (timeoutHandler != null)
             timeoutHandler.cancel(false);
 
-        timeoutHandler = Executors.newScheduledThreadPool(1).scheduleAtFixedRate(new Runnable()
+        timeoutHandler = Executors.newScheduledThreadPool(1).scheduleWithFixedDelay(new Runnable()
         {
             @Override
             public void run()
@@ -201,11 +232,10 @@ public class StompConnectionHandler
 
                             connect();
                         }
-                        catch (LoginException e) { printStomp("Login Exception", true); e.printStackTrace(); }
-                        //catch (IOException ex) { printStomp("IOException reconnecting:\n" + String.valueOf(ex), true); }
-                        catch (Exception ex) { printStomp("Exception reconnecting:\n" + String.valueOf(ex), true); }
-                        catch (Error er)     { printStomp("Error reconnecting:\n" + String.valueOf(er), true); }
-                        finally { return; }
+                        catch (LoginException e) { printStomp("Login Exception: " + e.getLocalizedMessage().split("\n")[0], true);}
+                        catch (IOException e)    { printStomp("IOException reconnecting", true); EastAngliaSignalMapServer.printThrowable(e, "Stomp"); }
+                        catch (Exception e)      { printStomp("Exception reconnecting:", true);  EastAngliaSignalMapServer.printThrowable(e, "Stomp"); }
+                        catch (Error e)          { printStomp("Error reconnecting:", true);      EastAngliaSignalMapServer.printThrowable(e, "Stomp"); }
                     }
                     else
                     {
@@ -243,5 +273,13 @@ public class StompConnectionHandler
             EastAngliaSignalMapServer.printErr("[C-Class] " + message);
         else
             EastAngliaSignalMapServer.printOut("[C-Class] " + message);
+    }
+
+    public static void printRTPPM(String message, boolean toErr)
+    {
+        if (toErr)
+            EastAngliaSignalMapServer.printErr("[RTPPM] " + message);
+        else
+            EastAngliaSignalMapServer.printOut("[RTPPM] " + message);
     }
 }

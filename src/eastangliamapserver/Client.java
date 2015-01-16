@@ -11,16 +11,20 @@ public class Client implements Runnable
     public  String address = "--.--.--.--";
     public  String port    = "";
     public  String name    = "Unnamed";
+    public  int    version = -1;
+
+    private Properties props = new Properties();
 
     private Thread clientThread;
 
-    private boolean stop   = false;
-    private int     errors = 0;
+    private boolean         stop   = false;
+    private int             errors = 0;
+    private List<Throwable> errorList = new ArrayList<>();
 
-    private ArrayList<String> history = new ArrayList<>();
+    private List<String> history = new ArrayList<>();
 
-    private long  lastMessageTime    = System.currentTimeMillis();
-    private long  timeoutTime        = 30000;
+    private long  lastMessageTime = System.currentTimeMillis();
+    private long  timeoutTime     = 30000;
     private       Timer timeoutTimer;
 
     public Client(Socket client) throws IOException
@@ -29,6 +33,12 @@ public class Client implements Runnable
 
         address = client.getInetAddress().getHostAddress();
         port    = Integer.toString(client.getPort());
+
+        try
+        {
+            version = Integer.parseInt(name.substring(name.lastIndexOf("v")+1, name.lastIndexOf(")")-1));
+        }
+        catch (Exception e) { version = -1; }
 
         printClient("Initialise client at " + name + "/" + address, false);
         //addClientLog(String.format("Client at %s:%s joined", client.address, client.port + (client.name != null ? " (" + client.name + ")" : "")));
@@ -56,7 +66,7 @@ public class Client implements Runnable
 
                 if (obj instanceof Map)
                 {
-                    HashMap<String, Object> message = (HashMap<String, Object>) obj;
+                    Map<String, Object> message = (Map<String, Object>) obj;
                     MessageType type = MessageType.getType((int) message.get("type"));
 
                     lastMessageTime = System.currentTimeMillis();
@@ -84,7 +94,7 @@ public class Client implements Runnable
 
                         case REQUEST_ALL:
                             printClient("Sending full map", false);
-                            addClientLog("Full map", true);
+                            addClientLog("Full map", false);
 
                             sendAll();
                             break;
@@ -111,7 +121,22 @@ public class Client implements Runnable
 
                             name = newName;
 
+                            int oldVersion = version;
+                            try
+                            {
+                                version = Integer.parseInt(name.substring(name.lastIndexOf("v")+1, name.lastIndexOf(")")-1));
+                            }
+                            catch (NumberFormatException e) { version = oldVersion; }
+
+                            props = (Properties) message.get("props");
+                            props = (props == null ? new Properties() : props);
+
                             EastAngliaSignalMapServer.gui.updateClientList();
+                            break;
+
+                        case SEND_MESSAGE:
+                            printClient((String) message.get("message"), false);
+                            addClientLog((String) message.get("message"), true);
                             break;
                     }
                 }
@@ -120,9 +145,8 @@ public class Client implements Runnable
 
                 errors = 0;
             }
-            catch (EOFException e) { errors++; addClientLog(String.valueOf(e), false); }
-            catch (IOException  e) { errors++; addClientLog(String.valueOf(e), false); }
-            catch (ClassNotFoundException e) { addClientLog(String.valueOf(e), false); }
+            catch (IOException  e) { errorList.add(e); errors++; addClientLog(String.valueOf(e), false); }
+            catch (NullPointerException | ClassNotFoundException e) { addClientLog(String.valueOf(e), false); }
             finally { testErrors(); }
         }
 
@@ -146,21 +170,26 @@ public class Client implements Runnable
     public void sendSocketClose(String reason)
     {
         printClient("Socket closed sent (" + reason + ")", false);
-        HashMap<String, Object> message = new HashMap<>();
+        Map<String, Object> message = new HashMap<>();
 
         message.put("type", MessageType.SOCKET_CLOSE.getValue());
         if (reason != null && !reason.equals(""))
             message.put("reason", reason);
 
-        try { new ObjectOutputStream(client.getOutputStream()).writeObject(message); errors = 0; }
-        catch (IOException e) { addClientLog(String.valueOf(e), false); }
+        try
+        {
+            new ObjectOutputStream(client.getOutputStream()).writeObject(message);
+
+            errors = 0;
+        }
+        catch (IOException e) {}
     }
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="HEARTBEAT_REQUEST">
     public void sendHeartbeatRequest()
     {
-        HashMap<String, Object> message = new HashMap<>();
+        Map<String, Object> message = new HashMap<>();
 
         message.put("type", MessageType.HEARTBEAT_REQUEST.getValue());
 
@@ -171,7 +200,7 @@ public class Client implements Runnable
     //<editor-fold defaultstate="collapsed" desc="HEARTBEAT_REPLY">
     public void sendHeartbeatReply()
     {
-        HashMap<String, Object> message = new HashMap<>();
+        Map<String, Object> message = new HashMap<>();
 
         message.put("type", MessageType.HEARTBEAT_REPLY.getValue());
 
@@ -182,13 +211,29 @@ public class Client implements Runnable
     //<editor-fold defaultstate="collapsed" desc="SEND_ALL">
     public void sendAll()
     {
-        HashMap<String, Object> message = new HashMap<>();
+        Map<String, Object> message = new HashMap<>();
+        Map<String, Object> dataMap = new HashMap<>(EastAngliaSignalMapServer.CClassMap.size() + (EastAngliaSignalMapServer.SClassMap.size() * 16 * 8));
 
-        HashMap map = EastAngliaSignalMapServer.CClassMap;
-        map.put("XXMOTD", Berths.getBerth("XXMOTD").getHeadcode());
+        dataMap.putAll(EastAngliaSignalMapServer.CClassMap);
+
+        for (Map.Entry<String, Map<String, Integer>> pairs : new HashMap<>(EastAngliaSignalMapServer.SClassMap).entrySet())
+        {
+            if (pairs.getKey().toUpperCase().equals(pairs.getKey()))
+                for (Map.Entry<String, Integer> pairs2 : pairs.getValue().entrySet())
+                {
+                    if (pairs2.getKey().toUpperCase().equals(pairs2.getKey()))
+                    {
+                        char[] chrs = String.format("%" + ((int) Math.ceil(Integer.toBinaryString(pairs2.getValue()).length() / 8f) * 8) + "s", Integer.toBinaryString(pairs2.getValue())).replace(" ", "0").toCharArray();
+                        for (int i = 7; i > 0; i--)
+                            dataMap.put(pairs.getKey() + pairs2.getKey() + ":" + i, chrs[i]);
+                    }
+                }
+        }
+        //if (version >= 13)
+        //    dataMap.put("SClassData", EastAngliaSignalMapServer.SClassMap);
 
         message.put("type", MessageType.SEND_ALL.getValue());
-        message.put("message", map);
+        message.put("message", dataMap);
 
         sendMessage(message);
     }
@@ -201,7 +246,7 @@ public class Client implements Runnable
 
         if (berth != null)
         {
-            HashMap<String, Object> message = new HashMap<>();
+            Map<String, Object> message = new HashMap<>();
 
             message.put("type",     MessageType.SEND_HIST_TRAIN.getValue());
             message.put("berth_id", id);
@@ -212,14 +257,14 @@ public class Client implements Runnable
         }
         else
         {
-            HashMap<String, Object> train = Berths.getTrain(id);
+            Map<String, Object> train = Berths.getTrain(id);
 
-            HashMap<String, Object> message = new HashMap<>();
+            Map<String, Object> message = new HashMap<>();
 
             message.put("type",     MessageType.SEND_HIST_TRAIN.getValue());
             message.put("berth_id", (String) train.get("berth_id"));
             message.put("headcode", (String) train.get("headcode"));
-            message.put("history",  (ArrayList<String>) train.get("history"));
+            message.put("history",  (List<String>) train.get("history"));
 
             sendMessage(message);
         }
@@ -233,7 +278,7 @@ public class Client implements Runnable
 
         if (berth != null)
         {
-            HashMap<String, Object> message = new HashMap<>();
+            Map<String, Object> message = new HashMap<>();
 
             message.put("type", MessageType.SEND_HIST_BERTH.getValue());
             message.put("berth_id", berthId);
@@ -246,9 +291,9 @@ public class Client implements Runnable
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="SEND_UPDATE">
-    public void sendUpdate(Map updateMap)
+    public void sendUpdate(Map<String, String> updateMap)
     {
-        HashMap<String, Object> message = new HashMap<>();
+        Map<String, Object> message = new HashMap<>();
 
         message.put("type",    MessageType.SEND_UPDATE.getValue());
         message.put("message", updateMap);
@@ -257,14 +302,32 @@ public class Client implements Runnable
     }
     //</editor-fold>
 
+    //<editor-fold defaultstate="collapsed" desc="SEND TEXT MESSAGE">
+    public void sendTextMessage(String message)
+    {
+        Map<String, Object> messageMap = new HashMap<>();
+
+        messageMap.put("type",    MessageType.SEND_MESSAGE.getValue());
+        messageMap.put("message", message);
+
+        sendMessage(messageMap);
+    }
+    //</editor-fold>
+
     private void sendMessage(Object message)
     {
-        try { new ObjectOutputStream(client.getOutputStream()).writeObject(message); errors = 0; }
+        try
+        {
+            new ObjectOutputStream(client.getOutputStream()).writeObject(message);
+
+            errors = 0;
+        }
         catch (IOException e)
         {
+            errorList.add(e);
             errors++;
             addClientLog(String.valueOf(e), false);
-            e.printStackTrace();
+            EastAngliaSignalMapServer.printThrowable(e, "Client " + name);
         }
 
         testErrors();
@@ -272,9 +335,9 @@ public class Client implements Runnable
 
     private void testErrors()
     {
-        if (errors > 3)
+        if (errors > 7 && !client.isClosed())
         {
-            sendSocketClose("Errors:" + errors);
+            sendSocketClose("Errors: " + getErrorString());
             closeSocket();
         }
     }
@@ -284,14 +347,14 @@ public class Client implements Runnable
         try
         {
             client.shutdownOutput();
-            client.getOutputStream().close();
+            //client.getOutputStream().close();
         }
         catch (IOException e) {}
 
         try
         {
             client.shutdownInput();
-            client.getInputStream().close();
+            //client.getInputStream().close();
         }
         catch (IOException e) {}
 
@@ -338,8 +401,7 @@ public class Client implements Runnable
         }
         catch (IllegalStateException e)
         {
-            printClient("safe: " + e, true);
-            e.printStackTrace();
+            EastAngliaSignalMapServer.printThrowable(e, "Client " + name);
         }
     }
 
@@ -357,9 +419,32 @@ public class Client implements Runnable
     public String getErrorString()
     {
         if (errors != 0)
-            return " (" + errors + ")";
+        {
+            String errorStr = "";
+            for (Throwable t : new ArrayList<>(errorList))
+                errorStr += t.toString() + ", ";
+
+            return errorStr.substring(0, errorStr.length() - 2) + " (" + errors + ")";
+        }
         else
             return "";
+    }
+
+    public List<String> getInfo()
+    {
+        List<String> list = new ArrayList<>();
+
+        /*for (Map.Entry pairs : props.entrySet())
+            list.add(pairs.getKey() + ": " + pairs.getValue());*/
+
+        list.add("Java:      " + props.getProperty("java.version", "-------"));
+        list.add("User name: " + props.getProperty("user.name", "-------"));
+        list.add("OS:        " + props.getProperty("os.name", "-------"));
+        list.add("Locale:    " + props.getProperty("user.language", "") + "_" + props.getProperty("user.country", ""));
+        list.add("Timezone:  " + props.getProperty("user.timezone", ""));
+        list.add("Command:   " + props.getProperty("sun.java.command", "-------"));
+
+        return list;
     }
 
     private void addClientLog(String message, boolean addToGlobal)
@@ -370,7 +455,7 @@ public class Client implements Runnable
             Clients.addClientLog("[" + name + "/" + address + "] " + message);
     }
 
-    public ArrayList<String> getHistory()
+    public List<String> getHistory()
     {
         return history;
     }

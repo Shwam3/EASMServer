@@ -2,42 +2,78 @@ package eastangliamapserver.stomp.handlers;
 
 import eastangliamapserver.Berth;
 import eastangliamapserver.Berths;
+import eastangliamapserver.EastAngliaSignalMapServer;
 import eastangliamapserver.Train;
 import static eastangliamapserver.stomp.StompConnectionHandler.printCClass;
 import java.util.*;
+//import jsonparser.JSONParser;
 
 public class CClassHandler
 {
-    public static synchronized HashMap<String, String> parseMessage(String body)
+    public static synchronized Map<String, String> parseMessage(List<Map<String, Map<String, String>>> messageList)
     {
-        HashMap<String, String> updateMap = new HashMap<>();
+        //List<Map> messageList = (List<Map>) JSONParser.parseJSON("{\"TDMessage\":" + body + "}").get("TDMessage");
+
+        List<Map<String, String>> interposeList = new ArrayList<>();
+        List<Map<String, String>> stepList      = new ArrayList<>();
+        List<Map<String, String>> cancelList    = new ArrayList<>();
 
         try
         {
-            List<String> splitBody = Arrays.asList(body.replace("},{", ";").replace("[", "").replace("]", "").replace("\"", "").replace("{", "").replace("}", "").split(";"));
-            int parsed = 0;
+            String areas = "LS SE SI CC CA EN WG SO SX";
+            for (Map<String, Map<String, String>> map : messageList)
+            {
+                String msgType = map.keySet().toArray(new String[]{})[0];
+                Map<String, String> indvMsg = map.get(msgType);
+
+                switch (msgType)
+                {
+                    case "CA_MSG":
+                        if (areas.contains(String.valueOf(indvMsg.get("area_id"))))
+                            stepList.add(map.get(msgType));
+                        break;
+                    case "CB_MSG":
+                        if (areas.contains(String.valueOf(indvMsg.get("area_id"))))
+                            cancelList.add(map.get(msgType));
+                        break;
+                    case "CC_MSG":
+                        if (areas.contains(String.valueOf(indvMsg.get("area_id"))))
+                            interposeList.add(map.get(msgType));
+                        break;
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            printCClass("Exception in C-Class handler:", true);
+            EastAngliaSignalMapServer.printThrowable(e, "C-Class");
+        }
+
+        Map<String, String> updateMap = new HashMap<>();
+
+        try
+        {
+            //List<String> splitBody = Arrays.asList(body.replace("},{", ";").replace("[", "").replace("]", "").replace("\"", "").replace("{", "").replace("}", "").split(";"));
 
             //Needs to be done in this order
             //<editor-fold defaultstate="collapsed" desc="Interpose">
-            for (String bodyBit : splitBody)
+            for (Map<String, String> bodyMap : interposeList)
             {
-                if (bodyBit.contains("area_id:AW,") || bodyBit.contains("area_id:UR,") || bodyBit.contains("area_id:U2,") || bodyBit.contains("area_id:U3,"))
-                    continue;
+                //if (bodyBit.contains("area_id:AW,") || bodyBit.contains("area_id:UR,") || bodyBit.contains("area_id:U2,") || bodyBit.contains("area_id:U3,"))
+                //    continue;
 
-                if (!bodyBit.contains("msg_type:CC,"))
-                    continue;
+                //if (!bodyBit.contains("msg_type:CC,"))
+                //    continue;
 
-                parsed++;
-                bodyBit = bodyBit.substring(7);
-                HashMap<String, String> bodyMap = new HashMap<>();
+                //bodyBit = bodyBit.substring(7);
+                //HashMap<String, String> bodyMap = new HashMap<>();
 
-                for (String bit : bodyBit.split(","))
-                {
-                    String[] bits = bit.replace(":", ",").split(",");
-                    bodyMap.put(bits[0], bits[1]);
-                }
+                //or (String bit : bodyBit.split(","))
+                //{
+                //    String[] bits = bit.replace(":", ",").split(",");
+                //    bodyMap.put(bits[0], bits[1]);
+                //}
 
-                // Interpose
                 bodyMap.put("a_to", bodyMap.get("area_id") + bodyMap.get("to"));
 
                 Berth toBerth = Berths.getBerth(bodyMap.get("a_to"));
@@ -45,7 +81,7 @@ public class CClassHandler
 
                 if (toBerth != null)
                 {
-                    ArrayList<Train> adjTrains = toBerth.getAdjacentTrains();
+                    List<Train> adjTrains = toBerth.getAdjacentTrains();
 
                     for (Train train : adjTrains)
                         if (train.getHeadcode().equals(toBerth.getHeadcode()))
@@ -56,57 +92,52 @@ public class CClassHandler
                         newTrain.getCurrentBerth().cancel(newTrain.getHeadcode(), null);
                     }
                     catch (NullPointerException e) {}
-                    finally
-                    {
-                        if (!toBerth.getHeadcode().equals(bodyMap.get("descr")))
-                            toBerth.interpose(newTrain);
-                    }
+
+                    if (!toBerth.getHeadcode().equals(bodyMap.get("descr")))
+                        toBerth.interpose(newTrain);
+
 
                     newTrain.setBerth(newTrain.getCurrentBerth());
                 }
                 else
-                    Berths.addMissingBerths(bodyMap.get("a_to"));
+                    Berths.addMissingBerth(bodyMap.get("a_to"));
 
-                printCClass(String.format(/*"%s: */"Interpose %s to %s", /*bodyMap.get("msg_type"), */bodyMap.get("descr"), bodyMap.get("a_to")), false);
+                printCClass(String.format("[%s] Interpose %s to %s", EastAngliaSignalMapServer.sdf.format(new Date(Long.parseLong(bodyMap.get("time")))), bodyMap.get("descr"), bodyMap.get("a_to")), false);
 
                 updateMap.put(bodyMap.get("a_to"), bodyMap.get("descr"));
             }
             //</editor-fold>
 
             //<editor-fold defaultstate="collapsed" desc="Step">
-            for (String bodyBit : splitBody)
+            for (Map<String, String> bodyMap : stepList)
             {
-                if (bodyBit.contains("area_id:AW,") || bodyBit.contains("area_id:UR,") || bodyBit.contains("area_id:U2,") || bodyBit.contains("area_id:U3,"))
-                    continue;
+                //if (bodyBit.contains("area_id:AW,") || bodyBit.contains("area_id:UR,") || bodyBit.contains("area_id:U2,") || bodyBit.contains("area_id:U3,"))
+                //    continue;
 
-                if (!bodyBit.contains("msg_type:CA,"))
-                    continue;
+                //if (!bodyBit.contains("msg_type:CA,"))
+                //    continue;
 
-                parsed++;
-                bodyBit = bodyBit.substring(7);
-                HashMap<String, String> bodyMap = new HashMap<>();
+                //bodyBit = bodyBit.substring(7);
+                //HashMap<String, String> bodyMap = new HashMap<>();
 
-                for (String bit : bodyBit.split(","))
-                {
-                    String[] bits = bit.replace(":", ",").split(",");
-                    bodyMap.put(bits[0], bits[1]);
-                }
+                //for (String bit : bodyBit.split(","))
+                //{
+                //    String[] bits = bit.replace(":", ",").split(",");
+                //    bodyMap.put(bits[0], bits[1]);
+                //}
 
-                //Step
                 bodyMap.put("a_to",   bodyMap.get("area_id") + bodyMap.get("to"));
                 bodyMap.put("a_from", bodyMap.get("area_id") + bodyMap.get("from"));
 
                 Berth fromBerth = Berths.getBerth(bodyMap.get("a_from"));
                 Berth toBerth   = Berths.getBerth(bodyMap.get("a_to"));
                 Train newTrain  = new Train(bodyMap.get("descr"), toBerth);
-                String stepType = "(eror)";
 
                 if (fromBerth != null && toBerth == null)
                 {
                     if (fromBerth.hasTrain())
                         newTrain = fromBerth.getTrain();
 
-                    stepType = "(noTo)";
                     if (fromBerth.hasAdjacentBerths())
                     {
                         for (Train train : fromBerth.getAdjacentTrains())
@@ -119,7 +150,6 @@ public class CClassHandler
                                     toBerth.interpose(newTrain);
 
                                 fromBerth.cancel(bodyMap.get("descr"), bodyMap.get("time"));
-                                stepType = "(fkTo)";
                             }
                         }
                     }
@@ -130,11 +160,10 @@ public class CClassHandler
                         for (String berthId : fromBerth.getStepToBerthsFor(bodyMap.get("a_to"), bodyMap.get("a_from")))
                             Berths.getBerth(berthId).suggestTrain(newTrain, fromBerth.getTypeFor(berthId, bodyMap.get("a_from")));
 
-                    Berths.addMissingBerths(bodyMap.get("a_to"));
+                    Berths.addMissingBerth(bodyMap.get("a_to"));
                 }
                 else if (fromBerth == null && toBerth != null)
                 {
-                    stepType = "(noFr)";
                     if (toBerth.hasAdjacentBerths())
                     {
                         for (Train train : toBerth.getAdjacentTrains())
@@ -145,14 +174,13 @@ public class CClassHandler
                                 toBerth.interpose(train);
 
                                 fromBerth.cancel(bodyMap.get("descr"), bodyMap.get("time"));
-                                stepType = "(fkFr)";
                             }
                         }
                     }
                     else
                         toBerth.interpose(newTrain);
 
-                    Berths.addMissingBerths(bodyMap.get("a_from"));
+                    Berths.addMissingBerth(bodyMap.get("a_from"));
                     newTrain.setBerth(newTrain.getCurrentBerth());
                 }
                 else if (fromBerth != null && toBerth != null)
@@ -170,18 +198,15 @@ public class CClassHandler
                         for (String berthId : fromBerth.getStepToBerthsFor(bodyMap.get("a_to"), bodyMap.get("a_from")))
                             Berths.getBerth(berthId).suggestTrain(newTrain, fromBerth.getTypeFor(berthId, bodyMap.get("a_from")));
 
-                    stepType = "(norm)";
-
                     newTrain.setBerth(newTrain.getCurrentBerth());
                 }
                 else
                 {
-                    stepType = "(none)";
-                    Berths.addMissingBerths(bodyMap.get("a_to"));
-                    Berths.addMissingBerths(bodyMap.get("a_from"));
+                    Berths.addMissingBerth(bodyMap.get("a_to"));
+                    Berths.addMissingBerth(bodyMap.get("a_from"));
                 }
 
-                printCClass(String.format(/*"%s: */"Step %s from %s to %s %s", /*bodyMap.get("msg_type"), */bodyMap.get("descr"), bodyMap.get("a_from"), bodyMap.get("a_to"), stepType), false);
+                printCClass(String.format("[%s] Step %s from %s to %s", EastAngliaSignalMapServer.sdf.format(new Date(Long.parseLong(bodyMap.get("time")))), bodyMap.get("descr"), bodyMap.get("a_from"), bodyMap.get("a_to")), false);
 
                 updateMap.put(bodyMap.get("a_to"), bodyMap.get("descr"));
                 updateMap.put(bodyMap.get("a_from"), "");
@@ -189,25 +214,23 @@ public class CClassHandler
             //</editor-fold>
 
             //<editor-fold defaultstate="collapsed" desc="Cancel">
-            for (String bodyBit : splitBody)
+            for (Map<String, String> bodyMap : cancelList)
             {
-                if (bodyBit.contains("area_id:AW,") || bodyBit.contains("area_id:UR,") || bodyBit.contains("area_id:U2,") || bodyBit.contains("area_id:U3,"))
-                    continue;
+                //if (bodyBit.contains("area_id:AW,") || bodyBit.contains("area_id:UR,") || bodyBit.contains("area_id:U2,") || bodyBit.contains("area_id:U3,"))
+                //    continue;
 
-                if (!bodyBit.contains("msg_type:CB,"))
-                    continue;
+                //if (!bodyBit.contains("msg_type:CB,"))
+                //    continue;
 
-                parsed++;
-                bodyBit = bodyBit.substring(7);
-                HashMap<String, String> bodyMap = new HashMap<>();
+                //bodyBit = bodyBit.substring(7);
+                //HashMap<String, String> bodyMap = new HashMap<>();
 
-                for (String bit : bodyBit.split(","))
-                {
-                    String[] bits = bit.replace(":", ",").split(",");
-                    bodyMap.put(bits[0], bits[1]);
-                }
+                //for (String bit : bodyBit.split(","))
+                //{
+                //    String[] bits = bit.replace(":", ",").split(",");
+                //    bodyMap.put(bits[0], bits[1]);
+                //}
 
-                //Cancel
                 bodyMap.put("a_from", bodyMap.get("area_id") + bodyMap.get("from"));
 
                 Berth fromBerth = Berths.getBerth(bodyMap.get("a_from"));
@@ -223,31 +246,21 @@ public class CClassHandler
                             Berths.getBerth(berthId).suggestTrain(newTrain, fromBerth.getTypeFor(berthId, bodyMap.get("a_from")));
                 }
                 else
-                    Berths.addMissingBerths(bodyMap.get("a_from"));
+                    Berths.addMissingBerth(bodyMap.get("a_from"));
 
                 if (newTrain != null)
                     newTrain.setBerth(newTrain.getCurrentBerth());
 
-                printCClass(String.format(/*"%s: */"Cancel %s from %s", /*bodyMap.get("msg_type"), */bodyMap.get("descr"), bodyMap.get("a_from")), false);
+                printCClass(String.format("[%s] Cancel %s from %s", EastAngliaSignalMapServer.sdf.format(new Date(Long.parseLong(bodyMap.get("time")))), bodyMap.get("descr"), bodyMap.get("a_from")), false);
 
                 updateMap.put(bodyMap.get("a_from"), "");
             }
             //</editor-fold>
-
-            for (String bodyBit : splitBody)
-            {
-                if (bodyBit.contains("area_id:AW,") || bodyBit.contains("area_id:UR,") || bodyBit.contains("area_id:U2,") || bodyBit.contains("area_id:U3,")
-                        || bodyBit.contains("msg_type:SF,") || bodyBit.contains("msg_type:SG,") || bodyBit.contains("msg_type:SH,") || bodyBit.contains("msg_type:CT,"))
-                    parsed++;
-            }
-
-            if (parsed != body.split("_MSG").length - 1)
-                printCClass("Done (" + parsed + "/" + (body.split("_MSG").length - 1) + ")", true);
         }
         catch (Exception e)
         {
-            printCClass("Exception in C-Class handler: " + String.valueOf(e), true);
-            e.printStackTrace();
+            printCClass("Exception in C-Class handler:", true);
+            EastAngliaSignalMapServer.printThrowable(e, "C-Class");
         }
 
         return updateMap;

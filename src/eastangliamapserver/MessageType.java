@@ -18,7 +18,9 @@ public enum MessageType
     SEND_PROB_BERTH (0x23, "SEND_PROB_BERTH"),
     SEND_UPDATE     (0x24, "SEND_UPDATE"),
 
-    SEND_MESSAGE (0x30, "SEND_MESSGE");
+    SEND_MESSAGE (0x30, "SEND_MESSGE"),
+
+    UNKNOWN_MESSAGE (-1, "UNKNOWN_MESSAGE");
 
     private final int    value;
     private final String name;
@@ -38,7 +40,7 @@ public enum MessageType
             if (type.value == typeInt)
                 return type;
 
-        return null;
+        return UNKNOWN_MESSAGE;
     }
 
     public static MessageType getType(String typeString)

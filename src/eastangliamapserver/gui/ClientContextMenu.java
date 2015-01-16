@@ -8,9 +8,11 @@ import javax.swing.*;
 
 public class ClientContextMenu extends JPopupMenu
 {
-    JList invoker;
+    JList<String> invoker;
 
     JMenuItem kick;
+    JMenuItem message;
+    JMenuItem info;
     JMenuItem history;
 
     ActionListener clickEvent = new ActionListener()
@@ -18,24 +20,33 @@ public class ClientContextMenu extends JPopupMenu
         @Override
         public void actionPerformed(ActionEvent evt)
         {
+            String clientName = invoker.getSelectedValue();
+            Client client = Clients.getClient(clientName.substring(clientName.lastIndexOf("(") + 1, clientName.length() - 1));
+
             if (evt.getSource() == kick)
             {
                 if (JOptionPane.showConfirmDialog(invoker, "Are you sure you want to kick this client?", "Are you sure?", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
                 {
-                    String clientName = (String) invoker.getSelectedValue();
-                    Client client = Clients.getClient(clientName.substring(clientName.lastIndexOf("(") + 1, clientName.length() - 1));
-
                     String reason = JOptionPane.showInputDialog(EastAngliaSignalMapServer.gui.frame, "Add a kick message:");
 
                     if (client != null)
-                        client.disconnect("You have been kicked" + (reason != null && !reason.equals("") ? ": " + reason : ""));
+                        client.disconnect("You have been kicked" + (reason != null && !reason.equals("") ? ": " + reason : " (no reason given)"));
                 }
+            }
+            else if (evt.getSource() == message)
+            {
+                String message = JOptionPane.showInputDialog(EastAngliaSignalMapServer.gui.frame, "Message to send:");
+
+                if (client != null && message != null && !message.isEmpty())
+                    client.sendTextMessage(message);
+            }
+            else if (evt.getSource() == info)
+            {
+                if (client != null)
+                    new ListDialog("Info for \"" + client.name + "\"", null, client.getInfo());
             }
             else if (evt.getSource() == history)
             {
-                String clientName = (String) invoker.getSelectedValue();
-                Client client = Clients.getClient(clientName.substring(clientName.lastIndexOf("(") + 1, clientName.length() - 1));
-
                 if (client != null)
                     new ListDialog("Client " + client.name + "'s history", null, client.getHistory());
             }
@@ -46,15 +57,22 @@ public class ClientContextMenu extends JPopupMenu
 
     public ClientContextMenu(Component invoker, int x, int y)
     {
-        this.invoker = (JList) invoker;
+        this.invoker = (JList<String>) invoker;
 
         kick    = new JMenuItem("Kick");
+        message = new JMenuItem("Message");
+        info    = new JMenuItem("Info");
         history = new JMenuItem("History");
 
         kick.addActionListener(clickEvent);
+        message.addActionListener(clickEvent);
+        info.addActionListener(clickEvent);
         history.addActionListener(clickEvent);
 
         add(kick);
+        addSeparator();
+        add(message);
+        add(info);
         add(history);
 
         show(invoker, x, y);

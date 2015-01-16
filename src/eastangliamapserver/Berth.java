@@ -1,27 +1,28 @@
 package eastangliamapserver;
 
-import static eastangliamapserver.stomp.StompConnectionHandler.printCClass;
+import eastangliamapserver.stomp.StompConnectionHandler;
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class Berth
+public class Berth implements Serializable
 {
     private final String  BERTH_ID;
     private final String  BERTH_DESCRIPTION;
     private       String  name = "";
-    private       Train   currentTrain;
+    private transient Train currentTrain;
   //private       boolean isProblematic  = false;
-    public        int     isMonitoring   = 0;
+  //public        int     isMonitoring   = 0;
     private       Train   suggestedTrain = null;
 
-    //private final HashMap<String, HashMap<String, String>> possibleAddresses = new HashMap<>();
-    private final ArrayList<Berth>                   adjacentBerths = new ArrayList<>();
-    private       ArrayList<String>                  trainHistory   = new ArrayList<>();
-    private final ArrayList<HashMap<String, String>> stepToBerths   = new ArrayList<>();
+    private final Map<String, Map<String, String>> possibleAddresses = new HashMap<>();
+    private final List<Berth>                   adjacentBerths = new ArrayList<>();
+    private       List<String>                  trainHistory   = new ArrayList<>();
+    private final List<Map<String, String>> stepToBerths   = new ArrayList<>();
 
     public Berth(String berthId)
     {
-        this.BERTH_ID = berthId;
+        BERTH_ID = berthId;
 
         Berths.putBerth(berthId, this);
         BERTH_DESCRIPTION = berthId;
@@ -35,7 +36,7 @@ public class Berth
         if (headcode == null)
             headcode = "    ";
 
-        if (currentTrain == null || currentTrain.getHeadcode().equals(headcode) || headcode.equals("    ") || headcode.equals("****"))
+        if (currentTrain == null || currentTrain.getHeadcode().equals(headcode) || headcode.equals("    ") || headcode.equals("\\*\\*\\*\\*"))
         {
             currentTrain = null;
 
@@ -59,11 +60,11 @@ public class Berth
             {
                 if (newTrain.getHeadcode().equals(suggestedTrain.getHeadcode()))
                 {
-                    printCClass(String.format("[%s] Using suggested: %s (%s%s)", BERTH_DESCRIPTION, suggestedTrain.getHeadcode(), suggestedTrain.UUID, suggestedTrain != newTrain ? " (vs " + newTrain.UUID + ")" : ""), false);
+                    printBerth(String.format("Using suggested: %s (%s%s)", suggestedTrain.getHeadcode(), suggestedTrain.UUID, suggestedTrain != newTrain ? " (vs " + newTrain.UUID + ")" : ""), false);
                     newTrain = suggestedTrain;
                 }
                 else
-                    printCClass(String.format("[%s] Discarding suggested: %s (%s%s)", BERTH_DESCRIPTION, suggestedTrain.getHeadcode(), suggestedTrain.UUID, suggestedTrain != newTrain ? " (vs " + newTrain.UUID + ")" : ""), false);
+                    printBerth(String.format("Discarding suggested: %s (%s%s)", suggestedTrain.getHeadcode(), suggestedTrain.UUID, suggestedTrain != newTrain ? " (vs " + newTrain.UUID + ")" : ""), false);
             }
             else
                 if (currentTrain != null && !currentTrain.equals(newTrain) && (currentTrain.getCurrentBerth() == this || currentTrain.getTrainsHistory().size() <= 2))
@@ -71,12 +72,12 @@ public class Berth
 
             suggestedTrain = null;
         }
-        
+
         currentTrain = newTrain;
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM HH:mm:ss");
 
-        if (currentTrain != null && !currentTrain.getHeadcode().equals(""))
+        if (currentTrain != null && !currentTrain.getHeadcode().equals("") && (trainHistory.isEmpty() || !trainHistory.get(0).contains(currentTrain.getHeadcode())))
         {
             trainHistory.add(0, String.format("%s: %s (%s)", sdf.format(new Date()), currentTrain.getHeadcode(), currentTrain.UUID));
             currentTrain.setBerth(this);
@@ -102,7 +103,7 @@ public class Berth
      */
     public Berth addStepToBerth(String fromBerthId, String fakeToBerthId, String realToBerthId, String type)
     {
-        HashMap<String, String> hm = new HashMap<>();
+        Map<String, String> hm = new HashMap<>();
         hm.put("fromBerthId",   fromBerthId);
         hm.put("fakeToBerthId", fakeToBerthId);
         hm.put("realToBerthId", realToBerthId);
@@ -120,11 +121,11 @@ public class Berth
      *
      * @return Berths that can be stepped into using the given toBerth
      */
-    public ArrayList<String> getStepToBerthsFor(String toBerthId, String fromBerthId)
+    public List<String> getStepToBerthsFor(String toBerthId, String fromBerthId)
     {
-        ArrayList<String> stepToBerthList = new ArrayList<>();
+        List<String> stepToBerthList = new ArrayList<>();
 
-        for (HashMap<String, String> hm : stepToBerths)
+        for (Map<String, String> hm : stepToBerths)
             if (hm.get("realToBerthId").equals(toBerthId) && hm.get("fromBerthId").equals(fromBerthId))
                 stepToBerthList.add(hm.get("fakeToBerthId"));
 
@@ -133,9 +134,9 @@ public class Berth
 
     public String getTypeFor(String fakeToBerthId, String fromBerthId)
     {
-        String type = "suggest";
+        String type = "Suggest";
 
-        for (HashMap<String, String> hm : stepToBerths)
+        for (Map<String, String> hm : stepToBerths)
             if (hm.get("fakeToBerthId").equals(fakeToBerthId))
             {
                 type = hm.get("type");
@@ -147,7 +148,7 @@ public class Berth
 
     public boolean canStepToBerth(String realToBerthId, String fromBerthId)
     {
-        for (HashMap<String, String> hm : stepToBerths)
+        for (Map<String, String> hm : stepToBerths)
             if (hm.get("fromBerthId").equals(fromBerthId) && hm.get("realToBerthId").equals(realToBerthId))
                 return true;
 
@@ -163,23 +164,26 @@ public class Berth
     {
         if (train != null)
         {
-            if (getHeadcode().equals(train.getHeadcode()) || (getHeadcode().equals("") && type.equals("interpose")))
+            if (getHeadcode().equals(train.getHeadcode()) || (getHeadcode().equals("") && type.equals("Interpose")))
             {
                 if (currentTrain != null)
                     currentTrain.setBerth(null);
 
-                printCClass(String.format("Using suggested train for %s, %s (%s)", BERTH_DESCRIPTION, train.getHeadcode(), train.UUID), false);
+                printBerth(String.format("Using suggested train %s (%s)", train.getHeadcode(), train.UUID), false);
                 suggestedTrain = null;
                 currentTrain = train;
 
-                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM HH:mm:ss");
-                trainHistory.add(0, String.format("%s: %s (%s)", sdf.format(new Date()), currentTrain.getHeadcode(), currentTrain.UUID));
+                if (trainHistory.isEmpty() || !trainHistory.get(0).contains(currentTrain.getHeadcode()))
+                {
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM HH:mm:ss");
+                    trainHistory.add(0, String.format("%s: %s (%s)", sdf.format(new Date()), currentTrain.getHeadcode(), currentTrain.UUID));
+                }
                 currentTrain.setBerth(this);
             }
             else
             {
                 suggestedTrain = train;
-                printCClass(String.format("%s %s (%s) to %s", type, train.getHeadcode(), train.UUID, BERTH_DESCRIPTION), false);
+                printBerth(String.format("%s %s (%s)", type, train.getHeadcode(), train.UUID), false);
             }
         }
     }
@@ -200,7 +204,7 @@ public class Berth
         return this;
     }
 
-    public ArrayList<Berth> getAdjacentBerths()
+    public List<Berth> getAdjacentBerths()
     {
         return adjacentBerths;
     }
@@ -220,9 +224,9 @@ public class Berth
         return adjacentBerths.size() > 0;
     }
 
-    public ArrayList<Train> getAdjacentTrains()
+    public List<Train> getAdjacentTrains()
     {
-        ArrayList<Train> trainList = new ArrayList<>();
+        List<Train> trainList = new ArrayList<>();
 
         for (Berth berth : getAdjacentBerths())
             if (berth.hasTrain())
@@ -259,82 +263,59 @@ public class Berth
         return isProblematic;
     }*/
 
-    /*private void startMonitor(final String time)
+    private void startMonitor(final String time)
     {
-        isMonitoring++;
-        javax.swing.Timer timer = new javax.swing.Timer(30000, new ActionListener()
+        /*javax.swing.Timer timer = new javax.swing.Timer(30000, new ActionListener()
         {
             @Override
             public void actionPerformed(ActionEvent evt)
             {
-                Date timeStart = new Date(Long.parseLong(time) - 30000);
-                Date timeEnd   = new Date(Long.parseLong(time) + 60000);
-                HashMap<String, HashMap<String, String>> newAddressList = new HashMap<>();
-
-                for (int i = 0; i < SocketServer.SClassLog.size(); i++)
-                {
-                    HashMap<String, String> map = SocketServer.SClassLog.get(i);
-                    if (map.get("area_id").equals(BERTH_DESCRIPTION.substring(0, 2)))
-                        if (new Date(Long.parseLong(map.get("time"))).after(timeStart))
-                            if (new Date(Long.parseLong(map.get("time"))).before(timeEnd))
-                                newAddressList.put(map.get("address"), map);
-                }
-
-                int interruptCount = 0;
-                while (addressMapLocked)
-                {
-                    try
-                    {
-                        Thread.sleep(100);
-                        if (++interruptCount > 10)
-                            break;
-                    }
-                    catch (InterruptedException e)
-                    {
-                        if (++interruptCount > 10)
-                            break;
-                    }
-                }
-
-                addressMapLocked = true;
                 try
                 {
-                    for (String key : possibleAddresses.keySet())
-                        if (!newAddressList.containsKey(key))
-                            possibleAddresses.remove(key);
+                    Date timeStart = new Date(Long.parseLong(time) - 45000); // 45 seconds before move
+                    Date timeEnd   = new Date(Long.parseLong(time) + 75000); // 75 seconds after  move
+                    Map<String, Map<String, String>> newAddressList = new HashMap<>(); // Addreses changed in this period
+
+                    for (Map<String, String> map : new ArrayList<>(EastAngliaSignalMapServer.SClassLog))
+                        if (map.get("area_id").equals(BERTH_DESCRIPTION.substring(0, 2))) // Is in area
+                            if (new Date(Long.parseLong(map.get("time"))).after(timeStart))
+                                if (new Date(Long.parseLong(map.get("time"))).before(timeEnd)) // Is within period
+                                    newAddressList.put(map.get("address"), map); // Add to changes in period
 
                     for (String key : newAddressList.keySet())
+                    {
+                        Map<String, String> map = newAddressList.get(key);
+
                         if (!possibleAddresses.containsKey(key))
-                            possibleAddresses.put(key, newAddressList.get(key));
+                            map.put("occurences", "1");
+                        else
+                            try
+                            {
+                                map.put("occurences", Integer.toString(Integer.parseInt(possibleAddresses.get(key).get("occurences")) + 1));
+                            }
+                            catch (NumberFormatException e) { map.put("occurences", "1"); }
+
+                        possibleAddresses.put(key, map);
+                    }
                 }
-                catch (ConcurrentModificationException e) {}
-                finally
-                {
-                    addressMapLocked = false;
-                    isMonitoring--;
-                }
+                catch (Exception e) { EastAngliaSignalMapServer.printThrowable(e, BERTH_DESCRIPTION); }
             }
         });
         timer.setRepeats(false);
-        timer.start();
-    }*/
+        timer.start();*/
+    }
 
-    /*public boolean hasPossibleAddresses()
-    {
-        return !possibleAddresses.isEmpty();
-    }*/
-
-    public ArrayList<String> getBerthsHistory()
+    public List<String> getBerthsHistory()
     {
         return trainHistory;
     }
 
-    public void setHistory(ArrayList<String> history)
+    public void setHistory(List<String> history)
     {
-        this.trainHistory = history;
+        this.trainHistory = new ArrayList<>(history);
     }
 
-    public ArrayList<String> getTrainsHistory()
+    public List<String> getTrainsHistory()
     {
         if (currentTrain == null)
             return null;
@@ -342,9 +323,24 @@ public class Berth
         return currentTrain.getTrainsHistory();
     }
 
+    public Map<String, Map<String, String>> getPossibleAddreses()
+    {
+        return possibleAddresses;
+    }
+
+    public void clean()
+    {
+        trainHistory = new ArrayList<>(trainHistory);
+    }
+
     @Override
     public String toString()
     {
         return "eastangliamap.Berth=[description=" + BERTH_DESCRIPTION + ",berthId=" + BERTH_ID + ",train=" + String.valueOf(currentTrain) + "]";
+    }
+
+    public void printBerth(String message, boolean toErr)
+    {
+        StompConnectionHandler.printCClass("[" + BERTH_DESCRIPTION + "] " + message, toErr);
     }
 }

@@ -13,41 +13,47 @@ public class StompClient extends Stomp implements MessageReceiver
     private InputStream  input;
     private Socket       socket;
 
-    private String subscriptionID = "";
+    private final String clientID;
 
     public StompClient(String server, int port, String login, String pass, String clientId) throws IOException, LoginException
     {
         socket = new Socket(server, port);
-        input  = /*new BufferedInputStream(*/socket.getInputStream()/*)*/;
-        output = /*new BufferedOutputStream(*/socket.getOutputStream()/*)*/;
+        input  = socket.getInputStream();
+        output = socket.getOutputStream();
 
         listener = new Receiver(this, input);
         listener.start();
 
         // Connect to the server
-        HashMap header = new HashMap();
+        Map<String, String> header = new HashMap<>();
         header.put("login", login);
         header.put("passcode", pass);
         header.put("client-id", clientId);
         header.put("heart-beat", "0,10000");
+        header.put("accept-version", "1.2");
 
         transmit(Command.CONNECT, header, null);
+        this.clientID = clientId;
 
         try
         {
+            int connectAttempts = 0;
             String error = null;
-            while (!isConnected() && ((error = nextError()) == null))
+
+            while (connectAttempts <= 20 && (!isConnected() && ((error = nextError()) == null)))
             {
-              Thread.sleep(100);
+                Thread.sleep(100);
+                connectAttempts++;
             }
 
-            if (error != null) throw new LoginException(error);
+            if (error != null)
+                throw new LoginException(error);
         }
         catch (InterruptedException e) {}
     }
 
     @Override
-    public void disconnect(Map header)
+    public void disconnect(Map<String, String> header)
     {
         if (!isConnected())
             return;
@@ -68,14 +74,15 @@ public class StompClient extends Stomp implements MessageReceiver
         _connected = false;
     }
 
-    public void ack(String messageId)
+    public void ack(String id/*, String subscriptionID*/)
     {
         try
         {
             StringBuilder message = new StringBuilder("ACK\n");
 
-            message.append("subscription:" + subscriptionID + "\n");
-            message.append("message-id:"   + messageId      + "\n");
+            //message.append("subscription:").append(clientID).append("-").append(subscriptionID).append("\n"); // 1.0,1.1
+            //message.append("message-id:").append(id.replace(":", "\\c")).append("\n");                        // 1.0,1.1
+            message.append("id:").append(id.replace("\\c", ":")).append("\n");                                  // 1.2
 
             message.append("\n");
             message.append("\000");
@@ -88,29 +95,34 @@ public class StompClient extends Stomp implements MessageReceiver
         }
     }
 
-    public void subscribe(String name, Listener listener, String subID, Map headers)
+    public void subscribe(String topicName, String topicID, Listener listener)
     {
-        subscriptionID = subID;
-        super.subscribe(name, listener, headers);
+        Map<String, String> headers = new HashMap<>();
+
+        headers.put("ack", "client-individual");
+        headers.put("id",  clientID + "-" + topicID);
+        headers.put("activemq.subscriptionName", clientID + "-" + topicID);
+
+        super.subscribe(topicName, listener, headers);
+
+        StompConnectionHandler.printStomp("Subscribed to \"" + topicName + "\" (ID: \"" + clientID + "-" + topicID + "\")", false);
     }
 
     @Override
-    protected void transmit(Command command, Map header, String body)
+    protected void transmit(Command command, Map<String, String> header, String body)
     {
         try
         {
             StringBuilder message = new StringBuilder(command.toString());
-            message.append( "\n" );
+            message.append("\n");
 
             if (header != null)
-            {
-                for (Iterator keys = header.keySet().iterator(); keys.hasNext();)
+                for (String key : header.keySet())
                 {
-                    String key   = (String) keys.next();
-                    String value = (String) header.get(key);
-                    message.append(key + ":" + value + "\n");
+                    String value = header.get(key);
+                    message.append(key).append(":").append(value).append("\n");
                 }
-            }
+
             message.append("\n");
 
             if (body != null)

@@ -66,5 +66,6 @@ build/
 nbproject/
 nbproject\
 NROD_Login.properties
+Website_FTP_Login.properties
 private.xml
 *private.xml

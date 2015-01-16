@@ -7,8 +7,8 @@ import javax.swing.JOptionPane;
 
 public class Clients
 {
-    private static final ArrayList<Client> clients = new ArrayList<>();
-    public  static final ArrayList<String> clientsHistory = new ArrayList<>();
+    private static final List<Client> clients = new ArrayList<>();
+    public  static final List<String> clientsHistory = new ArrayList<>();
 
     public static void addClient(Client client)
     {
@@ -21,9 +21,9 @@ public class Clients
             client.disconnect("Server full");
     }
 
-    public static ArrayList<String> getClientList()
+    public static List<String> getClientList()
     {
-        ArrayList<String> clientList = new ArrayList<>();
+        List<String> clientList = new ArrayList<>();
 
         try
         {
@@ -61,11 +61,17 @@ public class Clients
         return false;
     }
 
-    public static void broadcastUpdate(Map update)
+    public static void broadcastUpdate(Map<String, String> update)
     {
         if (!EastAngliaSignalMapServer.stop)
             for (Client client : clients)
                 client.sendUpdate(update);
+    }
+
+    public static void sendAll()
+    {
+        for (Client client : clients)
+            client.sendAll();
     }
 
     public static void remove(Client client)
@@ -81,7 +87,7 @@ public class Clients
 
     public static void closeAll()
     {
-        for (Client client : clients.toArray(new Client[0]))
+        for (Client client : clients)
         {
             client.printClient("Closing connection", false);
 
@@ -94,7 +100,7 @@ public class Clients
     public static Client getClient(String name)
     {
         for (Client client : clients)
-            if (client.name.equals(name) || name.equals(client.address + ":" + client.port))
+            if (client.name.equals(name) || client.name.substring(0, client.name.length() - 6).equals(name) || client.name.substring(0, client.name.length() - 9).equals(name) || name.equals(client.address + ":" + client.port))
                 return client;
 
         return null;
