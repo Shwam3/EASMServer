@@ -18,6 +18,7 @@ public class StompConnectionHandler
     private static StompClient client;
 
     private static ScheduledFuture<?> timeoutHandler = null;
+    private static int    maxTimeoutWait = 300;
     private static int    timeoutWait = 10;
     private static int    wait = 0;
     public  static long   lastMessageTime = System.currentTimeMillis();
@@ -103,8 +104,7 @@ public class StompConnectionHandler
                     Clients.broadcastUpdate(updateMap);
 
                 lastMessageTime = System.currentTimeMillis();
-                EastAngliaSignalMapServer.gui.updateDataList();
-
+                EastAngliaSignalMapServer.updateServerGUI();
                 StompConnectionHandler.client.ack(headers.get("ack")/*, "TD"*/);
             }
         };
@@ -118,9 +118,25 @@ public class StompConnectionHandler
                 RTPPMHandler.parseMessage(body);
 
                 lastMessageTime = System.currentTimeMillis();
-                EastAngliaSignalMapServer.gui.updateDataList();
+                EastAngliaSignalMapServer.updateServerGUI();
 
                 StompConnectionHandler.client.ack(headers.get("ack")/*, "RTPPM"*/);
+            }
+        };
+
+        Listener MVTListener = new Listener()
+        {
+            @Override
+            public void message(Map<String, String> headers, String body)
+            {
+                printStomp(String.format("Message received (topic: %s, time: %s, expires: %s, id: %s)", headers.get("destination").substring(7), EastAngliaSignalMapServer.sdf.format(new Date(Long.parseLong(headers.get("timestamp")))), EastAngliaSignalMapServer.sdf.format(new Date(Long.parseLong(headers.get("expires")))), headers.get("message-id").replace("\\c", ":").substring(38)), false);
+
+                //MVTHandler.parseMessage(body);
+
+                lastMessageTime = System.currentTimeMillis();
+                //EastAngliaSignalMapServer.updateServerGUI();
+
+                StompConnectionHandler.client.ack(headers.get("ack"));
             }
         };
 
@@ -129,7 +145,7 @@ public class StompConnectionHandler
             @Override
             public void message(Map<String, String> headers, String body)
             {
-                printStomp(String.format("Message received (topic: %s, time: %s, expires: %s, id: %s)", headers.get("destination").substring(7), EastAngliaSignalMapServer.sdf.format(new Date(Long.parseLong(headers.get("timestamp")))), EastAngliaSignalMapServer.sdf.format(new Date(Long.parseLong(headers.get("expires")))), headers.get("message-id").substring(38)), false);
+                printStomp(String.format("Message received (topic: %s, time: %s, expires: %s, id: %s)", headers.get("destination").substring(7), EastAngliaSignalMapServer.sdf.format(new Date(Long.parseLong(headers.get("timestamp")))), EastAngliaSignalMapServer.sdf.format(new Date(Long.parseLong(headers.get("expires")))), headers.get("message-id").replace("\\c", ":").substring(38)), false);
                 if (!headers.get("destination").substring(7).contains("VSTP"))
                     printStomp(body, false);
 
@@ -149,10 +165,16 @@ public class StompConnectionHandler
             }
         });
 
-        client.subscribe("/topic/TD_ANG_SIG_AREA", "TD",    TDListener);
-        client.subscribe("/topic/RTPPM_ALL",       "RTPPM", PPMListener);
-        client.subscribe("/topic/TSR_ANG_ROUTE",   "TSR",   GenericListener);
-        client.subscribe("/topic/VSTP_ALL",        "VSTP",  GenericListener);
+        client.subscribe("/topic/TD_ANG_SIG_AREA",   "TD", TDListener);
+        client.subscribe("/topic/RTPPM_ALL",         "RTPPM", PPMListener);
+        client.subscribe("/topic/TSR_ANG_ROUTE",     "TSR", GenericListener);
+        client.subscribe("/topic/VSTP_ALL",          "VSTP", GenericListener);
+        client.subscribe("/topic/TRAIN_MVT_GENERAL", "MVT_GEN", MVTListener);
+        client.subscribe("/topic/TRAIN_MVT_FREIGHT", "MVT_FRT", MVTListener);
+        client.subscribe("/topic/TRAIN_MVT_EB_TOC",  "MVT_EB", MVTListener);
+        client.subscribe("/topic/TRAIN_MVT_EM_TOC",  "MVT_EM", MVTListener);
+        client.subscribe("/topic/TRAIN_MVT_HT_TOC",  "MVT_HT", MVTListener);
+      //client.subscribe("/topic/TRAIN_MVT_ET_TOC",  "MVT_", MVTListener);
 
         RTPPMHandler.initPPM();
 
@@ -221,7 +243,7 @@ public class StompConnectionHandler
 
                     if (isTimedOut() || !isConnected())
                     {
-                        timeoutWait = Math.min(60, timeoutWait + 10);
+                        timeoutWait = Math.min(maxTimeoutWait, timeoutWait + 10);
 
                         printStomp((isTimedOut() ? "Timed Out" : "") + (isTimedOut() && isClosed() ? ", " : "") + (isClosed() ? "Closed" : "") + ((isTimedOut() || isClosed()) && !isConnected() ? " & " : "") + (!isConnected() ? "Disconnected" : "") + " (" + timeoutWait + "s)", true);
 
@@ -251,6 +273,12 @@ public class StompConnectionHandler
         }, 10, 10, TimeUnit.SECONDS);
     }
 
+    public static void setMaxTimeoutWait(int maxTimeoutWait)
+    {
+        StompConnectionHandler.maxTimeoutWait = Math.max(60, maxTimeoutWait);
+    }
+
+    //<editor-fold defaultstate="collapsed" desc="Print methods">
     public static void printStomp(String message, boolean toErr)
     {
         if (toErr)
@@ -258,7 +286,6 @@ public class StompConnectionHandler
         else
             EastAngliaSignalMapServer.printOut("[Stomp] " + message);
     }
-
     public static void printSClass(String message, boolean toErr)
     {
         if (toErr)
@@ -266,7 +293,6 @@ public class StompConnectionHandler
         else
             EastAngliaSignalMapServer.printOut("[S-Class] " + message);
     }
-
     public static void printCClass(String message, boolean toErr)
     {
         if (toErr)
@@ -274,7 +300,6 @@ public class StompConnectionHandler
         else
             EastAngliaSignalMapServer.printOut("[C-Class] " + message);
     }
-
     public static void printRTPPM(String message, boolean toErr)
     {
         if (toErr)
@@ -282,4 +307,12 @@ public class StompConnectionHandler
         else
             EastAngliaSignalMapServer.printOut("[RTPPM] " + message);
     }
+    public static void printMovement(String message, boolean toErr)
+    {
+        if (toErr)
+            EastAngliaSignalMapServer.printErr("[Movement] " + message);
+        else
+            EastAngliaSignalMapServer.printOut("[Movement] " + message);
+    }
+    //</editor-fold>
 }

@@ -126,12 +126,11 @@ public class Client implements Runnable
                             {
                                 version = Integer.parseInt(name.substring(name.lastIndexOf("v")+1, name.lastIndexOf(")")-1));
                             }
-                            catch (NumberFormatException e) { version = oldVersion; }
+                            catch (Exception e) { version = oldVersion; }
 
-                            props = (Properties) message.get("props");
-                            props = (props == null ? new Properties() : props);
+                            props = (message.get("props") == null ? new Properties() : (Properties) message.get("props"));
 
-                            EastAngliaSignalMapServer.gui.updateClientList();
+                            EastAngliaSignalMapServer.updateServerGUI();
                             break;
 
                         case SEND_MESSAGE:
@@ -141,7 +140,7 @@ public class Client implements Runnable
                     }
                 }
                 else
-                    printClient("Erroneous message received", true);
+                    printClient("Erroneous message received (" + String.valueOf(obj) + ")", true);
 
                 errors = 0;
             }
@@ -212,11 +211,18 @@ public class Client implements Runnable
     public void sendAll()
     {
         Map<String, Object> message = new HashMap<>();
-        Map<String, Object> dataMap = new HashMap<>(EastAngliaSignalMapServer.CClassMap.size() + (EastAngliaSignalMapServer.SClassMap.size() * 16 * 8));
+        Map<String, String> dataMap = new HashMap<>(EastAngliaSignalMapServer.CClassMap.size() + EastAngliaSignalMapServer.SClassMap.size());
+
+        Map<String, String> sclass = new HashMap<>(EastAngliaSignalMapServer.SClassMap);
+        String[] keys = sclass.keySet().toArray(new String[0]);
+        for (String key : keys)
+            if (!key.contains(":"))
+                sclass.remove(key);
 
         dataMap.putAll(EastAngliaSignalMapServer.CClassMap);
+        dataMap.putAll(sclass);
 
-        for (Map.Entry<String, Map<String, Integer>> pairs : new HashMap<>(EastAngliaSignalMapServer.SClassMap).entrySet())
+        /*for (Map.Entry<String, Map<String, Integer>> pairs : new HashMap<>(EastAngliaSignalMapServer.SClassMap).entrySet())
         {
             if (pairs.getKey().toUpperCase().equals(pairs.getKey()))
                 for (Map.Entry<String, Integer> pairs2 : pairs.getValue().entrySet())
@@ -228,7 +234,7 @@ public class Client implements Runnable
                             dataMap.put(pairs.getKey() + pairs2.getKey() + ":" + i, chrs[i]);
                     }
                 }
-        }
+        }*/
         //if (version >= 13)
         //    dataMap.put("SClassData", EastAngliaSignalMapServer.SClassMap);
 

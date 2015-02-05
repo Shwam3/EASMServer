@@ -71,7 +71,7 @@ public class StompClient extends Stomp implements MessageReceiver
         try { socket.close(); }
         catch (IOException e) {}
 
-        _connected = false;
+        connected = false;
     }
 
     public void ack(String id/*, String subscriptionID*/)

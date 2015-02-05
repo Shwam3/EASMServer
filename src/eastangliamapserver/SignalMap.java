@@ -1,6 +1,9 @@
 package eastangliamapserver;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.*;
+import jsonparser.JSONParser;
 
 public class SignalMap
 {
@@ -8,26 +11,42 @@ public class SignalMap
 
     public static void createBerthObjects()
     {
-        initStratford();
-        initIlford();
-        initShenfield();
-        initWitham();
-        initHackney();
-        initHarlow();
-        initColchester();
-        initClacton();
-        initIpswich();
-        initCambridgeCA();
-        initCambridgeEN();
-        initNorwich();
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(SignalMap.class.getResourceAsStream("/eastangliamapserver/resources/berths.json"))))
+        {
+            String json = "";
+
+            String line;
+            while ((line = br.readLine()) != null)
+                json += line.trim();
+
+            List<Map<String, Object>> berths = (List<Map<String, Object>>) JSONParser.parseJSON(json).get("berths");
+            for (Map<String, Object> map : berths)
+            {
+                Berth berth = Berths.createOrGetBerth(String.valueOf(map.get("berthId")));
+                if (map.containsKey("name"))
+                    berth.setName(String.valueOf(map.get("name")));
+
+                if (map.containsKey("stepInstructions"))
+                {
+                    List<String> instructions = (List<String>) map.get("stepInstructions");
+                    for (int i = 0; i < instructions.size(); i += 4)
+                        berth.addStepToBerth(instructions.get(i), instructions.get(i+1), instructions.get(i+2), instructions.get(i+3));
+                }
+
+                if (map.containsKey("defaultValue"))
+                    berth.interpose(new Train(String.valueOf(map.get("defaultValue")), berth));
+            }
+        }
+        catch (Exception e) { EastAngliaSignalMapServer.printThrowable(e, "Berths"); }
 
         Berths.createOrGetBerth("XXMOTD"); // Message to client
 
         isCreated = true;
     }
 
+    //<editor-fold defaultstate="collapsed" desc="Berths (old method)">
     //<editor-fold defaultstate="collapsed" desc="Norwich">
-    private static void initNorwich()
+    /*private static void initNorwich()
     {
         Berths.createOrGetBerth("CC0392");
         Berths.createOrGetBerth("CC0393");
@@ -155,11 +174,11 @@ public class SignalMap
         Berths.createOrGetBerth("CCX034");
         Berths.createOrGetBerth("CCX032");
         Berths.createOrGetBerth("CCYARD");
-    }
+    }*/
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="Cambridge (EN)">
-    private static void initCambridgeEN()
+    /*private static void initCambridgeEN()
     {
         //NRW - ELY
         Berths.createOrGetBerth("ENA808");
@@ -322,11 +341,11 @@ public class SignalMap
         Berths.createOrGetBerth("CAD004");
         Berths.createOrGetBerth("CAD005");
         Berths.createOrGetBerth("CAX200");
-    }
+    }*/
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="Cambridge (CA)">
-    private static void initCambridgeCA()
+    /*private static void initCambridgeCA()
     {
         Berths.createOrGetBerth("CA0019");
         Berths.createOrGetBerth("CA0020").addStepToBerth("CA0020", "WG1188", "CAL188", "Suggest");
@@ -506,11 +525,11 @@ public class SignalMap
         Berths.createOrGetBerth("CA0765");
         Berths.createOrGetBerth("CA1765");
         Berths.createOrGetBerth("CA1273");
-    }
+    }*/
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="Ipswich">
-    private static void initIpswich()
+    /*private static void initIpswich()
     {
         Berths.createOrGetBerth("CC0290");
         Berths.createOrGetBerth("CC0295");
@@ -645,11 +664,11 @@ public class SignalMap
         Berths.createOrGetBerth("SXOB19").setName("OUS Dn (U&DES)");
         Berths.createOrGetBerth("SXOB21");
         Berths.createOrGetBerth("SXOSTO");
-    }
+    }*/
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="Clacton">
-    private static void initClacton()
+    /*private static void initClacton()
     {
         Berths.createOrGetBerth("CC1088");
         Berths.createOrGetBerth("CC1091");
@@ -712,11 +731,11 @@ public class SignalMap
         Berths.createOrGetBerth("CCCN48");
         Berths.createOrGetBerth("CCCN55");
         Berths.createOrGetBerth("CCCN60");
-    }
+    }*/
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="Colchester">
-    private static void initColchester()
+    /*private static void initColchester()
     {
         Berths.createOrGetBerth("CC0190");
         Berths.createOrGetBerth("CC0191");
@@ -758,6 +777,8 @@ public class SignalMap
         Berths.createOrGetBerth("CC0285");
         Berths.createOrGetBerth("CC0286");
         Berths.createOrGetBerth("CC0753");
+        Berths.createOrGetBerth("CC0762");
+        Berths.createOrGetBerth("CC0763");
         Berths.createOrGetBerth("CC0766");
         Berths.createOrGetBerth("CCAPIP");
         Berths.createOrGetBerth("CCAPPA");
@@ -857,11 +878,11 @@ public class SignalMap
         Berths.createOrGetBerth("CCDMAP");
         Berths.createOrGetBerth("CCP5AR");
         Berths.createOrGetBerth("CCP6AR");
-    }
+    }*/
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="Harlow">
-    private static void initHarlow()
+    /*private static void initHarlow()
     {
         Berths.createOrGetBerth("WG1061");
         Berths.createOrGetBerth("WG1062");
@@ -1047,11 +1068,11 @@ public class SignalMap
         Berths.createOrGetBerth("WGR168").setName("SSD Plat 2");
         Berths.createOrGetBerth("WGR206").setName("SSD Plat 1");
         Berths.createOrGetBerth("WGR370").setName("SSD Plat 3");
-    }
+    }*/
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="Hackney">
-    private static void initHackney()
+    /*private static void initHackney()
     {
         //Cambs heath - Clapton Jnc
         Berths.createOrGetBerth("LS0120");
@@ -1278,11 +1299,11 @@ public class SignalMap
         Berths.createOrGetBerth("WG5309");
         Berths.createOrGetBerth("WG5311");
         Berths.createOrGetBerth("WGR144").setName("CHN Plat 3");
-    }
+    }*/
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="Witham">
-    private static void initWitham()
+    /*private static void initWitham()
     {
         Berths.createOrGetBerth("SE0731");
         Berths.createOrGetBerth("SE0733");
@@ -1427,11 +1448,13 @@ public class SignalMap
         Berths.createOrGetBerth("SE0772");
         Berths.createOrGetBerth("SE5185");
         Berths.createOrGetBerth("SE5186");
-    }
+        Berths.createOrGetBerth("SE5188");
+        Berths.createOrGetBerth("SEGYNE");
+    }*/
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="Shenfield">
-    private static void initShenfield()
+    /*private static void initShenfield()
     {
         Berths.createOrGetBerth("SE0445");
         Berths.createOrGetBerth("SE0447").setName("HRO Plat 4 (DE)");
@@ -1658,23 +1681,16 @@ public class SignalMap
         Berths.createOrGetBerth("SEX708");
         Berths.createOrGetBerth("SEUPSN");
         Berths.createOrGetBerth("SEUPSS");
-    }
+    }*/
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="Ilford">
-    private static void initIlford()
+    /*private static void initIlford()
     {
         Berths.createOrGetBerth("SI0383");
         Berths.createOrGetBerth("SI0385");
         Berths.createOrGetBerth("SI0387").setName("CTH Plat 4 (DE)");
         Berths.createOrGetBerth("SI0389").setName("CTH Plat 2 (DM)");
-
-        /**
-         * For new Chadwell Heath turnback sidings (OOU until April 2015)
-         */
-        Berths.createOrGetBerth("XXCTS1").interpose(new Train("-OOU", Berths.getBerth("XXCTS1")));
-        Berths.createOrGetBerth("XXCTS2").interpose(new Train("0415", Berths.getBerth("XXCTS2")));
-
         Berths.createOrGetBerth("SI0391");
         Berths.createOrGetBerth("SI0393");
         Berths.createOrGetBerth("SI0395");
@@ -1843,11 +1859,11 @@ public class SignalMap
         Berths.createOrGetBerth("SIRAS5");
         Berths.createOrGetBerth("SIRIFC");
         Berths.createOrGetBerth("SIRIFL");
-    }
+    }*/
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="Stratford + Liv St">
-    private static void initStratford()
+    /*private static void initStratford()
     {
         Berths.createOrGetBerth("LSR009").setName("LST Plat 1");
         Berths.createOrGetBerth("LSFC09").addAdjacentBerths("LSFA09", "LSFB09", "LSR009").setName("LST Plat 1");
@@ -2113,16 +2129,14 @@ public class SignalMap
         Berths.createOrGetBerth("SIS767");
         Berths.createOrGetBerth("SIS770");
         Berths.createOrGetBerth("SIS772");
-    }
+    }*/
+    //</editor-fold>
     //</editor-fold>
 
     public SignalMap readFromMap()
     {
         for (Map.Entry<String, Berth> pairs : Berths.getEntrySet())
         {
-            if (String.valueOf(pairs.getKey()).startsWith("XX"))
-                continue;
-
             if (EastAngliaSignalMapServer.CClassMap.containsKey(pairs.getKey()))
                 pairs.getValue().interpose(new Train(EastAngliaSignalMapServer.CClassMap.get(pairs.getKey()), pairs.getValue()));
         }

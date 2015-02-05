@@ -1,29 +1,21 @@
 package eastangliamapserver.stomp.handlers;
 
 import eastangliamapserver.EastAngliaSignalMapServer;
+import static eastangliamapserver.EastAngliaSignalMapServer.SClassMap;
 import static eastangliamapserver.stomp.StompConnectionHandler.printSClass;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class SClassHandler
 {
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-
     public static Map<String, String> parseMessage(List<Map<String, Map<String, String>>> messageList)
     {
-        //int messageCount = 0;
-        Map<String, String> updateMap = new HashMap<>();
+        Map<String, String> updateMap = new HashMap<>(messageList.size());
 
         try
         {
-            //List<Map<String, Map<String, String>>> messageList = (List<Map<String, Map<String, String>>>) JSONParser.parseJSON("{\"TDMessage\":" + body + "}").get("TDMessage");
-            //List<HashMap<String, String>> messages = new ArrayList<>();
-
             String areas = "LS SE SI CC CA EN WG SO SX";
             for (Map<String, Map<String, String>> map : messageList)
             {
-                //messageCount++;
-
                 String msgType = map.keySet().toArray(new String[0])[0];
                 Map<String, String> indvMsg = map.get(msgType);
 
@@ -35,48 +27,36 @@ public class SClassHandler
                 switch (msgType.toUpperCase())
                 {
                     case "SF_MSG":
-                        indvMsg.put("old_data", "0");
-
-                        String xAddr = indvMsg.get("address").substring(0, 3);
-                        Map<String, Integer> yMap;
-
-                        if (EastAngliaSignalMapServer.SClassMap.containsKey(xAddr))
-                        {
-                            yMap = EastAngliaSignalMapServer.SClassMap.get(xAddr);
-
-                            if (yMap.containsKey(indvMsg.get("address").substring(3, 4)))
-                            {
-                                String oldBit = Integer.toHexString(yMap.get(indvMsg.get("address").substring(3, 4))).toUpperCase();
-
-                                if (oldBit.length() % 2 != 0)
-                                    oldBit = "0" + oldBit;
-
-                                indvMsg.put("old_data", oldBit);
-                            }
-                        }
+                        /*String shortAddress = indvMsg.get("address");
+                        if (SClassMap.containsKey(shortAddress))
+                            indvMsg.put("old_data", SClassMap.get(shortAddress));
                         else
-                            yMap = new HashMap<>();
-
-                        yMap.put(indvMsg.get("address").substring(3, 4), Integer.parseInt(indvMsg.get("data"), 16));
+                            indvMsg.put("old_data", "-1");*/
 
                         try
                         {
-                            char[] old  = toBinaryString(Integer.parseInt(indvMsg.get("old_data"), 16)).toCharArray();
-                            char[] data = toBinaryString(Integer.parseInt(indvMsg.get("data"),     16)).toCharArray();
+                            char[] data = toBinaryString(Integer.parseInt(indvMsg.get("data"), 16)).toCharArray();
 
-                            for (int i = 0; i < old.length; i++)
+                            for (int i = 0; i < data.length; i++)
                             {
-                                if (old[i] != data[i])
+                                String changedBit = Integer.toString(8 - i);
+                                String address = indvMsg.get("address") + ":" + changedBit;
+
+                                if (!SClassMap.containsKey(address) || !SClassMap.get(address).equals(String.valueOf(data[i])))
                                 {
-                                    String changedBit = Integer.toString(8 - i);
-                                    indvMsg.put("bit", changedBit);
+                                    printSClass(String.format("[%s] Change %s from %s to %s",
+                                            EastAngliaSignalMapServer.sdf.format(new Date(Long.parseLong(indvMsg.get("time")))),
+                                            indvMsg.get("address") + ":" + changedBit,
+                                            SClassMap.containsKey(address) ? SClassMap.get(address) : "0",
+                                            data[i]),
+                                            false);
 
-                                    printSClass(String.format("[%s] %s: %s -> %s (bit %s > %s)", EastAngliaSignalMapServer.sdf.format(new Date(Long.parseLong(indvMsg.get("time")))), indvMsg.get("address"), indvMsg.get("old_data"), indvMsg.get("data"), changedBit, data[i]), false);
-
-                                    EastAngliaSignalMapServer.SClassMap.put(xAddr, yMap);
-                                    updateMap.put(indvMsg.get("address") + ":" + changedBit, String.valueOf(data[i]));
+                                    updateMap.put(address, String.valueOf(data[i]));
+                                    SClassMap.put(address, String.valueOf(data[i]));
                                 }
                             }
+
+                            SClassMap.put(indvMsg.get("address"), indvMsg.get("data"));
                         }
                         catch (Exception e) { printSClass(e.toString(), true); }
 
@@ -84,6 +64,21 @@ public class SClassHandler
 
                     case "SG_MSG":
                     case "SH_MSG":
+                        printSClass(indvMsg.get("msg_type") + " message: " + indvMsg.toString(), false);
+
+                        try
+                        {
+                            String addrStart = indvMsg.get("address").substring(0, 3);
+                            String addrEnd = indvMsg.get("address").substring(3);
+                            int data[] = {Integer.parseInt(indvMsg.get("data").substring(0, 2), 16), Integer.parseInt(indvMsg.get("data").substring(2, 4), 16), Integer.parseInt(indvMsg.get("data").substring(4, 6), 16), Integer.parseInt(indvMsg.get("data").substring(6, 8), 16)};
+                            String[] addresses = {indvMsg.get("address"),
+                                addrStart + (addrEnd.equals("0") ? "1" : addrEnd.equals("4") ? "5" : addrEnd.equals("8") ? "9" : "D"),
+                                addrStart + (addrEnd.equals("0") ? "2" : addrEnd.equals("4") ? "6" : addrEnd.equals("8") ? "A" : "E"),
+                                addrStart + (addrEnd.equals("0") ? "3" : addrEnd.equals("4") ? "7" : addrEnd.equals("8") ? "B" : "F")};
+
+                            for (int i = 0; i < data.length; i++)
+                                SClassMap.put(addresses[i], Integer.toString(data[i]));
+                        } catch(Exception e) { printSClass(e.toString(), true); }
                         break;
                 }
             }
@@ -94,10 +89,10 @@ public class SClassHandler
             EastAngliaSignalMapServer.printThrowable(e, "S-Class");
         }
 
-        return updateMap;
+        return new HashMap<>(updateMap);
     }
 
-    private static String toBinaryString(int i)
+    public static String toBinaryString(int i)
     {
         return String.format("%" + ((int) Math.ceil(Integer.toBinaryString(i).length() / 8f) * 8) + "s", Integer.toBinaryString(i)).replace(" ", "0");
     }

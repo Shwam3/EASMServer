@@ -39,14 +39,13 @@ public class Berth implements Serializable
         if (currentTrain == null || currentTrain.getHeadcode().equals(headcode) || headcode.equals("    ") || headcode.equals("\\*\\*\\*\\*"))
         {
             currentTrain = null;
-
-            /*if (time != null)
-                startMonitor(time);*/
         }
     }
 
     public void interpose(Train newTrain)
     {
+        EastAngliaSignalMapServer.CClassMap.put(getId(), getHeadcode());
+        
         if (newTrain.getHeadcode().equals(""))
             return;
 
@@ -214,11 +213,6 @@ public class Berth implements Serializable
         return currentTrain != null;
     }
 
-    /*public boolean isProperHeadcode()
-    {
-        return Berths.isProperHeadcode(getHeadcode());
-    }*/
-
     public boolean hasAdjacentBerths()
     {
         return adjacentBerths.size() > 0;
@@ -256,53 +250,6 @@ public class Berth implements Serializable
     public String getBerthDescription()
     {
         return BERTH_DESCRIPTION;
-    }
-
-    /*boolean isProblematic()
-    {
-        return isProblematic;
-    }*/
-
-    private void startMonitor(final String time)
-    {
-        /*javax.swing.Timer timer = new javax.swing.Timer(30000, new ActionListener()
-        {
-            @Override
-            public void actionPerformed(ActionEvent evt)
-            {
-                try
-                {
-                    Date timeStart = new Date(Long.parseLong(time) - 45000); // 45 seconds before move
-                    Date timeEnd   = new Date(Long.parseLong(time) + 75000); // 75 seconds after  move
-                    Map<String, Map<String, String>> newAddressList = new HashMap<>(); // Addreses changed in this period
-
-                    for (Map<String, String> map : new ArrayList<>(EastAngliaSignalMapServer.SClassLog))
-                        if (map.get("area_id").equals(BERTH_DESCRIPTION.substring(0, 2))) // Is in area
-                            if (new Date(Long.parseLong(map.get("time"))).after(timeStart))
-                                if (new Date(Long.parseLong(map.get("time"))).before(timeEnd)) // Is within period
-                                    newAddressList.put(map.get("address"), map); // Add to changes in period
-
-                    for (String key : newAddressList.keySet())
-                    {
-                        Map<String, String> map = newAddressList.get(key);
-
-                        if (!possibleAddresses.containsKey(key))
-                            map.put("occurences", "1");
-                        else
-                            try
-                            {
-                                map.put("occurences", Integer.toString(Integer.parseInt(possibleAddresses.get(key).get("occurences")) + 1));
-                            }
-                            catch (NumberFormatException e) { map.put("occurences", "1"); }
-
-                        possibleAddresses.put(key, map);
-                    }
-                }
-                catch (Exception e) { EastAngliaSignalMapServer.printThrowable(e, BERTH_DESCRIPTION); }
-            }
-        });
-        timer.setRepeats(false);
-        timer.start();*/
     }
 
     public List<String> getBerthsHistory()

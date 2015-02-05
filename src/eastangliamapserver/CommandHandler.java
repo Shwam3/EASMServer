@@ -527,7 +527,7 @@ public class CommandHandler
 
                         printCommand("MOTD (literal): \"" + motd + "\"", false);
 
-                        EastAngliaSignalMapServer.gui.updateDataList();
+                        EastAngliaSignalMapServer.updateServerGUI();
                     }
                 }
                 break;
@@ -593,6 +593,24 @@ public class CommandHandler
             case "updateppm":
             case "updatertppm":
                 RTPPMHandler.uploadHTML();
+                break;
+
+            case "setmaxtimeout":
+                if (args.length == 1 || args.length == 2)
+                {
+                    try
+                    {
+                        int newTimeout = Integer.parseInt(args[1]);
+
+                        StompConnectionHandler.setMaxTimeoutWait(newTimeout);
+                    }
+                    catch (NumberFormatException | IndexOutOfBoundsException e)
+                    {
+                        printCommand("Usage: setmaxtimeout <seconds>", true);
+                    }
+                }
+                else
+                    printCommand("Usage: setmaxtimeout <seconds>", false);
                 break;
 
             case "gc":

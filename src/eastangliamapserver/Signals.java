@@ -33,8 +33,7 @@ public class Signals
             signalMap.put(signalAddress, signal);
             missingSignals.remove(signalAddress);
 
-            try { EastAngliaSignalMapServer.gui.updateDataList(); }
-            catch (NullPointerException e) {}
+            EastAngliaSignalMapServer.updateServerGUI();
         }
     }
 

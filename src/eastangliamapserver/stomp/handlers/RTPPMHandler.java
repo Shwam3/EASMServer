@@ -103,22 +103,22 @@ public class RTPPMHandler
         }
         catch (IOException e) { e.printStackTrace(); }
 
-        StringBuilder html = new StringBuilder("<!DOCTYPE html>\n");
-        html.append("<html>\n");
-        html.append("  <head>\n");
-        html.append("    <title>Real-Time PPM</title>\n");
-        html.append("    <meta charset=\"utf-8\">\n");
-        html.append("    <meta content=\"width=device-width,initial-scale=1.0\" name=\"viewport\">\n");
-        html.append("    <meta http-equiv=\"refresh\" content=\"600\">\n");
-        html.append("    <meta name=\"description\" content=\"Real-Time PPM\">\n");
-        html.append("    <meta name=\"author\" content=\"Cameron Bird\">\n");
-        html.append("    <link rel=\"icon\" type=\"image/x-icon\" href=\"/favicon.ico\">\n");
-        html.append("    <link rel=\"stylesheet\" type=\"text/css\" href=\"/default.css\">\n");
-        html.append("  </head>\n");
-        html.append("  <body>\n");
-        html.append("    <div class=\"ppmMain\">\n");
-        html.append("    <p id=\"title\"><abbr title=\"Real-Time (15 min intervals) Public Performance Measure\">Real-Time PPM</abbr>&nbsp;<span class=\"small\">").append(new SimpleDateFormat("(dd/mm HH:mm)").format(new Date())).append("</span></p>\n");
-        //html.append("    <p id=\"title\"><img id=\"logo\" src=\"/logo.png\"><abbr title=\"Real-Time (15 min intervals) Public Performance Measure\">Real-Time PPM</abbr>&nbsp;<span class=\"small\">").append(new SimpleDateFormat("(dd/mm HH:mm)").format(new Date())).append("</span></p>\n");
+        StringBuilder html = new StringBuilder("<!DOCTYPE html>");
+        html.append("<html>");
+        html.append("  <head>");
+        html.append("    <title>Real-Time PPM</title>");
+        html.append("    <meta charset=\"utf-8\">");
+        html.append("    <meta content=\"width=device-width,initial-scale=1.0\" name=\"viewport\">");
+        html.append("    <meta http-equiv=\"refresh\" content=\"600\">");
+        html.append("    <meta name=\"description\" content=\"Real-Time PPM\">");
+        html.append("    <meta name=\"author\" content=\"Cameron Bird\">");
+        html.append("    <link rel=\"icon\" type=\"image/x-icon\" href=\"/favicon.ico\">");
+        html.append("    <link rel=\"stylesheet\" type=\"text/css\" href=\"/default.css\">");
+        html.append("  </head>");
+        html.append("  <body>");
+        html.append("    <div class=\"ppmMain\">");
+        html.append("    <p id=\"title\"><abbr title=\"Real-Time (15 min intervals) Public Performance Measure\">Real-Time PPM</abbr>&nbsp;<span class=\"small\">").append(new SimpleDateFormat("(dd/mm HH:mm)").format(new Date())).append("</span></p>");
+        //html.append("    <p id=\"title\"><img id=\"logo\" src=\"/logo.png\"><abbr title=\"Real-Time (15 min intervals) Public Performance Measure\">Real-Time PPM</abbr>&nbsp;<span class=\"small\">").append(new SimpleDateFormat("(dd/mm HH:mm)").format(new Date())).append("</span></p>");
 
         String[] keys = operators.keySet().toArray(new String[0]);
         Arrays.sort(keys, String.CASE_INSENSITIVE_ORDER);
@@ -128,9 +128,15 @@ public class RTPPMHandler
         if (incidentMessages.trim().equals("null") || incidentMessages.trim().equals(""))
             incidentMessages = "No messages";
 
-        html.append("      <div id=\"ppmIncidents\"><p><b>Incident Messages:</b></p><p>").append(incidentMessages).append("</p></div>\n");
-        html.append("    </div>\n");
-        html.append("    <script type=\"text/javascript\">setInterval(function() { document.reload(true) }, 600000);</script>\n");
+        html.append("      <div id=\"ppmIncidents\">");
+        html.append("        <p><b>Incident Messages:</b></p>");
+
+        for (String message : incidentMessages.split("\\n"))
+        html.append("        <p>").append(message.trim()).append("</p>)");
+
+        html.append("      </div>");
+        html.append("    </div>");
+        html.append("    <script type=\"text/javascript\">setInterval(function() { document.reload(true) }, 600000);</script>");
         html.append("  </body>");
 
         try
@@ -253,22 +259,23 @@ public class RTPPMHandler
         {
             StringBuilder sb = new StringBuilder();
 
-            sb.append("    <h3 class=\"ppmTableTitle\">").append(NAME).append(" (").append(CODE).append(")").append(keySymbol.trim().replace("*", " (10 mins)").replace("^", " (5 mins)")).append("<br/></h3>\n");
-            sb.append("    <table class=\"ppmTable\" sortable>\n");
-            sb.append("      <tr>\n");
-            sb.append("        <th class=\"ppmTable\" rowspan=\"2\">Service Name</th>\n");
-            sb.append("        <th class=\"ppmTable\" rowspan=\"2\"><abbr title=\"Public Performance Measure\">PPM</abbr></th>\n");
-            sb.append("        <th class=\"ppmTable\" colspan=\"2\"><abbr title=\"Rolling Public Performance Measure\">Rolling PPM</abbr></th>\n");
-            sb.append("        <th class=\"ppmTable\" colspan=\"4\"><abbr title=\"Public Performance Measure Breakdown\">PPM Breakdown</th>\n");
-            sb.append("      </tr>\n");
-            sb.append("      <tr>\n");
-            sb.append("        <th class=\"ppmTable\">%</th>\n");
-            sb.append("        <th class=\"ppmTable\">▲▼</th>\n");
-            sb.append("        <th class=\"ppmTable\">Total</th>\n");
-            sb.append("        <th class=\"ppmTable\"><abbr title=\"On Time\">OT</abbr></th>\n");
-            sb.append("        <th class=\"ppmTable\"><abbr title=\"Late\">L</abbr></th>\n");
-            sb.append("        <th class=\"ppmTable\"><abbr title=\"Cancelled/Significant Lateness\">C/SL</abbr></th>\n");
-            sb.append("      </tr>\n");
+            sb.append("    <h3 class=\"ppmTableTitle\">").append(NAME).append(" (").append(CODE).append(")").append(keySymbol.trim().replace("*", " (10 mins)").replace("^", " (5 mins)")).append("<br/></h3>");
+            sb.append("    <table class=\"ppmTable\" sortable>");
+            sb.append("      <tr>");
+            sb.append("        <th class=\"ppmTable\" rowspan=\"2\">Service Name</th>");
+            sb.append("        <th class=\"ppmTable\" rowspan=\"2\"><abbr title=\"Public Performance Measure\">PPM</abbr></th>");
+            sb.append("        <th class=\"ppmTable\" colspan=\"2\"><abbr title=\"Rolling Public Performance Measure\">Rolling PPM</abbr></th>");
+            sb.append("        <th class=\"ppmTable\" colspan=\"4\"><abbr title=\"Public Performance Measure Breakdown\">PPM Breakdown</th>");
+            sb.append("      </tr>");
+            sb.append("      <tr>");
+            sb.append("        <th class=\"ppmTable\">%</th>");
+          //sb.append("        <th class=\"ppmTable\">▲▼</th>");
+            sb.append("        <th class=\"ppmTable\">&#x25B2;&#x25BC;</th>");
+            sb.append("        <th class=\"ppmTable\">Total</th>");
+            sb.append("        <th class=\"ppmTable\"><abbr title=\"On Time\">OT</abbr></th>");
+            sb.append("        <th class=\"ppmTable\"><abbr title=\"Late\">L</abbr></th>");
+            sb.append("        <th class=\"ppmTable\"><abbr title=\"Cancelled/Significant Lateness\">C/SL</abbr></th>");
+            sb.append("      </tr>");
 
             String[] keys = serviceMap.keySet().toArray(new String[0]);
             Arrays.sort(keys, String.CASE_INSENSITIVE_ORDER);
@@ -278,71 +285,71 @@ public class RTPPMHandler
                 if (key.equals("Total"))
                     continue;
 
-                sb.append("      <tr>\n");
+                sb.append("      <tr>");
 
                 HashMap<String, Object> map = serviceMap.get(key);
                 if (map != null)
                 {
-                    sb.append("         <td class=\"ppmTable\">").append(key.replace("&", "&amp;")).append("</td>\n");
+                    sb.append("         <td class=\"ppmTable\">").append(key.replace("&", "&amp;")).append("</td>");
 
                     String ppm = String.valueOf(((Map) map.get("PPM")).get("text"));
                     if (!ppm.equals("-1"))
-                        sb.append("        <td class=\"ppmTable\" style=\"color:").append(getColour(String.valueOf(((Map) map.get("PPM")).get("rag")))).append("\">").append(ppm).append("%</td>\n");
+                        sb.append("        <td class=\"ppmTable\" style=\"color:").append(getColour(String.valueOf(((Map) map.get("PPM")).get("rag")))).append("\">").append(ppm).append("%</td>");
                     else
-                        sb.append("        <td class=\"ppmTable\" style=\"color:black\">N/A</td>\n");
+                        sb.append("        <td class=\"ppmTable\" style=\"color:black\">N/A</td>");
 
                     String rollPPM = String.valueOf(((Map) map.get("RollingPPM")).get("text"));
                     if (!rollPPM.equals("-1"))
                     {
-                        sb.append("        <td class=\"ppmTable\" style=\"color:").append(getColour(String.valueOf(((Map) map.get("RollingPPM")).get("rag")))).append("\">").append(rollPPM).append("%").append("</td>\n");
-                        sb.append("        <td class=\"ppmTable\" style=\"color:").append(getColour(getTrendArrow(String.valueOf(((Map) map.get("RollingPPM")).get("trendInd"))))).append("\">").append(getTrendArrow(String.valueOf(((Map) map.get("RollingPPM")).get("trendInd")))).append("</td>\n");
+                        sb.append("        <td class=\"ppmTable\" style=\"color:").append(getColour(String.valueOf(((Map) map.get("RollingPPM")).get("rag")))).append("\">").append(rollPPM).append("%").append("</td>");
+                        sb.append("        <td class=\"ppmTable\" style=\"color:").append(getColour(getTrendArrow(String.valueOf(((Map) map.get("RollingPPM")).get("trendInd"))))).append("\">").append(getTrendArrow(String.valueOf(((Map) map.get("RollingPPM")).get("trendInd")))).append("</td>");
                     }
                     else
                     {
-                        sb.append("        <td class=\"ppmTable\" style=\"color:black\">N/A</td>\n");
-                        sb.append("        <td class=\"ppmTable\" style=\"color:black\">N/A</td>\n");
+                        sb.append("        <td class=\"ppmTable\" style=\"color:black\">N/A</td>");
+                        sb.append("        <td class=\"ppmTable\" style=\"color:black\">N/A</td>");
                     }
 
-                    sb.append("        <td class=\"ppmTable\">").append(map.get("Total")).append("</td>\n");
-                    sb.append("        <td class=\"ppmTable\">").append(map.get("OnTime")).append("</td>\n");
-                    sb.append("        <td class=\"ppmTable\">").append(map.get("Late")).append("</td>\n");
-                    sb.append("        <td class=\"ppmTable\">").append(map.get("CancelVeryLate")).append("</td>\n");
+                    sb.append("        <td class=\"ppmTable\">").append(map.get("Total")).append("</td>");
+                    sb.append("        <td class=\"ppmTable\">").append(map.get("OnTime")).append("</td>");
+                    sb.append("        <td class=\"ppmTable\">").append(map.get("Late")).append("</td>");
+                    sb.append("        <td class=\"ppmTable\">").append(map.get("CancelVeryLate")).append("</td>");
                 }
 
-                sb.append("      </tr>\n");
+                sb.append("      </tr>");
             }
 
             HashMap<String, Object> map = serviceMap.get("Total");
             if (map != null)
             {
-                sb.append("      <tr>\n");
+                sb.append("      <tr>");
 
-                sb.append("        <td class=\"ppmTable\">Total</td>\n");
-                sb.append("        <td class=\"ppmTable\" style=\"color:").append(getColour(String.valueOf(((Map) map.get("PPM")).get("rag")))).append("\">").append(((Map) map.get("PPM")).get("text")).append("%").append("</td>\n");
+                sb.append("        <td class=\"ppmTable\">Total</td>");
+                sb.append("        <td class=\"ppmTable\" style=\"color:").append(getColour(String.valueOf(((Map) map.get("PPM")).get("rag")))).append("\">").append(((Map) map.get("PPM")).get("text")).append("%").append("</td>");
 
                 String rollPPM = String.valueOf(((Map) map.get("RollingPPM")).get("text"));
                 if (!rollPPM.equals("-1"))
                 {
-                    sb.append("        <td class=\"ppmTable\" style=\"color:").append(getColour(String.valueOf(((Map) map.get("RollingPPM")).get("rag")))).append("\">").append(rollPPM).append("%").append("</td>\n");
-                    sb.append("        <td class=\"ppmTable\" style=\"color:").append(getColour(String.valueOf(((Map) map.get("RollingPPM")).get("rag")))).append("\">").append(getTrendArrow(String.valueOf(((Map) map.get("RollingPPM")).get("trendInd")))).append("</td>\n");
+                    sb.append("        <td class=\"ppmTable\" style=\"color:").append(getColour(String.valueOf(((Map) map.get("RollingPPM")).get("rag")))).append("\">").append(rollPPM).append("%").append("</td>");
+                    sb.append("        <td class=\"ppmTable\" style=\"color:").append(getColour(String.valueOf(((Map) map.get("RollingPPM")).get("rag")))).append("\">").append(getTrendArrow(String.valueOf(((Map) map.get("RollingPPM")).get("trendInd")))).append("</td>");
                 }
                 else
                 {
-                    sb.append("        <td class=\"ppmTable\" style=\"color:black\">N/A</td>\n");
-                    sb.append("        <td class=\"ppmTable\" style=\"color:black\">N/A</td>\n");
+                    sb.append("        <td class=\"ppmTable\" style=\"color:black\">N/A</td>");
+                    sb.append("        <td class=\"ppmTable\" style=\"color:black\">N/A</td>");
                 }
 
-                sb.append("        <td class=\"ppmTable\">").append(map.get("Total")).append("</td>\n");
-                sb.append("        <td class=\"ppmTable\">").append(map.get("OnTime")).append("</td>\n");
-                sb.append("        <td class=\"ppmTable\">").append(map.get("Late")).append("</td>\n");
-                sb.append("        <td class=\"ppmTable\">").append(map.get("CancelVeryLate")).append("</td>\n");
+                sb.append("        <td class=\"ppmTable\">").append(map.get("Total")).append("</td>");
+                sb.append("        <td class=\"ppmTable\">").append(map.get("OnTime")).append("</td>");
+                sb.append("        <td class=\"ppmTable\">").append(map.get("Late")).append("</td>");
+                sb.append("        <td class=\"ppmTable\">").append(map.get("CancelVeryLate")).append("</td>");
 
-                sb.append("      </tr>\n");
+                sb.append("      </tr>");
             }
 
-            sb.append("    </table>\n");
+            sb.append("    </table>");
 
-            return sb.toString();
+            return sb.toString().replace("▲", "&#x25B2;").replace("▬", "&#9644;").replace("▼", "&#x25BC;");
         }
 
         public HashMap<String, Object> getMap()
@@ -360,8 +367,8 @@ public class RTPPMHandler
 
         public void readMap(HashMap<String, Object> map)
         {
-            if (map.containsKey("keySymbol")  && map.get("keySymbol") != null)  keySymbol  = (String) map.get("keySymbol");
-            if (map.containsKey("ppmMap")     && map.get("ppmMap") != null)     ppmMap     = (HashMap<String, HashMap<String, String>>) map.get("ppmMap");
+            if (map.containsKey("keySymbol")  && map.get("keySymbol")  != null) keySymbol  = (String) map.get("keySymbol");
+            if (map.containsKey("ppmMap")     && map.get("ppmMap")     != null) ppmMap     = (HashMap<String, HashMap<String, String>>) map.get("ppmMap");
             if (map.containsKey("serviceMap") && map.get("serviceMap") != null) serviceMap = (HashMap<String, HashMap<String, Object>>) map.get("serviceMap");
         }
 
@@ -387,12 +394,15 @@ public class RTPPMHandler
                 case "▲":
                 case "G":
                     return "#25B225";
+
                 case "▬":
                 case "A":
                     return "#D0A526";
+
                 case "▼":
                 case "R":
                     return "#C50000";
+
                 default:
                     return "#FFFFFF";
             }

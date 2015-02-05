@@ -9,6 +9,7 @@ import javax.swing.*;
 public class ClientContextMenu extends JPopupMenu
 {
     JList<String> invoker;
+    String selectedValue;
 
     JMenuItem kick;
     JMenuItem message;
@@ -20,8 +21,7 @@ public class ClientContextMenu extends JPopupMenu
         @Override
         public void actionPerformed(ActionEvent evt)
         {
-            String clientName = invoker.getSelectedValue();
-            Client client = Clients.getClient(clientName.substring(clientName.lastIndexOf("(") + 1, clientName.length() - 1));
+            Client client = Clients.getClient(selectedValue.substring(selectedValue.lastIndexOf("(") + 1, selectedValue.length() - 1));
 
             if (evt.getSource() == kick)
             {
@@ -58,6 +58,7 @@ public class ClientContextMenu extends JPopupMenu
     public ClientContextMenu(Component invoker, int x, int y)
     {
         this.invoker = (JList<String>) invoker;
+        selectedValue = this.invoker.getSelectedValue();
 
         kick    = new JMenuItem("Kick");
         message = new JMenuItem("Message");

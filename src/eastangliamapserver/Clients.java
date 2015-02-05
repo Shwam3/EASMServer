@@ -15,7 +15,7 @@ public class Clients
         if (hasSpace())
         {
             clients.add(client);
-            EastAngliaSignalMapServer.gui.updateClientList();
+            EastAngliaSignalMapServer.updateServerGUI();
         }
         else
             client.disconnect("Server full");
@@ -81,7 +81,7 @@ public class Clients
             try { clients.remove(client); }
             catch (Exception e) {}
 
-            EastAngliaSignalMapServer.gui.updateClientList();
+            EastAngliaSignalMapServer.updateServerGUI();
         }
     }
 

@@ -13,7 +13,7 @@ import javax.swing.*;
 
 public class EastAngliaSignalMapServer
 {
-    public  static String VERSION = "7";
+    public  static String VERSION = "8";
 
     public  static final int    port = 6321;
     public  static ServerSocket server;
@@ -32,9 +32,8 @@ public class EastAngliaSignalMapServer
     private static int lastUUID = 0;
 
     public  static Map<String, String> CClassMap = new HashMap<>();
-
-    public  static Map<String, Map<String, Integer>> SClassMap = new HashMap<>();
-    public  static DataMap SClassDataMap = new DataMap("LS","SE","SI","CC","CA","EN","WG","SO","SX");
+    public  static Map<String, String> SClassMap = new HashMap<>();
+  //public  static DataMap SClassDataMap = new DataMap("LS","SE","SI","CC","CA","EN","WG","SO","SX");
   //public  static List<Map<String, String>> SClassLog = new ArrayList<>();
 
     public static void main(String[] args)
@@ -280,9 +279,9 @@ public class EastAngliaSignalMapServer
                     else
                         printOut("Saved map file is out of date");
 
-                    EastAngliaSignalMapServer.SClassMap.putAll((Map<String, Map<String, Integer>>) savedMap.get("SClassData"));
+                    EastAngliaSignalMapServer.SClassMap.putAll((Map<String, String>) savedMap.get("SClassData"));
 
-                    lastUUID = (int) savedMap.get("TrainHistoryUUID");
+                    lastUUID = (savedMap.get("TrainHistoryUUID") instanceof Integer ? (int) savedMap.get("TrainHistoryUUID") : 0);
 
                     try {
                     Map<String, Map<String, Object>> trainHistory = new HashMap<>((Map<String, Map<String, Object>>) savedMap.get("TrainHistory"));
@@ -317,9 +316,11 @@ public class EastAngliaSignalMapServer
                     printOut("No map save file");
 
             }
+            catch (NullPointerException e) {}
             catch (FileNotFoundException e) {}
             catch (ClassNotFoundException e) { EastAngliaSignalMapServer.printErr("[Persistance] Exception parsing map save file:\n" + e); }
             catch (IOException e) { EastAngliaSignalMapServer.printErr("[Persistance] Exception reading map save file:\n" + e); }
+            catch (Exception e) {}
         else
             printServer("Not read save file", true);
     }
@@ -416,5 +417,14 @@ public class EastAngliaSignalMapServer
             }
             catch (IOException e) { EastAngliaSignalMapServer.printThrowable(e, "IPUpdater"); }
         //}
+    }
+
+    public static void updateServerGUI()
+    {
+        if (gui != null)
+        {
+            gui.updateClientList();
+            gui.updateDataList();
+        }
     }
 }

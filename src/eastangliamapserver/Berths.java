@@ -33,8 +33,7 @@ public class Berths
             berthMap.put(berthId, berth);
             missingBerths.remove(berthId);
 
-            try { EastAngliaSignalMapServer.gui.updateDataList(); }
-            catch (NullPointerException e) {}
+            EastAngliaSignalMapServer.updateServerGUI();
         }
     }
 
@@ -93,8 +92,7 @@ public class Berths
         for (String id : berthIds)
             printCClass(id, false);
 
-        try { EastAngliaSignalMapServer.gui.updateDataList(); }
-        catch (NullPointerException e) {}
+        EastAngliaSignalMapServer.updateServerGUI();
     }
 
     public static void addMissingBerth(String berthId)

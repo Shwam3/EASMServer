@@ -198,17 +198,12 @@ public class ServerGui
 
     public void updateDataList()
     {
-        int listSelection = dataList.hasFocus() ? Math.max(dataList.getSelectedIndex(), 0) : -1;
+        int listSelection = dataList.getSelectedIndex();
 
         DefaultListModel<String> listModel = new DefaultListModel<>();
 
         //<editor-fold defaultstate="collapsed" desc="S-Class">
-        String[] sortedKeys = EastAngliaSignalMapServer.SClassMap.keySet().toArray(new String[0]);
-        Arrays.sort(sortedKeys);
-
-        List<String> dataL = new ArrayList<>();
-
-        dataL.add("bit#87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321");
+        /*dataL.add("bit#87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321");
         dataL.add("        0        1        2        3        4        5        6        7        8        9        A        B        C        D        E        F");
 
         Map<String, Map<String, Integer>> SClassMap2 = new HashMap<>(EastAngliaSignalMapServer.SClassMap);
@@ -233,7 +228,11 @@ public class ServerGui
             }
 
             dataL.add(sb.toString());
-        }
+        }*/
+        //</editor-fold>
+
+        String[] sortedKeys = EastAngliaSignalMapServer.SClassMap.keySet().toArray(new String[0]);
+        Arrays.sort(sortedKeys);
 
         long time = System.currentTimeMillis() - StompConnectionHandler.lastMessageTime;
         listModel.addElement("Current Time:  " + EastAngliaSignalMapServer.sdf.format(new Date()));
@@ -260,15 +259,16 @@ public class ServerGui
             listModel.addElement("<html><pre>MOTD:          &quot;" + motdBerth.getHeadcode().trim() + "&quot;</pre></html>");
 
         listModel.addElement(" ");
-        listModel.addElement("------ S Class Data ---------------");
-        for (String data : dataL)
-            listModel.addElement(data);
-
-        listModel.addElement(" ");
-        listModel.addElement("------ C Class Data ---------------");
+        listModel.addElement("------ C Class Data (" + EastAngliaSignalMapServer.CClassMap.size() + ") ---------------");
         for (String dataEntry : Berths.getCClassData(true))
             listModel.addElement(dataEntry);
-        //</editor-fold>
+
+        String[] sclassKeys = EastAngliaSignalMapServer.SClassMap.keySet().toArray(new String[0]);
+        Arrays.sort(sclassKeys);
+        listModel.addElement(" ");
+        listModel.addElement("------ S Class Data (" + EastAngliaSignalMapServer.SClassMap.size() + ") ---------------");
+        for (String key : sclassKeys)
+            listModel.addElement((key.contains(":") ? key : "- " + key) + ": " + String.valueOf(EastAngliaSignalMapServer.SClassMap.get(key)));
 
         dataList.setModel(listModel);
 
@@ -284,11 +284,6 @@ public class ServerGui
     public void restart()
     {
         commandInput.setEnabled(true);
-    }
-
-    public int[] getDims()
-    {
-        return new int[] {frame.getLocation().x, frame.getLocation().y, frame.getSize().width, frame.getSize().height};
     }
 
     public void dispose()

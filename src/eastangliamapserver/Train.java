@@ -58,17 +58,16 @@ public class Train
 
     private void addCurrentBerthToHistory()
     {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM HH:mm:ss");
+
         if (currentBerth == null/* || !currentBerth.getHeadcode().equals(headcode)*/)
         {
             isCancelled = true;
             end = new Date();
 
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM HH:mm:ss");
             history.set(0, "Start: " + sdf.format(start) + ", End: " + sdf.format(end) + ": " + headcode + " (" + UUID + ")");
         }
         else
-        {
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM HH:mm:ss");
             history.add(1, sdf.format(new Date()) + ": " + currentBerth.getBerthDescription() + (currentBerth.getName().equals("") ? "" : " (" + currentBerth.getName() + ")"));
 
             Map<String, Object> historyMap = new HashMap<>();
@@ -80,7 +79,6 @@ public class Train
             historyMap.put("history",  history);
             historyMap.put("changed",  new Date());
             Berths.addTrainHistory(UUID,  historyMap);
-        }
     }
 
     public String getUID() { return UID; }
