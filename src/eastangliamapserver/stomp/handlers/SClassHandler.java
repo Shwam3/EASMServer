@@ -3,7 +3,10 @@ package eastangliamapserver.stomp.handlers;
 import eastangliamapserver.EastAngliaSignalMapServer;
 import static eastangliamapserver.EastAngliaSignalMapServer.SClassMap;
 import static eastangliamapserver.stomp.StompConnectionHandler.printSClass;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class SClassHandler
 {
@@ -45,7 +48,7 @@ public class SClassHandler
                                 if (!SClassMap.containsKey(address) || !SClassMap.get(address).equals(String.valueOf(data[i])))
                                 {
                                     printSClass(String.format("[%s] Change %s from %s to %s",
-                                            EastAngliaSignalMapServer.sdf.format(new Date(Long.parseLong(indvMsg.get("time")))),
+                                            EastAngliaSignalMapServer.sdfTime.format(new Date(Long.parseLong(indvMsg.get("time")))),
                                             indvMsg.get("address") + ":" + changedBit,
                                             SClassMap.containsKey(address) ? SClassMap.get(address) : "0",
                                             data[i]),
@@ -64,13 +67,16 @@ public class SClassHandler
 
                     case "SG_MSG":
                     case "SH_MSG":
-                        printSClass(indvMsg.get("msg_type") + " message: " + indvMsg.toString(), false);
-
                         try
                         {
                             String addrStart = indvMsg.get("address").substring(0, 3);
                             String addrEnd = indvMsg.get("address").substring(3);
-                            int data[] = {Integer.parseInt(indvMsg.get("data").substring(0, 2), 16), Integer.parseInt(indvMsg.get("data").substring(2, 4), 16), Integer.parseInt(indvMsg.get("data").substring(4, 6), 16), Integer.parseInt(indvMsg.get("data").substring(6, 8), 16)};
+
+                            int data[] = {Integer.parseInt(indvMsg.get("data").substring(0, 2), 16),
+                                Integer.parseInt(indvMsg.get("data").substring(2, 4), 16),
+                                Integer.parseInt(indvMsg.get("data").substring(4, 6), 16),
+                                Integer.parseInt(indvMsg.get("data").substring(6, 8), 16)};
+
                             String[] addresses = {indvMsg.get("address"),
                                 addrStart + (addrEnd.equals("0") ? "1" : addrEnd.equals("4") ? "5" : addrEnd.equals("8") ? "9" : "D"),
                                 addrStart + (addrEnd.equals("0") ? "2" : addrEnd.equals("4") ? "6" : addrEnd.equals("8") ? "A" : "E"),

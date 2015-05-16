@@ -23,7 +23,7 @@ public class CustomOutStream extends OutputStream
         //{
             try
             {
-                boolean scrollToEnd = textArea.getCaretPosition() == textArea.getDocument().getLength();
+                boolean scrollToEnd = textArea.getCaretPosition() >= textArea.getDocument().getLength();
                 textArea.append(String.valueOf((char) b));
 
                 if (scrollToEnd)
@@ -31,17 +31,18 @@ public class CustomOutStream extends OutputStream
 
                 defaultStream.write(b);
 
-                /*int line = textArea.getLineOfOffset(textArea.getSelectionEnd());
+                /*if (textArea.getLineCount() > 500)
+                {
+                    int line = textArea.getLineOfOffset(textArea.getSelectionEnd());
 
-                textArea.setSelectionStart(0);
-                textArea.setSelectionEnd(0);
+                    textArea.setSelectionStart(0);
+                    textArea.setSelectionEnd(0);
 
-                while (textArea.getLineCount() >= 500)
-                    textArea.replaceRange("", 0, textArea.getLineEndOffset(0));
+                    textArea.replaceRange("", 0, textArea.getLineEndOffset(textArea.getLineCount() - 500));
 
-                textArea.setSelectionStart(textArea.getLineEndOffset(line));
-                textArea.setSelectionEnd(textArea.getLineEndOffset(line));*/
-
+                    textArea.setSelectionStart(textArea.getLineEndOffset(line));
+                    textArea.setSelectionEnd(textArea.getLineEndOffset(line));
+                }*/
             }
             catch (/*BadLocationException | */Error e) {}
         //}

@@ -1,10 +1,15 @@
 package eastangliamapserver.gui;
 
-import eastangliamapserver.*;
+import eastangliamapserver.EastAngliaSignalMapServer;
+import eastangliamapserver.server.Client;
+import eastangliamapserver.server.Clients;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.swing.*;
+import javax.swing.JList;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
 
 public class ClientContextMenu extends JPopupMenu
 {
@@ -27,7 +32,7 @@ public class ClientContextMenu extends JPopupMenu
             {
                 if (JOptionPane.showConfirmDialog(invoker, "Are you sure you want to kick this client?", "Are you sure?", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
                 {
-                    String reason = JOptionPane.showInputDialog(EastAngliaSignalMapServer.gui.frame, "Add a kick message:");
+                    String reason = JOptionPane.showInputDialog(EastAngliaSignalMapServer.guiServer.frame, "Add a kick message:");
 
                     if (client != null)
                         client.disconnect("You have been kicked" + (reason != null && !reason.equals("") ? ": " + reason : " (no reason given)"));
@@ -35,7 +40,7 @@ public class ClientContextMenu extends JPopupMenu
             }
             else if (evt.getSource() == message)
             {
-                String message = JOptionPane.showInputDialog(EastAngliaSignalMapServer.gui.frame, "Message to send:");
+                String message = JOptionPane.showInputDialog(EastAngliaSignalMapServer.guiServer.frame, "Message to send:");
 
                 if (client != null && message != null && !message.isEmpty())
                     client.sendTextMessage(message);
@@ -43,12 +48,12 @@ public class ClientContextMenu extends JPopupMenu
             else if (evt.getSource() == info)
             {
                 if (client != null)
-                    new ListDialog("Info for \"" + client.name + "\"", null, client.getInfo());
+                    new ListDialog("Info for \"" + client.getName() + "\"", null, client.getInfo());
             }
             else if (evt.getSource() == history)
             {
                 if (client != null)
-                    new ListDialog("Client " + client.name + "'s history", null, client.getHistory());
+                    new ListDialog("Client " + client.getName() + "'s history", null, client.getHistory());
             }
             else
                 EastAngliaSignalMapServer.printErr("[Client cnxmnu] \"" + evt.getSource() + "\" is not a valid source");

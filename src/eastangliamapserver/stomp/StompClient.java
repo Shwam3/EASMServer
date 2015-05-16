@@ -1,10 +1,19 @@
 package eastangliamapserver.stomp;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.security.auth.login.LoginException;
-import net.ser1.stomp.*;
+import net.ser1.stomp.Command;
+import net.ser1.stomp.Listener;
+import net.ser1.stomp.MessageReceiver;
+import net.ser1.stomp.Receiver;
+import net.ser1.stomp.Stomp;
 
 public class StompClient extends Stomp implements MessageReceiver
 {
@@ -13,7 +22,9 @@ public class StompClient extends Stomp implements MessageReceiver
     private InputStream  input;
     private Socket       socket;
 
-    private final String clientID;
+    private String clientID;
+
+    private static final List<String> ACK_LIST = new ArrayList<>();
 
     public StompClient(String server, int port, String login, String pass, String clientId) throws IOException, LoginException
     {
@@ -78,6 +89,9 @@ public class StompClient extends Stomp implements MessageReceiver
     {
         try
         {
+            if (id == null || id.isEmpty() || id.equals("null"))
+                throw new IllegalArgumentException("id cannot be null or empty");
+
             StringBuilder message = new StringBuilder("ACK\n");
 
             //message.append("subscription:").append(clientID).append("-").append(subscriptionID).append("\n"); // 1.0,1.1
@@ -88,6 +102,10 @@ public class StompClient extends Stomp implements MessageReceiver
             message.append("\000");
 
             output.write(message.toString().getBytes(Command.ENCODING));
+
+            while (ACK_LIST.size() >= 50)
+                ACK_LIST.remove(0);
+            ACK_LIST.add(id);
         }
         catch (IOException e)
         {

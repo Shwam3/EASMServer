@@ -46,9 +46,9 @@ public enum MessageType
     public static MessageType getType(String typeString)
     {
         for (MessageType type : values())
-            if (type.name.equals(typeString))
+            if (type.name.equalsIgnoreCase(typeString))
                 return type;
 
-        return null;
+        return UNKNOWN_MESSAGE;
     }
 }

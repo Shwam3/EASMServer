@@ -1,13 +1,26 @@
 package eastangliamapserver;
 
 import eastangliamapserver.gui.ListDialog;
+import eastangliamapserver.server.Client;
+import eastangliamapserver.server.Clients;
 import eastangliamapserver.stomp.StompConnectionHandler;
-import eastangliamapserver.stomp.handlers.RTPPMHandler;
 import java.awt.Desktop;
-import java.io.*;
-import java.net.*;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.MalformedURLException;
+import java.net.ServerSocket;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class CommandHandler
 {
@@ -88,15 +101,6 @@ public class CommandHandler
                 EastAngliaSignalMapServer.stop();
                 break;
 
-            /*case "admin":
-                if (args.length != 2 || args[1].equals("help"))
-                    printCommand("Usage: admin <client_name/client_address>", true);
-                else
-                {
-                    printCommand("Set client " + args[1] + " as an admin", false);
-                }
-                break;*/
-
             case "kick":
                 if (args.length != 2 || args[1].equals("help"))
                     printCommand("Usage: kick <all|client_name|client_address> [reason]", true);
@@ -135,6 +139,12 @@ public class CommandHandler
                     for (String client : Clients.getClientList())
                         printCommand("    " + client, false);
                 }
+                break;
+
+            case "data":
+                EastAngliaSignalMapServer.guiData.setVisible0(!EastAngliaSignalMapServer.guiData.isVisible());
+                if (EastAngliaSignalMapServer.guiData.isVisible())
+                    EastAngliaSignalMapServer.guiData.requestFocus();
                 break;
 
             case "interpose":
@@ -245,6 +255,31 @@ public class CommandHandler
                 }
                 break;
 
+            case "set":
+                if (args.length != 2 && args.length != 3)
+                    printCommand("Usage: set <address> [1|0]", true);
+                else if (args.length == 2)
+                {
+                    if (EastAngliaSignalMapServer.SClassMap.containsKey(args[1]))
+                        printCommand("Bit " + args[1] + " = " + EastAngliaSignalMapServer.SClassMap.get(args[1]), false);
+                    else
+                        printCommand("Unrecognised bit address \"" + args[1] + "\"", true);
+                }
+                else if (args.length == 3)
+                {
+                    if (!args[2].equals("0") && !args[2].equals("1"))
+                        printCommand("Invalid value \"" + args[2] + "\"", true);
+                    else if (args[1].length() == 6)
+                    {
+                        EastAngliaSignalMapServer.SClassMap.put(args[1].toUpperCase(), args[2]);
+                        StompConnectionHandler.scheduleForNextUpdate(args[1].toUpperCase(), args[2]);
+                        printCommand("Set bit " + args[1] + " to " + args[2], false);
+                    }
+                    else
+                        printCommand("Invalid bit address \"" + args[1].toUpperCase()+ "\"", true);
+                }
+                break;
+
             /*case "problem":
                 if (args.length != 3 || (!args[2].toLowerCase().equals("true") && !args[2].toLowerCase().equals("false")))
                     printCommand("Usage: problem <berth_id> <true|false>", true);
@@ -286,15 +321,24 @@ public class CommandHandler
 
             case "get":
                 if (args.length != 2)
-                    printCommand("Usage: get <berth_id>", true);
+                    printCommand("Usage: get <berth_id|bit_address>", true);
                 else
                 {
-                    Berth berth = Berths.getBerth(args[1].toUpperCase());
+                    String id = args[1].toUpperCase();
+                    Berth berth = Berths.getBerth(id);
 
                     if (berth != null)
-                        printCommand("Berth " + berth.getBerthDescription() + " contains " + (berth.getHeadcode().equals("") ? "no headcode" : "headcode " + berth.getHeadcode()), false);
+                    {
+                        String mapHC = EastAngliaSignalMapServer.CClassMap.get(id);
+                        printCommand("Berth " + id + " contains " + (mapHC == null || mapHC.isEmpty() ? "no headcode" : "headcode \"" + mapHC + "\"") + " (map)", false);
+                        printCommand("Berth " + berth.getBerthDescription() + " contains " + (berth.getHeadcode().isEmpty() ? "no headcode" : "headcode \"" + berth.getHeadcode() + "\"") + " (berth)", false);
+                    }
+                    else if (EastAngliaSignalMapServer.SClassMap.containsKey(id))
+                    {
+                        printCommand("Bit " + id + " is " + EastAngliaSignalMapServer.SClassMap.get(id), false);
+                    }
                     else
-                        printCommand("Unrecognised berth id '" + args[1].toUpperCase() + "'", true);
+                        printCommand("Unrecognised id '" + args[1].toUpperCase() + "'", true);
                 }
                 break;
 
@@ -345,6 +389,8 @@ public class CommandHandler
                 break;
 
             case "openlog":
+            case "openfile":
+            case "openlogfile":
                 try
                 {
                     Desktop.getDesktop().open(EastAngliaSignalMapServer.logFile);
@@ -354,6 +400,12 @@ public class CommandHandler
                     printCommand("Unable to open log file:", true);
                     EastAngliaSignalMapServer.printThrowable(e, "Command");
                 }
+                break;
+
+            case "openfolder":
+            case "openlogfolder":
+                try { Runtime.getRuntime().exec("explorer.exe /select," + EastAngliaSignalMapServer.logFile.getAbsolutePath()); }
+                catch (IOException e) {}
                 break;
 
             case "nameberth":
@@ -377,7 +429,7 @@ public class CommandHandler
                 }
                 break;
 
-            case "printmissing":
+            /*case "printmissing":
                 Berths.printIds();
                 break;
 
@@ -387,7 +439,7 @@ public class CommandHandler
                 for (String berthId : Berths.getKeySet())
                     StompConnectionHandler.printCClass(berthId, false);
 
-                break;
+                break;*/
 
             case "savemap":
             case "sm":
@@ -396,8 +448,8 @@ public class CommandHandler
 
             case "readmap":
             case "rm":
-                if (args.length == 2 && args[1].toLowerCase().equals("force"))
-                    EastAngliaSignalMapServer.readSavedMap(true);
+                if (args.length == 2 && (args[1].toLowerCase().equals("force") || args[1].toLowerCase().equals("f")))
+                    new Thread(() -> { EastAngliaSignalMapServer.readSavedMap(true); }).start();
                 else
                     EastAngliaSignalMapServer.readSavedMap(false);
 
@@ -405,7 +457,7 @@ public class CommandHandler
 
             case "server":
                 if (args.length != 2 && args.length != 1)
-                    printCommand("Usage: server [open|close]", true);
+                    printCommand("Usage: server [open|close|restart]", true);
                 else if (args.length == 1)
                 {
                     printCommand("Server " + (EastAngliaSignalMapServer.server.isClosed() ? "closed" : "open"), false);
@@ -415,27 +467,27 @@ public class CommandHandler
                     if (EastAngliaSignalMapServer.server != null && !EastAngliaSignalMapServer.server.isClosed())
                         printCommand("Server already open", false);
                     else
-                        try
-                        {
-                            EastAngliaSignalMapServer.server = new ServerSocket(EastAngliaSignalMapServer.port, 2);
-                        }
+                    {
+                        EastAngliaSignalMapServer.serverOffline = false;
+                        try { EastAngliaSignalMapServer.server = new ServerSocket(EastAngliaSignalMapServer.port, 2); }
                         catch (IOException e) { printCommand("Unable to open server:", true); EastAngliaSignalMapServer.printThrowable(e, "Command"); }
+                    }
                 else if (args[1].toLowerCase().equals("close"))
                     if (EastAngliaSignalMapServer.server != null && !EastAngliaSignalMapServer.server.isClosed())
-                        try
-                        {
-                            EastAngliaSignalMapServer.server.close();
-                        }
+                    {
+                        EastAngliaSignalMapServer.serverOffline = true;
+                        try { EastAngliaSignalMapServer.server.close(); }
                         catch (IOException e) { printCommand("Unable to close server:", true); EastAngliaSignalMapServer.printThrowable(e, "Command"); }
+                    }
                     else
                         printCommand("Server already closed", false);
                 else if (args[1].toLowerCase().equals("restart"))
                     try
                     {
-                        if (!EastAngliaSignalMapServer.server.isClosed())
-                            EastAngliaSignalMapServer.server.close();
+                        Clients.kickAll("Server restarting");
+                        EastAngliaSignalMapServer.server.close();
 
-                        EastAngliaSignalMapServer.server = new ServerSocket(EastAngliaSignalMapServer.port, 2);
+                        EastAngliaSignalMapServer.server = new ServerSocket(EastAngliaSignalMapServer.port);
 
                         printCommand("Server restarted", false);
                     }
@@ -455,6 +507,8 @@ public class CommandHandler
                             + (StompConnectionHandler.isTimedOut() ? "timed out " : "")
                             + (!StompConnectionHandler.isClosed() && StompConnectionHandler.isConnected() && !StompConnectionHandler.isTimedOut() ? "normal" : ""), false);
                 else if (args[1].toLowerCase().equals("start"))
+                {
+                    EastAngliaSignalMapServer.stompOffline = false;
                     if (StompConnectionHandler.isConnected() && !StompConnectionHandler.isClosed())
                         printCommand("Stomp already started", false);
                     else
@@ -466,22 +520,39 @@ public class CommandHandler
                         else
                             printCommand("Unable to restart stomp", true);
                     }
+                }
                 else if (args[1].toLowerCase().equals("stop"))
+                {
+                    EastAngliaSignalMapServer.stompOffline = true;
                     if (StompConnectionHandler.isConnected() && !StompConnectionHandler.isClosed())
                         StompConnectionHandler.disconnect();
                     else
                         printCommand("Stomp already stopped", false);
-
+                }
                 break;
 
             case "pack":
-                EastAngliaSignalMapServer.gui.frame.pack();
-                EastAngliaSignalMapServer.gui.frame.setLocationRelativeTo(null);
+                EastAngliaSignalMapServer.guiServer.frame.pack();
+                EastAngliaSignalMapServer.guiServer.frame.setLocationRelativeTo(null);
                 break;
 
             case "client_history":
             case "clhist":
                 new ListDialog("Client history", "History of client stuffs", Clients.clientsHistory);
+                break;
+
+            case "train_history":
+            case "trhist":
+                if (args.length != 2)
+                    printCommand("Usage: trhist <train UUID>", true);
+                else
+                {
+                    Map<String, Object> train = Berths.getTrain(args[1]);
+                    if (train == null)
+                        printCommand("Train doesn't exist", false);
+                    else
+                        new ListDialog("Train History", "History of train \"" + args[1] + "\" (" + train.get("headcode") + ")", (List<String>) train.get("history"));
+                }
                 break;
 
             case "motd":
@@ -496,19 +567,20 @@ public class CommandHandler
 
                     if (berth != null)
                     {
-                        String motd = "";//new SimpleDateFormat("dd/MM HH:mm:ss:").format(new Date());
+                        String motd = "";
                         for (int i = 1; i < args.length; i++)
                             motd += (motd.length() > 0 ? " " : "") + args[i];
 
-                        motd = motd.replaceAll("%date%", new SimpleDateFormat("dd/MM").format(new Date()));
-                        motd = motd.replaceAll("%time%", new SimpleDateFormat("HH:mm:ss").format(new Date()));
+                        motd = motd.replaceAll("%date%", EastAngliaSignalMapServer.sdfDate.format(new Date()));
+                        motd = motd.replaceAll("%time%", EastAngliaSignalMapServer.sdfTime.format(new Date()));
+                        motd = motd.trim();
 
-                        berth.interpose(new Train(motd.trim(), berth));
+                        berth.interpose(new Train(motd, berth));
 
                         Map<String, String> motdMap = new HashMap<>();
-                        motdMap.put("XXMOTD", motd.trim());
+                        motdMap.put("XXMOTD", motd);
                         Clients.broadcastUpdate(motdMap);
-                        EastAngliaSignalMapServer.CClassMap.putAll(motdMap);
+                        EastAngliaSignalMapServer.CClassMap.put("XXMOTD", motd);
 
                         try
                         {
@@ -527,7 +599,7 @@ public class CommandHandler
 
                         printCommand("MOTD (literal): \"" + motd + "\"", false);
 
-                        EastAngliaSignalMapServer.updateServerGUI();
+                        EastAngliaSignalMapServer.updateServerGUIs();
                     }
                 }
                 break;
@@ -538,21 +610,22 @@ public class CommandHandler
                 for (Map.Entry<String, Berth> pairs : Berths.getEntrySet())
                 {
                     if (EastAngliaSignalMapServer.CClassMap.containsKey(pairs.getKey()) && !EastAngliaSignalMapServer.CClassMap.get(pairs.getKey()).equals(pairs.getValue().getHeadcode()))
+                    {
                         changes += pairs.getValue().getBerthDescription() + ": " + EastAngliaSignalMapServer.CClassMap.get(pairs.getKey()) + " -> " + pairs.getValue().getHeadcode() + ", ";
+                        StompConnectionHandler.scheduleForNextUpdate(pairs.getKey(), pairs.getValue().getHeadcode());
+                    }
 
                     EastAngliaSignalMapServer.CClassMap.put(pairs.getKey(), pairs.getValue().getHeadcode());
                 }
 
                 EastAngliaSignalMapServer.CClassMap = new HashMap<>(EastAngliaSignalMapServer.CClassMap);
 
-                Clients.sendAll();
-
                 printCommand("Synced map with berths (" + (!changes.isEmpty() ? changes.substring(0, changes.length() - 2) : "no changes") + ")", false);
 
                 System.gc();
                 break;
 
-            case "addresses":
+            /*case "addresses":
                 if (args.length != 2)
                     printCommand("Usage: addresses <berth_id>", true);
                 else
@@ -566,34 +639,35 @@ public class CommandHandler
                         for (Map.Entry<String, Map<String, String>> pairs : map.entrySet())
                             possibleAddresses.add(pairs.getValue().get("occurences") + ": " + pairs.getKey() + " " + (pairs.getValue().containsKey("old_data") ? pairs.getValue().get("old_data") : "--") + " --> " +  pairs.getValue().get("data") + " (" + (pairs.getValue().containsKey("bit_change") ? pairs.getValue().get("bit_change") : "-") + ")");
 
-                        Collections.sort(possibleAddresses, new Comparator<String>()
+                        Collections.sort(possibleAddresses, (String s1, String s2) ->
                         {
-                            @Override public int compare(String s1, String s2)
+                            try
                             {
-                                try
-                                {
-                                    String num1 = s1.substring(0, s1.indexOf(":")).trim();
-                                    String num2 = s2.substring(0, s2.indexOf(":")).trim();
-                                    return Integer.valueOf(num2) - Integer.valueOf(num1);
-                                }
-                                catch (NumberFormatException e) { return 0; }
+                                String num1 = s1.substring(0, s1.indexOf(":")).trim();
+                                String num2 = s2.substring(0, s2.indexOf(":")).trim();
+                                return Integer.valueOf(num2) - Integer.valueOf(num1);
                             }
+                            catch (NumberFormatException e) { return 0; }
                         });
                         new ListDialog("S-Class data", "S-Class data for " + berth.getBerthDescription(), possibleAddresses);
                     }
                     else
                         printCommand("Unrecognised berth id \"" + args[1].toUpperCase() + "\"", true);
                 }
-                break;
+                break;*/
 
             case "updateip":
                 EastAngliaSignalMapServer.updateIP();
                 break;
 
-            case "updateppm":
+            case "incrementid":
+                StompConnectionHandler.incrementConnectionId();
+                break;
+
+            /*case "updateppm":
             case "updatertppm":
                 RTPPMHandler.uploadHTML();
-                break;
+                break;*/
 
             case "setmaxtimeout":
                 if (args.length == 1 || args.length == 2)
@@ -611,6 +685,14 @@ public class CommandHandler
                 }
                 else
                     printCommand("Usage: setmaxtimeout <seconds>", false);
+                break;
+
+            case "reset":
+                EastAngliaSignalMapServer.CClassMap.clear();
+                EastAngliaSignalMapServer.SClassMap.clear();
+                for (Map.Entry<String, Berth> pairs : Berths.getEntrySet())
+                    pairs.getValue().cancel("", "");
+                Berths.purgeHistories();
                 break;
 
             case "gc":

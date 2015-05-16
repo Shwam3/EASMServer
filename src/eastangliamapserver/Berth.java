@@ -1,11 +1,13 @@
 package eastangliamapserver;
 
 import eastangliamapserver.stomp.StompConnectionHandler;
-import java.io.Serializable;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public class Berth implements Serializable
+public class Berth
 {
     private final String  BERTH_ID;
     private final String  BERTH_DESCRIPTION;
@@ -15,10 +17,10 @@ public class Berth implements Serializable
   //public        int     isMonitoring   = 0;
     private       Train   suggestedTrain = null;
 
-    private final Map<String, Map<String, String>> possibleAddresses = new HashMap<>();
+    //private final Map<String, Map<String, String>> possibleAddresses = new HashMap<>();
     private final List<Berth>                   adjacentBerths = new ArrayList<>();
     private       List<String>                  trainHistory   = new ArrayList<>();
-    private final List<Map<String, String>> stepToBerths   = new ArrayList<>();
+    private final List<Map<String, String>>     stepToBerths   = new ArrayList<>();
 
     public Berth(String berthId)
     {
@@ -44,8 +46,8 @@ public class Berth implements Serializable
 
     public void interpose(Train newTrain)
     {
-        EastAngliaSignalMapServer.CClassMap.put(getId(), getHeadcode());
-        
+        EastAngliaSignalMapServer.CClassMap.put(getId(), newTrain.getHeadcode());
+
         if (newTrain.getHeadcode().equals(""))
             return;
 
@@ -74,11 +76,10 @@ public class Berth implements Serializable
 
         currentTrain = newTrain;
 
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM HH:mm:ss");
 
         if (currentTrain != null && !currentTrain.getHeadcode().equals("") && (trainHistory.isEmpty() || !trainHistory.get(0).contains(currentTrain.getHeadcode())))
         {
-            trainHistory.add(0, String.format("%s: %s (%s)", sdf.format(new Date()), currentTrain.getHeadcode(), currentTrain.UUID));
+            trainHistory.add(0, String.format("%s: %s (%s)", EastAngliaSignalMapServer.sdfDateTimeShort.format(new Date()), currentTrain.getHeadcode(), currentTrain.UUID));
             currentTrain.setBerth(this);
         }
 
@@ -124,9 +125,9 @@ public class Berth implements Serializable
     {
         List<String> stepToBerthList = new ArrayList<>();
 
-        for (Map<String, String> hm : stepToBerths)
-            if (hm.get("realToBerthId").equals(toBerthId) && hm.get("fromBerthId").equals(fromBerthId))
-                stepToBerthList.add(hm.get("fakeToBerthId"));
+        stepToBerths.stream()
+                .filter((hm) -> (hm.get("realToBerthId").equals(toBerthId) && hm.get("fromBerthId").equals(fromBerthId)))
+                .forEach((hm) -> stepToBerthList.add(hm.get("fakeToBerthId")));
 
         return stepToBerthList;
     }
@@ -147,11 +148,9 @@ public class Berth implements Serializable
 
     public boolean canStepToBerth(String realToBerthId, String fromBerthId)
     {
-        for (Map<String, String> hm : stepToBerths)
-            if (hm.get("fromBerthId").equals(fromBerthId) && hm.get("realToBerthId").equals(realToBerthId))
-                return true;
-
-        return false;
+        return stepToBerths.stream()
+                .anyMatch((hm) -> (hm.get("fromBerthId").equals(fromBerthId) &&
+                        hm.get("realToBerthId").equals(realToBerthId)));
     }
 
     public boolean hasStepToEvent()
@@ -172,11 +171,12 @@ public class Berth implements Serializable
                 suggestedTrain = null;
                 currentTrain = train;
 
+                EastAngliaSignalMapServer.CClassMap.put(getId(), train.getHeadcode());
+                StompConnectionHandler.scheduleForNextUpdate(getId(), train.getHeadcode());
+
                 if (trainHistory.isEmpty() || !trainHistory.get(0).contains(currentTrain.getHeadcode()))
-                {
-                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM HH:mm:ss");
-                    trainHistory.add(0, String.format("%s: %s (%s)", sdf.format(new Date()), currentTrain.getHeadcode(), currentTrain.UUID));
-                }
+                    trainHistory.add(0, String.format("%s: %s (%s)", EastAngliaSignalMapServer.sdfDateTimeShort.format(new Date()), currentTrain.getHeadcode(), currentTrain.UUID));
+
                 currentTrain.setBerth(this);
             }
             else
@@ -222,9 +222,9 @@ public class Berth implements Serializable
     {
         List<Train> trainList = new ArrayList<>();
 
-        for (Berth berth : getAdjacentBerths())
-            if (berth.hasTrain())
-                trainList.add(berth.getTrain());
+        getAdjacentBerths().stream()
+                .filter((berth) -> (berth.hasTrain()))
+                .forEach((berth) -> trainList.add(berth.getTrain()));
 
         return trainList;
     }
@@ -270,10 +270,10 @@ public class Berth implements Serializable
         return currentTrain.getTrainsHistory();
     }
 
-    public Map<String, Map<String, String>> getPossibleAddreses()
+    /*public Map<String, Map<String, String>> getPossibleAddreses()
     {
         return possibleAddresses;
-    }
+    }*/
 
     public void clean()
     {

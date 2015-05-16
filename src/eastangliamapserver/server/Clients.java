@@ -1,8 +1,12 @@
-package eastangliamapserver;
+package eastangliamapserver.server;
 
+import eastangliamapserver.EastAngliaSignalMapServer;
 import java.net.Socket;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import javax.swing.JOptionPane;
 
 public class Clients
@@ -15,7 +19,7 @@ public class Clients
         if (hasSpace())
         {
             clients.add(client);
-            EastAngliaSignalMapServer.updateServerGUI();
+            EastAngliaSignalMapServer.updateServerGUIs();
         }
         else
             client.disconnect("Server full");
@@ -27,8 +31,7 @@ public class Clients
 
         try
         {
-            for (Client client : clients)
-                clientList.add(client.name + " (" + client.address + ":" + client.port + ")" + client.getErrorString());
+            clients.stream().forEach((client) -> clientList.add(client.getName() + " (" + client.getSocket().getInetAddress().getHostAddress()+ ":" + client.getSocket().getPort() + ")" + client.getErrorString()) );
         }
         catch (Exception e) {}
 
@@ -39,39 +42,34 @@ public class Clients
     public static void kickAll(String reason)
     {
         if (reason == null)
-            reason = JOptionPane.showInputDialog(EastAngliaSignalMapServer.gui.frame, "Add a message to kickAll:");
+            reason = JOptionPane.showInputDialog(EastAngliaSignalMapServer.guiServer.frame, "Add a message to kickAll:");
 
         if (reason != null && !reason.equals(""))
             reason = "You have been kicked: " + reason;
         else
             reason = "You have been kicked";
 
-        for (Client client : clients)
-            client.disconnect(reason);
+        final String finReason = reason;
+        clients.parallelStream().forEach((client) -> client.disconnect(finReason));
 
         addClientLog("Kicked all clients (" + reason + ")");
     }
 
     public static boolean hasClient(Socket clientSocket)
     {
-        for (Client client : clients)
-            if (client.getSocket() == clientSocket)
-                return true;
-
-        return false;
+        return clients.stream().anyMatch((client) -> clientSocket.equals(client.getSocket()));
     }
 
     public static void broadcastUpdate(Map<String, String> update)
     {
         if (!EastAngliaSignalMapServer.stop)
-            for (Client client : clients)
-                client.sendUpdate(update);
+            clients.parallelStream().forEach((client) -> client.sendUpdate(update));
     }
 
     public static void sendAll()
     {
-        for (Client client : clients)
-            client.sendAll();
+        if (!EastAngliaSignalMapServer.stop)
+            clients.parallelStream().forEach((client) -> client.sendAll());
     }
 
     public static void remove(Client client)
@@ -81,45 +79,39 @@ public class Clients
             try { clients.remove(client); }
             catch (Exception e) {}
 
-            EastAngliaSignalMapServer.updateServerGUI();
+            EastAngliaSignalMapServer.updateServerGUIs();
         }
     }
 
     public static void closeAll()
     {
-        for (Client client : clients)
+        clients.parallelStream().forEach((client) ->
         {
             client.printClient("Closing connection", false);
-
             client.disconnect("Server closed");
-        }
+        });
 
         addClientLog("Closed all clients");
     }
 
     public static Client getClient(String name)
     {
-        for (Client client : clients)
-            if (client.name.equals(name) || client.name.substring(0, client.name.length() - 6).equals(name) || client.name.substring(0, client.name.length() - 9).equals(name) || name.equals(client.address + ":" + client.port))
-                return client;
-
-        return null;
+        return clients.stream()
+                .filter((client) -> client.getName().equals(name) ||
+                        client.getName().substring(0, client.getName().length() - 6).equals(name) ||
+                        client.getName().substring(0, client.getName().length() - 9).equals(name) ||
+                        name.equals(client.getSocket().getInetAddress().getHostAddress() + ":" + client.getSocket().getPort()))
+                .findFirst().orElse(null);
     }
 
     public static boolean hasMultiple(String name)
     {
-        int clientsByName = 0;
-
-        for (Client client : clients)
-            if (client.name.equals(name))
-                clientsByName++;
-
-        return clientsByName > 1;
+        return clients.stream().filter((client) -> client.getName().equals(name)).count() > 1L;
     }
 
     public static void addClientLog(String message)
     {
-        clientsHistory.add(0, new SimpleDateFormat("[dd/MM HH:mm] ").format(new Date()) + message);
+        clientsHistory.add(0, "[" + EastAngliaSignalMapServer.sdfDateTimeShort.format(new Date()) + "] " + message);
     }
 
     public static boolean hasSpace()

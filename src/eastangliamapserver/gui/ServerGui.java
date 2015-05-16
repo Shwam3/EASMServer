@@ -1,21 +1,47 @@
 package eastangliamapserver.gui;
 
-import eastangliamapserver.*;
+import eastangliamapserver.Berth;
+import eastangliamapserver.Berths;
+import eastangliamapserver.CommandHandler;
+import eastangliamapserver.CustomOutStream;
+import eastangliamapserver.EastAngliaSignalMapServer;
+import eastangliamapserver.server.Clients;
 import eastangliamapserver.stomp.StompConnectionHandler;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.SystemTray;
 import java.awt.Toolkit;
-import java.awt.event.*;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import javax.swing.*;
+import java.lang.management.MemoryMXBean;
+import java.lang.management.RuntimeMXBean;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.WindowConstants;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 
@@ -23,10 +49,10 @@ public class ServerGui
 {
     public final JFrame frame;
 
-    private final DefaultListModel<String> clientListModel;
-    private final JList<String>            dataList;
-    private final JTextArea                logTextArea;
-    private final JTextField               commandInput;
+    private final JList<String> clientList;
+    //private final JList<String> dataList;
+    private final JTextArea     logTextArea;
+    private final JTextField    commandInput;
 
     public final Object logLock = new Object();
 
@@ -54,11 +80,14 @@ public class ServerGui
             @Override
             public void windowClosing(WindowEvent evt)
             {
-                EastAngliaSignalMapServer.stop();
+                if (SystemTray.isSupported())
+                    frame.setVisible(false);
+                else if (JOptionPane.showConfirmDialog(frame, "Are you sure you wish to close?", "Shutting down", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION)
+                    EastAngliaSignalMapServer.stop();
             }
         });
 
-        JPanel logPanel = new JPanel(new BorderLayout());
+        JPanel logPanel = new JPanel(new BorderLayout(3, 3));
         logPanel.setBorder(new TitledBorder(new EtchedBorder(), "Server Log & Commands"));
         logPanel.setPreferredSize(new Dimension(854, 241));
 
@@ -66,38 +95,20 @@ public class ServerGui
         logTextArea.setEditable(false);
         logTextArea.setLineWrap(false);
 
-        try
-        {
-            FileInputStream in = new FileInputStream(EastAngliaSignalMapServer.logFile);
-
-            String file = "";
-            int read;
-
-            while ((read = in.read()) != -1)
-            {
-                file += (char) read;
-            }
-
-            logTextArea.setText(logTextArea.getText() + file);
-        }
-        catch (FileNotFoundException e) {}
-        catch (IOException e) {}
-
         setLogStuff();
 
         logPanel.add(new JScrollPane(logTextArea), BorderLayout.CENTER);
 
         commandInput = new JTextField();
-        commandInput.addActionListener(new ActionListener()
+        commandInput.addActionListener((ActionEvent evt) ->
         {
-            @Override
-            public void actionPerformed(ActionEvent evt)
-            {
-                commandInput.setText("");
-                logTextArea.setCaretPosition(logTextArea.getDocument().getLength());
+            commandInput.setText("");
+            logTextArea.setCaretPosition(logTextArea.getDocument().getLength());
 
-                if (!evt.getActionCommand().trim().isEmpty())
-                    CommandHandler.handle(evt.getActionCommand().split(" ")[0], evt.getActionCommand().split(" "));
+            if (!evt.getActionCommand().trim().isEmpty())
+            {
+                String[] command = evt.getActionCommand().split(" ");
+                CommandHandler.handle(command[0], command);
             }
         });
         logPanel.add(commandInput, BorderLayout.SOUTH);
@@ -105,9 +116,7 @@ public class ServerGui
         JPanel monitorPanel = new JPanel(new BorderLayout());
         monitorPanel.setPreferredSize(new Dimension(854, 241));
 
-        clientListModel = new DefaultListModel<>();
-        JList<String> clientList = new JList<>(clientListModel);
-
+        clientList = new JList<>(new DefaultListModel<>());
         clientList.addMouseListener(new MouseAdapter()
         {
             @Override
@@ -122,122 +131,158 @@ public class ServerGui
 
         clientList.setFont(new Font("Monospaced", 0, 12));
 
-        JScrollPane clientScrollPane = new JScrollPane(clientList);
+        JScrollPane jspClients = new JScrollPane(clientList);
+        jspClients.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        jspClients.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        JPanel pnlClients = new JPanel(new BorderLayout());
+        pnlClients.add(jspClients);
+        pnlClients.setBorder(new TitledBorder(new EtchedBorder(), "Clients"));
 
-        clientScrollPane.setVerticalScrollBarPolicy(22);
-        clientScrollPane.setHorizontalScrollBarPolicy(30);
-        clientScrollPane.setBorder(new TitledBorder(new EtchedBorder(), "Clients"));
-
-        monitorPanel.add(clientScrollPane, BorderLayout.WEST);
+        monitorPanel.add(pnlClients, BorderLayout.WEST);
         updateClientList();
 
-        dataList = new JList<>();
-        dataList.setSelectionMode(0);
-        dataList.setFont(new Font("Monospaced", 0, 12));
-        JScrollPane dataScrollPane = new JScrollPane(dataList);
-        dataScrollPane.setVerticalScrollBarPolicy(22);
-        dataScrollPane.setHorizontalScrollBarPolicy(30);
-        dataScrollPane.setBorder(new TitledBorder(new EtchedBorder(), "Data"));
-        monitorPanel.add(dataScrollPane, BorderLayout.CENTER);
-        updateDataList();
+        JPanel dataPanel = new JPanel();
+        dataPanel.setLayout(new FlowLayout());
+        dataPanel.setOpaque(true);
+        dataPanel.setBackground(Color.WHITE);
 
-        new Timer(250, new ActionListener()
+        //dataList = new JList<>();
+        //dataList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        //dataList.setFont(new Font("Monospaced", 0, 12));
+        //JScrollPane dataScrollPane = new JScrollPane(dataList);
+        //dataScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        //dataScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        //dataPanel.add(dataScrollPane, BorderLayout.CENTER);
+
+        JLabel clockLabel = new JLabel(EastAngliaSignalMapServer.sdfTime.format(new Date()));
+        clockLabel.setFont(new Font(Font.MONOSPACED, Font.TRUETYPE_FONT, 22));
+        clockLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        clockLabel.setPreferredSize(new Dimension(500, 27));
+        dataPanel.add(clockLabel);
+        JLabel statsLabel = new JLabel("<html><pre>Last Message: <br>Uptime: <br>   CPU:<br>   RAM:</pre></html>");
+        statsLabel.setFont(new Font(Font.MONOSPACED, Font.TRUETYPE_FONT, 12));
+        statsLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        statsLabel.setPreferredSize(new Dimension(500, 65));
+        dataPanel.add(statsLabel);
+        JLabel motdLabel = new JLabel("MOTD: \"\"");
+        motdLabel.setFont(new Font(Font.MONOSPACED, Font.TRUETYPE_FONT, 12));
+        motdLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        motdLabel.setVerticalAlignment(SwingConstants.TOP);
+        motdLabel.setPreferredSize(new Dimension(500, 30));
+        dataPanel.add(motdLabel);
+        JButton dataGuiButton = new JButton("Data Viewer...");
+        dataGuiButton.addActionListener((ActionEvent evt) -> { EastAngliaSignalMapServer.guiData.setVisible0(true); });
+        dataPanel.add(dataGuiButton);
+        dataPanel.setBorder(new TitledBorder(new EtchedBorder(), "Status"));
+        monitorPanel.add(dataPanel, BorderLayout.CENTER);
+
+        final RuntimeMXBean rtMxBean = ManagementFactory.getRuntimeMXBean();
+        final com.sun.management.OperatingSystemMXBean osMxBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+        final int numProcessors = osMxBean.getAvailableProcessors();
+        final AtomicLong lastUptime = new AtomicLong(rtMxBean.getUptime());
+        final AtomicLong lastProcessCpuTime = new AtomicLong(osMxBean.getProcessCpuTime());
+
+        ActionListener listenerTimer = (ActionEvent evt) ->
         {
-            @Override
-            public void actionPerformed(ActionEvent evt)
+            try
             {
-                try
+                clockLabel.setText(EastAngliaSignalMapServer.sdfTime.format(new Date()));
+
+                Berth motdBerth = Berths.getBerth("XXMOTD");
+                if (motdBerth != null)
+                    motdLabel.setText("MOTD: \"" + motdBerth.getHeadcode().trim() + "\"");
+                else
                 {
-                    DefaultListModel<String> model = (DefaultListModel<String>) dataList.getModel();
-
-                    long time = System.currentTimeMillis() - StompConnectionHandler.lastMessageTime;
-                    model.setElementAt("Current Time:  " + EastAngliaSignalMapServer.sdf.format(new Date()), 0);
-                    model.setElementAt(String.format("Last Message:  %s (%02d:%02d:%02d)",
-                                EastAngliaSignalMapServer.sdf.format(new Date(StompConnectionHandler.lastMessageTime)),
-                                (time / (3600000)) % 24,
-                                (time / (60000)) % 60,
-                                (time / 1000) % 60)
-                            + (!StompConnectionHandler.isConnected() ? " - disconnected" : "")
-                            + (StompConnectionHandler.isClosed()? " - closed" : "")
-                            + (StompConnectionHandler.isTimedOut() ? " - timed out" : ""), 1);
-
-                    time = System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime();
-                    model.setElementAt(String.format("Server Uptime: %02dd %02dh %02dm %02ds (%s)",
-                                (time / (86400000)),
-                                (time / (3600000)) % 24,
-                                (time / (60000)) % 60,
-                                (time / 1000) % 60,
-                                new SimpleDateFormat("dd/MM HH:mm:ss").format(ManagementFactory.getRuntimeMXBean().getStartTime()))
-                            + (EastAngliaSignalMapServer.server == null || EastAngliaSignalMapServer.server.isClosed() ? " - closed" : ""), 2);
-
-                    model.setElementAt(String.format("Memory use:    %.3fmb (f %sb, t %sb, m %sb)", (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576f, Runtime.getRuntime().freeMemory(), Runtime.getRuntime().totalMemory(), Runtime.getRuntime().maxMemory()), 3);
-
-                    dataList.setModel(model);
+                    motdLabel.setText("MOTD: \"\"");
                 }
-                catch (Exception e) {}
+
+                String stats = "<html><pre>";
+                long timeLastMessage = System.currentTimeMillis() - StompConnectionHandler.lastMessageTime;
+                stats += (String.format("Last Message: %s (%02d:%02d:%02d)",
+                        EastAngliaSignalMapServer.sdfTime.format(new Date(StompConnectionHandler.lastMessageTime)),
+                        (timeLastMessage / (3600000)) % 24,
+                        (timeLastMessage / (60000)) % 60,
+                        (timeLastMessage / 1000) % 60)
+                        + (EastAngliaSignalMapServer.stompOffline   ? " - offline" :
+                            ((!StompConnectionHandler.isConnected() ? " - disconnected" : "")
+                            + (StompConnectionHandler.isClosed()    ? " - closed" : "")
+                            + (StompConnectionHandler.isTimedOut()  ? " - timed out" : ""))));
+                stats += "<br>";
+
+                long uptime = ManagementFactory.getRuntimeMXBean().getUptime();
+                stats += (String.format("Uptime: %02dd %02dh %02dm %02ds (%s)",
+                        (uptime / (86400000)),
+                        (uptime / (3600000)) % 24,
+                        (uptime / (60000)) % 60,
+                        (uptime / 1000) % 60,
+                        EastAngliaSignalMapServer.sdfDateTimeShort.format(ManagementFactory.getRuntimeMXBean().getStartTime()))
+                        + (EastAngliaSignalMapServer.serverOffline ? " - offline" : (EastAngliaSignalMapServer.server != null && EastAngliaSignalMapServer.server.isClosed() ? " - closed" : "")));
+                stats += "<br>";
+
+                long processCpuTime = osMxBean.getProcessCpuTime();
+                if (lastUptime.get() > 0L && uptime > lastUptime.get())
+                {
+                    long elapsedCpu = processCpuTime - lastProcessCpuTime.get();
+                    long elapsedTime = uptime - lastUptime.get();
+                    stats += (String.format("   CPU: %.2f%%", elapsedCpu / (elapsedTime * 10000F * numProcessors)));
+                }
+                else
+                    stats += "   CPU: ?.??%";
+                stats += "<br>";
+
+                lastUptime.set(uptime);
+                lastProcessCpuTime.set(processCpuTime);
+                MemoryMXBean mmxb = ManagementFactory.getMemoryMXBean();
+                long nonHeap = mmxb.getNonHeapMemoryUsage().getUsed();
+                long heap    = mmxb.getHeapMemoryUsage().getUsed();
+                stats += (String.format("   RAM: %.2fMiB (heap: %.2fMiB, non-heap: %.2fMiB)", (heap + nonHeap) / 1048576f, heap / 1048576f, nonHeap / 1048576f));
+                stats += "<br></pre></html>";
+
+                statsLabel.setText(stats);
+
             }
-        }).start();
+            catch (Exception e) { e.printStackTrace(); }
+
+            if (EastAngliaSignalMapServer.guiData != null)
+                EastAngliaSignalMapServer.guiData.updateData();
+        };
+        // Do an initial update
+        listenerTimer.actionPerformed(null);
+        new Timer(250, listenerTimer).start();
 
         frame.add(monitorPanel, BorderLayout.CENTER);
         frame.add(logPanel,     BorderLayout.SOUTH);
-        frame.setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/eastangliamapserver/resources/Icon.png")));
 
         frame.pack();
         frame.setLocationRelativeTo(null);
+
+        frame.setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/eastangliamapserver/resources/Icon.png")));
 
         frame.setVisible(true);
     }
 
     public void updateClientList()
     {
-        clientListModel.clear();
-
-        for (String client : Clients.getClientList())
-            clientListModel.addElement(client);
+        DefaultListModel<String> model = new DefaultListModel<>();
+        List<String> clientNames = Clients.getClientList();
+        Collections.sort(clientNames, String.CASE_INSENSITIVE_ORDER);
+        clientNames.stream().forEachOrdered((client) -> model.addElement(client));
+        clientList.setModel(model);
     }
 
-    public void updateDataList()
+    /*public void updateDataList()
     {
         int listSelection = dataList.getSelectedIndex();
 
-        DefaultListModel<String> listModel = new DefaultListModel<>();
-
-        //<editor-fold defaultstate="collapsed" desc="S-Class">
-        /*dataL.add("bit#87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321 87654321");
-        dataL.add("        0        1        2        3        4        5        6        7        8        9        A        B        C        D        E        F");
-
-        Map<String, Map<String, Integer>> SClassMap2 = new HashMap<>(EastAngliaSignalMapServer.SClassMap);
-        for (String key : sortedKeys)
-        {
-            StringBuilder sb = new StringBuilder(key);
-            sb.append(" ");
-
-            Map<String, Integer> SClassRow = SClassMap2.get(key);
-            List<String> sortedKeys2 = new ArrayList<>(SClassRow.keySet());
-            Collections.sort(sortedKeys2);
-
-            for (int i = 0; i < 16; i++)
-            {
-                if (SClassRow.containsKey(Integer.toHexString(i).toUpperCase()))
-                {
-                    String data = Integer.toBinaryString(SClassRow.get(Integer.toHexString(i).toUpperCase()));
-                    sb.append("00000000".substring(data.length())).append(data).append(" ");
-                }
-                else
-                    sb.append("         ");
-            }
-
-            dataL.add(sb.toString());
-        }*/
-        //</editor-fold>
+        List<String> newData = new ArrayList<>();
 
         String[] sortedKeys = EastAngliaSignalMapServer.SClassMap.keySet().toArray(new String[0]);
         Arrays.sort(sortedKeys);
 
         long time = System.currentTimeMillis() - StompConnectionHandler.lastMessageTime;
-        listModel.addElement("Current Time:  " + EastAngliaSignalMapServer.sdf.format(new Date()));
-        listModel.addElement(String.format("Last Message:  %s (%02d:%02d:%02d)",
-                        EastAngliaSignalMapServer.sdf.format(new Date(StompConnectionHandler.lastMessageTime)),
+        newData.add("Current Time:  " + EastAngliaSignalMapServer.sdfTime.format(new Date()));
+        newData.add(String.format("Last Message:  %s (%02d:%02d:%02d)",
+                        EastAngliaSignalMapServer.sdfTime.format(new Date(StompConnectionHandler.lastMessageTime)),
                         (time / (3600000)) % 24,
                         (time / (60000)) % 60,
                         (time / 1000) % 60)
@@ -245,36 +290,42 @@ public class ServerGui
                     + (StompConnectionHandler.isClosed()? " - closed" : "")
                     + (StompConnectionHandler.isTimedOut() ? " - timed out" : ""));
         time = System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime();
-        listModel.addElement(String.format("Server Uptime: %02dd %02dh %02dm %02ds (%s)",
+        newData.add(String.format("Server Uptime: %02dd %02dh %02dm %02ds (%s)",
                         (time / (86400000)),
                         (time / (3600000)) % 24,
                         (time / (60000)) % 60,
                         (time / 1000) % 60,
-                        new SimpleDateFormat("dd/MM HH:mm:ss").format(ManagementFactory.getRuntimeMXBean().getStartTime()))
+                        EastAngliaSignalMapServer.sdfDateTimeShort.format(ManagementFactory.getRuntimeMXBean().getStartTime()))
                     + (EastAngliaSignalMapServer.server == null || EastAngliaSignalMapServer.server.isClosed() ? " - closed" : ""));
-        listModel.addElement(String.format("Memory use:    %.3fmb (f %sb, t %sb, m %sb)", (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576f, Runtime.getRuntime().freeMemory(), Runtime.getRuntime().totalMemory(), Runtime.getRuntime().maxMemory()));
+        newData.add(String.format("Memory use:    %.3fmb (f %sb, t %sb, m %sb)", (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576f, Runtime.getRuntime().freeMemory(), Runtime.getRuntime().totalMemory(), Runtime.getRuntime().maxMemory()));
 
         Berth motdBerth = Berths.getBerth("XXMOTD");
         if (motdBerth != null && !motdBerth.getHeadcode().trim().equals(""))
-            listModel.addElement("<html><pre>MOTD:          &quot;" + motdBerth.getHeadcode().trim() + "&quot;</pre></html>");
+            newData.add("<html><pre>MOTD:          &quot;" + motdBerth.getHeadcode().trim() + "&quot;</pre></html>");
 
-        listModel.addElement(" ");
-        listModel.addElement("------ C Class Data (" + EastAngliaSignalMapServer.CClassMap.size() + ") ---------------");
-        for (String dataEntry : Berths.getCClassData(true))
-            listModel.addElement(dataEntry);
+        newData.add(" ");
+        newData.add("------ C Class Data (#" + EastAngliaSignalMapServer.CClassMap.size() + ") ---------------");
+        newData.addAll(Berths.getCClassData(true));
+      //newData.addAll(Berths.getCClassData(false));
 
-        String[] sclassKeys = EastAngliaSignalMapServer.SClassMap.keySet().toArray(new String[0]);
-        Arrays.sort(sclassKeys);
-        listModel.addElement(" ");
-        listModel.addElement("------ S Class Data (" + EastAngliaSignalMapServer.SClassMap.size() + ") ---------------");
-        for (String key : sclassKeys)
-            listModel.addElement((key.contains(":") ? key : "- " + key) + ": " + String.valueOf(EastAngliaSignalMapServer.SClassMap.get(key)));
+        String[] sclassIds = EastAngliaSignalMapServer.SClassMap.keySet().toArray(new String[0]);
+        Arrays.sort(sclassIds);
+        newData.add(" ");
+        newData.add("------ S Class Data (#" + EastAngliaSignalMapServer.SClassMap.size() + ") ---------------");
+        for (String sclassId : sclassIds)
+            newData.add((sclassId.contains(":") ? sclassId : "- " + sclassId) + ": " + String.valueOf(EastAngliaSignalMapServer.SClassMap.get(sclassId)));
 
-        dataList.setModel(listModel);
+        DefaultListModel<String> model = new DefaultListModel<>();
+        for (String element : newData)
+            model.addElement(element);
+
+        dataList.setModel(model);
 
         if (listSelection > -1)
             dataList.setSelectedIndex(Math.min(listSelection, dataList.getMaxSelectionIndex()));
-    }
+
+        dataList.repaint();
+    }*/
 
     public void stop()
     {
@@ -318,26 +369,26 @@ public class ServerGui
         });
         System.setErr(new PrintStream(new CustomOutStream(logTextArea, System.err), true)
         {
-            @Override
-            public void println(Object x) { synchronized (logLock) { super.println(x); }}
-            @Override
-            public void println(String x) { synchronized (logLock) { super.println(x); }}
-            @Override
-            public void println(boolean x) { synchronized (logLock) { super.println(x); }}
-            @Override
-            public void println(char x) { synchronized (logLock) { super.println(x); }}
-            @Override
-            public void println(char[] x) { synchronized (logLock) { super.println(x); }}
-            @Override
-            public void println(double x) { synchronized (logLock) { super.println(x); }}
-            @Override
-            public void println(float x) { synchronized (logLock) { super.println(x); }}
-            @Override
-            public void println(int x) { synchronized (logLock) { super.println(x); }}
-            @Override
-            public void println(long x) { synchronized (logLock) { super.println(x); }}
-            @Override
-            public void println() { synchronized (logLock) { super.println(); }}
+                @Override
+                public void println(Object x) { synchronized (logLock) { super.println(x); }}
+                @Override
+                public void println(String x) { synchronized (logLock) { super.println(x); }}
+                @Override
+                public void println(boolean x) { synchronized (logLock) { super.println(x); }}
+                @Override
+                public void println(char x) { synchronized (logLock) { super.println(x); }}
+                @Override
+                public void println(char[] x) { synchronized (logLock) { super.println(x); }}
+                @Override
+                public void println(double x) { synchronized (logLock) { super.println(x); }}
+                @Override
+                public void println(float x) { synchronized (logLock) { super.println(x); }}
+                @Override
+                public void println(int x) { synchronized (logLock) { super.println(x); }}
+                @Override
+                public void println(long x) { synchronized (logLock) { super.println(x); }}
+                @Override
+                public void println() { synchronized (logLock) { super.println(); }}
         });
     }
 }

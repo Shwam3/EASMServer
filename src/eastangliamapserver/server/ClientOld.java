@@ -1,21 +1,31 @@
-package eastangliamapserver;
+package eastangliamapserver.server;
 
-import java.io.*;
+import eastangliamapserver.Berth;
+import eastangliamapserver.Berths;
+import eastangliamapserver.EastAngliaSignalMapServer;
+import eastangliamapserver.MessageType;
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
 
-public class Client implements Runnable
+public class ClientOld implements Runnable, Client
 {
     private final Socket client;
-    public  String address = "--.--.--.--";
-    public  String port    = "";
-    public  String name    = "Unnamed";
-    public  int    version = -1;
+  //private String address = "0.0.0.0";
+  //private String port    = "";
+    private String name    = "Unnamed";
 
     private Properties props = new Properties();
-
-    private Thread clientThread;
 
     private boolean         stop   = false;
     private int             errors = 0;
@@ -27,28 +37,22 @@ public class Client implements Runnable
     private long  timeoutTime     = 30000;
     private       Timer timeoutTimer;
 
-    public Client(Socket client) throws IOException
+    public ClientOld(Socket client) throws IOException
     {
         this.client = client;
 
-        address = client.getInetAddress().getHostAddress();
-        port    = Integer.toString(client.getPort());
+        String address = client.getInetAddress().getHostAddress();
+        //port    = Integer.toString(client.getPort());
 
-        try
-        {
-            version = Integer.parseInt(name.substring(name.lastIndexOf("v")+1, name.lastIndexOf(")")-1));
-        }
-        catch (Exception e) { version = -1; }
-
-        printClient("Initialise client at " + name + "/" + address, false);
+        ServerHandler.printServer("Initialise client at " + address, false);
         //addClientLog(String.format("Client at %s:%s joined", client.address, client.port + (client.name != null ? " (" + client.name + ")" : "")));
         addClientLog("Connected", true);
 
-        try { timeoutTimer = new Timer("timeoutTimer:" + address); }
+        try { timeoutTimer = new Timer("timeoutTimer-" + address); }
         catch (IllegalStateException e) {}
         startTimeoutTimer();
 
-        clientThread = new Thread(this, "Client-" + address);
+        Thread clientThread = new Thread(this, "Client-" + address);
         clientThread.start();
     }
 
@@ -59,7 +63,7 @@ public class Client implements Runnable
         {
             try
             {
-                Object obj = new ObjectInputStream(client.getInputStream()).readObject();
+                Object obj = new ObjectInputStream(new BufferedInputStream(client.getInputStream())).readObject();
 
                 if (obj == null)
                     continue;
@@ -100,8 +104,8 @@ public class Client implements Runnable
                             break;
 
                         case REQUEST_HIST_TRAIN:
-                            printClient("Sending history of train " + message.get("headcode"), false);
-                            addClientLog("Train history: " + message.get("headcode") + " (" + message.get("berth_id") + ")", true);
+                            printClient("Sending history of train " + message.get("id"), false);
+                            addClientLog("Train history: " + message.get("id") + " (" + message.get("berth_id") + ")", true);
 
                             sendHistoryOfTrain((String) message.get("id"));
                             break;
@@ -121,16 +125,9 @@ public class Client implements Runnable
 
                             name = newName;
 
-                            int oldVersion = version;
-                            try
-                            {
-                                version = Integer.parseInt(name.substring(name.lastIndexOf("v")+1, name.lastIndexOf(")")-1));
-                            }
-                            catch (Exception e) { version = oldVersion; }
-
                             props = (message.get("props") == null ? new Properties() : (Properties) message.get("props"));
 
-                            EastAngliaSignalMapServer.updateServerGUI();
+                            EastAngliaSignalMapServer.updateServerGUIs();
                             break;
 
                         case SEND_MESSAGE:
@@ -155,14 +152,6 @@ public class Client implements Runnable
             printClient("Disconnected erroneously", true);
 
         closeSocket();
-    }
-
-    public void printClient(String message, boolean toErr)
-    {
-        if (toErr)
-            EastAngliaSignalMapServer.printErr("[Client " + name + "] " + message);
-        else
-            EastAngliaSignalMapServer.printOut("[Client " + name + "] " + message);
     }
 
     //<editor-fold defaultstate="collapsed" desc="SOCKET_CLOSE">
@@ -256,6 +245,7 @@ public class Client implements Runnable
 
             message.put("type",     MessageType.SEND_HIST_TRAIN.getValue());
             message.put("berth_id", id);
+            message.put("id",       id);
             message.put("headcode", berth.getHeadcode());
             message.put("history",  berth.getTrainsHistory());
 
@@ -268,9 +258,10 @@ public class Client implements Runnable
             Map<String, Object> message = new HashMap<>();
 
             message.put("type",     MessageType.SEND_HIST_TRAIN.getValue());
-            message.put("berth_id", (String) train.get("berth_id"));
-            message.put("headcode", (String) train.get("headcode"));
-            message.put("history",  (List<String>) train.get("history"));
+            message.put("id",       id);
+            message.put("berth_id", train == null ? "" : (String) train.get("berth_id"));
+            message.put("headcode", train == null ? "" : (String) train.get("headcode"));
+            message.put("history",  train == null ? new ArrayList<String>() : (List<String>) train.get("history"));
 
             sendMessage(message);
         }
@@ -411,6 +402,11 @@ public class Client implements Runnable
         }
     }
 
+    public String getName()
+    {
+        return name;
+    }
+
     public Socket getSocket()
     {
         return client;
@@ -443,22 +439,22 @@ public class Client implements Runnable
         /*for (Map.Entry pairs : props.entrySet())
             list.add(pairs.getKey() + ": " + pairs.getValue());*/
 
-        list.add("Java:      " + props.getProperty("java.version", "-------"));
-        list.add("User name: " + props.getProperty("user.name", "-------"));
-        list.add("OS:        " + props.getProperty("os.name", "-------"));
+        list.add("Java:      " + props.getProperty("java.version", ""));
+        list.add("User name: " + props.getProperty("user.name", ""));
+        list.add("OS:        " + props.getProperty("os.name", ""));
         list.add("Locale:    " + props.getProperty("user.language", "") + "_" + props.getProperty("user.country", ""));
         list.add("Timezone:  " + props.getProperty("user.timezone", ""));
-        list.add("Command:   " + props.getProperty("sun.java.command", "-------"));
+        list.add("Command:   " + props.getProperty("sun.java.command", ""));
 
         return list;
     }
 
     private void addClientLog(String message, boolean addToGlobal)
     {
-        history.add(0, new SimpleDateFormat("[dd/MM HH:mm] ").format(new Date()) + message);
+        history.add(0, "[" + EastAngliaSignalMapServer.sdfDateTimeShort.format(new Date()) + "] " + message);
 
         if (addToGlobal)
-            Clients.addClientLog("[" + name + "/" + address + "] " + message);
+            Clients.addClientLog("[" + name + "/" + client.getInetAddress().getHostAddress() + "] " + message);
     }
 
     public List<String> getHistory()

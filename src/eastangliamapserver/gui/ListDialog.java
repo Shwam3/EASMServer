@@ -6,10 +6,20 @@ import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.*;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
+import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 
 public class ListDialog
@@ -22,7 +32,7 @@ public class ListDialog
             list = new ArrayList<>();
 
         dialog = new JDialog();
-        dialog.setIconImage(EastAngliaSignalMapServer.gui.frame.getIconImage());
+        dialog.setIconImage(EastAngliaSignalMapServer.guiServer.frame.getIconImage());
 
         dialog.setTitle(title);
         dialog.setPreferredSize(new Dimension(305, 319));
@@ -56,39 +66,17 @@ public class ListDialog
 
         JButton okButton = new JButton("OK");
         okButton.setBounds(102, pnl.getHeight() - 23, 73, 23);
-        okButton.addMouseListener(new MouseAdapter()
-        {
-            @Override
-            public void mouseClicked(MouseEvent evt)
-            {
-                dialog.dispose();
-            }
-        });
+        okButton.addActionListener((ActionEvent e) -> { dialog.dispose(); });
         JPanel buttonPnl = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         buttonPnl.add(okButton);
         pnl.add(buttonPnl, BorderLayout.SOUTH);
 
-        dialog.getRootPane().registerKeyboardAction(new ActionListener()
-        {
-            @Override
-            public void actionPerformed(ActionEvent e)
-            {
-                dialog.dispose();
-            }
-        }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_FOCUSED);
-
-        dialog.getRootPane().registerKeyboardAction(new ActionListener()
-        {
-            @Override
-            public void actionPerformed(ActionEvent e)
-            {
-                dialog.dispose();
-            }
-        }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), JComponent.WHEN_FOCUSED);
+        dialog.getRootPane().registerKeyboardAction((ActionEvent e) -> { dialog.dispose(); }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_FOCUSED);
+        dialog.getRootPane().registerKeyboardAction((ActionEvent e) -> { dialog.dispose(); }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,  0), JComponent.WHEN_FOCUSED);
 
         dialog.add(pnl);
         dialog.pack();
-        dialog.setLocationRelativeTo(EastAngliaSignalMapServer.gui.frame);
+        dialog.setLocationRelativeTo(EastAngliaSignalMapServer.guiServer.frame);
 
         okButton.requestFocusInWindow();
         dialog.setVisible(true);

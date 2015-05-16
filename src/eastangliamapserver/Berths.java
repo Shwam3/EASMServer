@@ -1,15 +1,21 @@
 package eastangliamapserver;
 
-import static eastangliamapserver.stomp.StompConnectionHandler.printCClass;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.ConcurrentModificationException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class Berths
 {
-    private static Map<String, Map<String, Object>> trainMap = new HashMap<>();
-    private static Map<String, Berth> berthMap = new HashMap<>();
-  //private static List<String> missingBerths = new ArrayList<>();
-    private static Map<String, Date> missingBerths = new HashMap<>();
+    private static final Map<String, Map<String, Object>> trainMap = new HashMap<>();
+    private static final Map<String, Berth> berthMap = new HashMap<>();
+    private static final List<String>       missingBerths = new ArrayList<>();
+    private static final Map<String, Date>  berthChangeTimes = new HashMap<>();
+    public  static boolean ready = false;
 
     public static Berth createOrGetBerth(String berthId)
     {
@@ -33,24 +39,20 @@ public class Berths
             berthMap.put(berthId, berth);
             missingBerths.remove(berthId);
 
-            EastAngliaSignalMapServer.updateServerGUI();
+            EastAngliaSignalMapServer.updateServerGUIs();
         }
     }
 
     public static Berth getBerth(String berthId)
     {
-        if (berthMap.containsKey(berthId))
-            return berthMap.get(berthId);
-
-        return null;
+        return berthMap.getOrDefault(berthId, null);
     }
 
     public static String[] getAsArray()
     {
         List<String> list = new ArrayList<>();
 
-        for (Map.Entry<String, Berth> pairs : berthMap.entrySet())
-            list.addAll(Arrays.asList(pairs.getValue().getId()));
+        berthMap.entrySet().stream().forEach((pairs) -> list.addAll(Arrays.asList(pairs.getValue().getId())));
 
         return list.toArray(new String[0]);
     }
@@ -59,8 +61,7 @@ public class Berths
     {
         List<Berth> list = new ArrayList<>();
 
-        for (Map.Entry<String, Berth> pairs : berthMap.entrySet())
-            list.add(pairs.getValue());
+        berthMap.entrySet().stream().forEach((pairs) -> list.add(pairs.getValue()));
 
         return list;
     }
@@ -70,7 +71,7 @@ public class Berths
         return berthMap.entrySet();
     }
 
-    public static Set<String> getKeySet()
+    /*public static Set<String> getKeySet()
     {
         return berthMap.keySet();
     }
@@ -92,54 +93,72 @@ public class Berths
         for (String id : berthIds)
             printCClass(id, false);
 
-        EastAngliaSignalMapServer.updateServerGUI();
-    }
+        EastAngliaSignalMapServer.updateServerGUIs();
+    }*/
 
     public static void addMissingBerth(String berthId)
     {
         addMissingBerth(berthId, new Date());
     }
 
+    public static void setBerthModifiedDate(String berthId, Date date)
+    {
+        berthChangeTimes.put(berthId, date);
+    }
+
     public static void addMissingBerth(String berthId, Date date)
     {
         if (getBerth(berthId) == null)
-            missingBerths.put(berthId, date);
+        {
+            if (!missingBerths.contains(berthId))
+                missingBerths.add(berthId);
+            berthChangeTimes.put(berthId, date);
+        }
     }
 
-    public static Date getMissingBerthFoundDate(String berthId)
+    public static Date getBerthLastModifiedTime(String berthId)
     {
-        if (missingBerths.containsKey(berthId))
-            return missingBerths.get(berthId) != null ? missingBerths.get(berthId) : new Date();
+        if (berthChangeTimes.containsKey(berthId))
+            return berthChangeTimes.get(berthId) != null ? berthChangeTimes.get(berthId) : new Date(0);
         else
             return new Date(0);
     }
 
     public static void addTrainHistory(String trainId, Map<String, Object> historyMap)
     {
-        try
+        if (historyMap.size() > 2 && ready)
         {
-            Map<String, Map<String, Object>> newMap = new HashMap<>();
-            newMap.put(trainId, historyMap);
-
-            if (trainMap != null && trainMap.entrySet() != null)
-            {
-                for (Map.Entry<String, Map<String, Object>> pairs : trainMap.entrySet())
-                {
-                    Date change = (Date) pairs.getValue().get("change");
-                    if (change != null && change.before(new Date(System.currentTimeMillis() - 86400000)))
-                        break;
-
-                    Date end = (Date) pairs.getValue().get("end");
-                    if (end != null && end.before(new Date(System.currentTimeMillis() - 86400000)))
-                        continue;
-
-                    newMap.put(pairs.getKey(), pairs.getValue());
-                }
-            }
-
-            trainMap = new HashMap<>(newMap);
+            trainMap.put(trainId, historyMap);
         }
-        catch (ConcurrentModificationException e) {}
+            /*try
+            {
+                Map<String, Map<String, Object>> newMap = new HashMap<>();
+                newMap.put(trainId, historyMap);
+
+                if (trainMap != null && trainMap.entrySet() != null)
+                {
+                    for (Map.Entry<String, Map<String, Object>> pairs : trainMap.entrySet())
+                    {
+                        if (historyMap.size() > 2)
+                        {
+                            Date change = (Date) pairs.getValue().get("change");
+                            if (change != null && change.before(new Date(System.currentTimeMillis() - 180000000)))
+                                break;
+
+                            Date end = (Date) pairs.getValue().get("end");
+                            if (end != null && end.before(new Date(System.currentTimeMillis() - 180000000)))
+                                continue;
+
+                            newMap.put(pairs.getKey(), pairs.getValue());
+                        }
+                    }
+                }
+
+                trainMap.clear();
+                trainMap.putAll(newMap);
+            }
+            catch (ConcurrentModificationException e) { EastAngliaSignalMapServer.printThrowable(e, "TrainHistory"); }
+        }*/
     }
 
     public static Map<String, Object> getTrain(String uuid)
@@ -152,8 +171,7 @@ public class Berths
                 train.put("end", new Date());
 
                 List<String> hist = (List<String>) train.get("history");
-                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM HH:mm:ss");
-                hist.set(0, "Start: " + sdf.format(train.get("start")) + ", End (approx): " + sdf.format(train.get("end")) + ": " + train.get("headcode") + " (" + uuid + ")");
+                hist.set(0, "Start: " + EastAngliaSignalMapServer.sdfDateTimeShort.format(train.get("start")) + ", End (approx): " + EastAngliaSignalMapServer.sdfDateTimeShort.format(train.get("end")) + ": " + train.get("headcode") + " (" + uuid + ")");
                 train.put("history", hist);
 
                 trainMap.put(uuid, train);
@@ -164,18 +182,10 @@ public class Berths
 
     public static Map<String, Map<String, Object>> getTrainHistory()
     {
-        Map<String, Map<String, Object>> map = new HashMap<>(trainMap);
-
-        // Remove the "berth" element (NotSerialiZable)
-        for (Iterator<Map.Entry<String, Map<String, Object>>> it = map.entrySet().iterator(); it.hasNext();)
-            for (Iterator<Map.Entry<String, Object>> it2 = it.next().getValue().entrySet().iterator(); it2.hasNext();)
-                if (it2.next().getKey().equalsIgnoreCase("berth"))
-                    it2.remove();
-
-        return map;
+        return new HashMap<>(trainMap);
     }
 
-    public static List<String> getCClassData(boolean skipBlanks)
+    public static List<String> getCClassData(boolean includeBlanks, boolean includeMissing)
     {
         List<String> CClassMapList = new ArrayList<>();
 
@@ -185,40 +195,52 @@ public class Berths
             return CClassMapList;
         }
 
-        if (!missingBerths.isEmpty())
+        if (!missingBerths.isEmpty() && includeMissing)
         {
-            String[] keys = missingBerths.keySet().toArray(new String[0]);
-            Arrays.sort(keys);
+            String[] berths = missingBerths.toArray(new String[0]);
+            Arrays.sort(berths);
             CClassMapList.add("Berth ids missing from the map");
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM HH:mm:ss");
 
-            for (String missingBerthId : keys)
-                if (getBerth(missingBerthId) == null)
+            for (String berthId : berths)
+            {
+                if (getBerth(berthId) == null)
                 {
-                    String hc = String.valueOf(EastAngliaSignalMapServer.CClassMap.get(missingBerthId)).replace("null", "    ");
+                    String hc = String.valueOf(EastAngliaSignalMapServer.CClassMap.get(berthId)).replace("null", "    ");
                     hc = hc.equals("") ? "    " : hc;
-                    if (missingBerths.get(missingBerthId) == null)
-                        CClassMapList.add(missingBerthId + " (??/?? ??:??:??) (" + hc + ")");
+                    if (berthChangeTimes.containsKey(berthId) && berthChangeTimes.get(berthId) != null)
+                        CClassMapList.add(berthId + ": '" + hc + "' (" + EastAngliaSignalMapServer.sdfDateTimeShort.format(berthChangeTimes.get(berthId)) + ")");
                     else
-                        CClassMapList.add(missingBerthId + " (" + sdf.format(missingBerths.get(missingBerthId)) + ") (" + hc + ")");
+                        CClassMapList.add(berthId + ": '" + hc + "' (??/?? ??:??:??)");
                 }
                 else
-                    missingBerths.remove(missingBerthId);
+                    missingBerths.remove(berthId);
+            }
         }
 
-        if (!EastAngliaSignalMapServer.CClassMap.isEmpty() && !missingBerths.isEmpty())
+        if (!EastAngliaSignalMapServer.CClassMap.isEmpty() && !missingBerths.isEmpty() && includeMissing)
             CClassMapList.add(" ");
 
         if (!EastAngliaSignalMapServer.CClassMap.isEmpty())
         {
-            String[] keys = EastAngliaSignalMapServer.CClassMap.keySet().toArray(new String[0]);
-            Arrays.sort(keys);
+            String[] berthIds = EastAngliaSignalMapServer.CClassMap.keySet().toArray(new String[0]);
+            Arrays.sort(berthIds);
 
             CClassMapList.add("Full C-Class Data Map (# Berths: " + berthMap.size() + ")");
+            CClassMapList.add("ID,      map,  berth,  modified time");
 
-            for (String key : keys)
-                if (EastAngliaSignalMapServer.CClassMap.get(key) != null && !EastAngliaSignalMapServer.CClassMap.get(key).trim().equals("") || !skipBlanks)
-                    CClassMapList.add(key + ": " + EastAngliaSignalMapServer.CClassMap.get(key));
+            for (String berthId : berthIds)
+            {
+                if ((EastAngliaSignalMapServer.CClassMap.get(berthId) != null && !EastAngliaSignalMapServer.CClassMap.get(berthId).trim().isEmpty()) ||
+                        (Berths.containsBerth(berthId) && !Berths.getBerth(berthId).getHeadcode().trim().isEmpty()) || includeBlanks)
+                {
+                    String hcMap = EastAngliaSignalMapServer.CClassMap.get(berthId);
+                    String hcBerth = Berths.containsBerth(berthId) ? Berths.getBerth(berthId).getHeadcode() : "";
+                    if (berthChangeTimes.containsKey(berthId) && berthChangeTimes.get(berthId) != null)
+                        CClassMapList.add(String.format("%s: '%s'|%s (%s)", berthId, hcMap.isEmpty() ? "    " : hcMap, Berths.containsBerth(berthId) ? "'" + (hcBerth.isEmpty() ? "    " : hcBerth) + "'" : "      ", EastAngliaSignalMapServer.sdfDateTimeShort.format(berthChangeTimes.get(berthId))));
+                    else
+                        CClassMapList.add(String.format("%s: '%s'|%s (??/?? ??:??:??)", berthId, hcMap.isEmpty() ? "    " : hcMap, Berths.containsBerth(berthId) ? "'" + (hcBerth.isEmpty() ? "    " : hcBerth) + "'" : "      "));
+                }
+            }
         }
 
         return CClassMapList;
@@ -226,11 +248,38 @@ public class Berths
 
     public static void cleanMaps()
     {
-        for (Berth berth : getBerths())
+        getBerths().stream()
+                .filter((berth) -> (berth.hasTrain()))
+                .forEach((berth) ->
         {
             berth.clean();
-            if (berth.hasTrain())
-                berth.getTrain().clean();
+            berth.getTrain().clean();
+        });
+
+        Map<String, Map<String, Object>> trainMapNew = new HashMap<>(trainMap);
+        try
+        {
+            trainMapNew.entrySet().parallelStream().forEach((pairs) ->
+            {
+                Date change = (Date) pairs.getValue().get("change");
+                if (change != null && change.before(new Date(System.currentTimeMillis() - 86400000)))
+                    return;
+
+                Date end = (Date) pairs.getValue().get("end");
+                if (end != null && end.before(new Date(System.currentTimeMillis() - 86400000)))
+                    return;
+
+                trainMapNew.put(pairs.getKey(), pairs.getValue());
+            });
+
+            trainMap.clear();
+            trainMap.putAll(trainMapNew);
         }
+        catch (ConcurrentModificationException e) { EastAngliaSignalMapServer.printThrowable(e, "TrainHistory"); }
+    }
+
+    public static void purgeHistories()
+    {
+        trainMap.clear();
     }
 }

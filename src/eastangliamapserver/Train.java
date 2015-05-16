@@ -1,7 +1,10 @@
 package eastangliamapserver;
 
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Train
 {
@@ -25,8 +28,7 @@ public class Train
         start = new Date();
         currentBerth = startBerth;
 
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM HH:mm:ss");
-        history.add(0, "Start: " + sdf.format(start) + ": " + headcode + " (" + UUID + ")");
+        history.add(0, "Start: " + EastAngliaSignalMapServer.sdfDateTimeShort.format(start) + ": " + headcode + " (" + UUID + ")");
         addCurrentBerthToHistory();
     }
 
@@ -42,8 +44,7 @@ public class Train
         this.headcode = headcode;
         start = new Date();
 
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM HH:mm:ss");
-        history.add(0, "Start: " + sdf.format(start) + ": " + headcode + " (" + UUID + ")");
+        history.add(0, "Start: " + EastAngliaSignalMapServer.sdfDateTimeShort.format(start) + ": " + headcode + " (" + UUID + ")");
         addCurrentBerthToHistory();
     }
 
@@ -58,27 +59,25 @@ public class Train
 
     private void addCurrentBerthToHistory()
     {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM HH:mm:ss");
-
         if (currentBerth == null/* || !currentBerth.getHeadcode().equals(headcode)*/)
         {
             isCancelled = true;
             end = new Date();
 
-            history.set(0, "Start: " + sdf.format(start) + ", End: " + sdf.format(end) + ": " + headcode + " (" + UUID + ")");
+            history.set(0, "Start: " + EastAngliaSignalMapServer.sdfDateTimeShort.format(start) + ", End: " + EastAngliaSignalMapServer.sdfDateTimeShort.format(end) + ": " + headcode + " (" + UUID + ")");
         }
         else
-            history.add(1, sdf.format(new Date()) + ": " + currentBerth.getBerthDescription() + (currentBerth.getName().equals("") ? "" : " (" + currentBerth.getName() + ")"));
+            history.add(1, EastAngliaSignalMapServer.sdfDateTimeShort.format(new Date()) + ": " + currentBerth.getBerthDescription() + (currentBerth.getName().equals("") ? "" : " (" + currentBerth.getName() + ")"));
 
-            Map<String, Object> historyMap = new HashMap<>();
+        Map<String, Object> historyMap = new HashMap<>();
 
-            historyMap.put("start",    start);
-            historyMap.put("end",      end);
-            historyMap.put("berth",    currentBerth);
-            historyMap.put("headcode", headcode);
-            historyMap.put("history",  history);
-            historyMap.put("changed",  new Date());
-            Berths.addTrainHistory(UUID,  historyMap);
+        historyMap.put("start",    start);
+        historyMap.put("end",      end);
+        //historyMap.put("berth",    currentBerth);
+        historyMap.put("headcode", headcode);
+        historyMap.put("history",  history);
+        historyMap.put("changed",  new Date());
+        Berths.addTrainHistory(UUID,  historyMap);
     }
 
     public String getUID() { return UID; }
