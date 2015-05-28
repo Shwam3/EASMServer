@@ -4,9 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import javax.security.auth.login.LoginException;
 import net.ser1.stomp.Command;
@@ -23,8 +21,6 @@ public class StompClient extends Stomp implements MessageReceiver
     private Socket       socket;
 
     private String clientID;
-
-    private static final List<String> ACK_LIST = new ArrayList<>();
 
     public StompClient(String server, int port, String login, String pass, String clientId) throws IOException, LoginException
     {
@@ -71,7 +67,6 @@ public class StompClient extends Stomp implements MessageReceiver
 
         transmit(Command.DISCONNECT, header, null);
         listener.interrupt();
-        Thread.yield();
 
         try { input.close(); }
         catch (IOException e) {}
@@ -85,7 +80,7 @@ public class StompClient extends Stomp implements MessageReceiver
         connected = false;
     }
 
-    public void ack(String id/*, String subscriptionID*/)
+    public void ack(String id)
     {
         try
         {
@@ -94,18 +89,12 @@ public class StompClient extends Stomp implements MessageReceiver
 
             StringBuilder message = new StringBuilder("ACK\n");
 
-            //message.append("subscription:").append(clientID).append("-").append(subscriptionID).append("\n"); // 1.0,1.1
-            //message.append("message-id:").append(id.replace(":", "\\c")).append("\n");                        // 1.0,1.1
             message.append("id:").append(id.replace("\\c", ":")).append("\n");                                  // 1.2
 
             message.append("\n");
             message.append("\000");
 
             output.write(message.toString().getBytes(Command.ENCODING));
-
-            while (ACK_LIST.size() >= 50)
-                ACK_LIST.remove(0);
-            ACK_LIST.add(id);
         }
         catch (IOException e)
         {

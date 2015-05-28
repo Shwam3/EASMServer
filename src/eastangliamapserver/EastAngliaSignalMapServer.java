@@ -74,7 +74,7 @@ public class EastAngliaSignalMapServer
         try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); }
         catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) { printThrowable(e, "Look & Feel"); }
 
-        Date logDate = new Date(System.currentTimeMillis());
+        Date logDate = new Date();
         logFile = new File(storageDir, "Logs" + File.separator + "EastAngliaSignalMapServer" + File.separator + sdfDate.format(logDate).replace("/", "-") + ".log");
         logFile.getParentFile().mkdirs();
         lastLogDate = sdfDate.format(logDate);
@@ -205,23 +205,23 @@ public class EastAngliaSignalMapServer
     {
         if (!disableFileLog)
         {
-            if (!lastLogDate.equals(sdfDate.format(new Date())))
+            Date logDate = new Date();
+            if (!lastLogDate.equals(sdfDate.format(logDate)))
             {
                 logStream.flush();
                 logStream.close();
 
-                Date logDate = new Date(System.currentTimeMillis());
                 lastLogDate = sdfDate.format(logDate);
 
-                logFile = new File(storageDir, "Logs" + File.separator + "EastAngliaSignalMapServer" + File.separator + sdfDate.format(logDate).replace("/", "-") + ".log");
+                logFile = new File(storageDir, "Logs" + File.separator + "EastAngliaSignalMapServer" + File.separator + lastLogDate.replace("/", "-") + ".log");
                 logFile.getParentFile().mkdirs();
 
                 try
                 {
                     logFile.createNewFile();
-                    logStream = new PrintStream(new FileOutputStream(logFile, logFile.length() > 0));
+                    logStream = new PrintStream(new FileOutputStream(logFile, true));
                 }
-                catch (IOException e) { printErr("Could not create next log file"); printThrowable(e, "Startup"); }
+                catch (IOException e) { printErr("Could not create log file"); printThrowable(e, "Logging"); }
             }
 
             logStream.println(message);
@@ -396,7 +396,7 @@ public class EastAngliaSignalMapServer
                                     berth.interpose(new Train((String) pairs.getValue().get("headcode"), berth));
                             }
 
-                            if (berth != null)
+                            if (berth != null && pairs.getValue().get("berth_hist") != null)
                                 berth.setHistory((List<String>) pairs.getValue().get("berth_hist"));
 
                             if (pairs.getValue().get("last_modified") == null)

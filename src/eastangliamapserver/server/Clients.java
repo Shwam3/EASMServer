@@ -31,7 +31,10 @@ public class Clients
 
         try
         {
-            clients.stream().forEach((client) -> clientList.add(client.getName() + " (" + client.getSocket().getInetAddress().getHostAddress()+ ":" + client.getSocket().getPort() + ")" + client.getErrorString()) );
+            clients.stream().forEach((client) -> clientList.add(client.getName()
+                    + " (" + client.getSocket().getInetAddress().getHostAddress()
+                    + ":" + client.getSocket().getPort() + ")"
+                    + client.getErrorString()) );
         }
         catch (Exception e) {}
 
@@ -60,16 +63,16 @@ public class Clients
         return clients.stream().anyMatch((client) -> clientSocket.equals(client.getSocket()));
     }
 
-    public static void broadcastUpdate(Map<String, String> update)
+    public static void broadcastUpdate(final Map<String, String> update)
     {
         if (!EastAngliaSignalMapServer.stop)
-            clients.parallelStream().forEach((client) -> client.sendUpdate(update));
+            clients.stream().forEach((client) -> client.sendUpdate(update));
     }
 
     public static void sendAll()
     {
         if (!EastAngliaSignalMapServer.stop)
-            clients.parallelStream().forEach((client) -> client.sendAll());
+            clients.stream().forEach((client) -> client.sendAll());
     }
 
     public static void remove(Client client)
@@ -98,8 +101,8 @@ public class Clients
     {
         return clients.stream()
                 .filter((client) -> client.getName().equals(name) ||
-                        client.getName().substring(0, client.getName().length() - 6).equals(name) ||
-                        client.getName().substring(0, client.getName().length() - 9).equals(name) ||
+                        client.getName().equals(name) ||
+                        client.getName().equals(name) ||
                         name.equals(client.getSocket().getInetAddress().getHostAddress() + ":" + client.getSocket().getPort()))
                 .findFirst().orElse(null);
     }

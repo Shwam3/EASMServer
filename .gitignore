@@ -63,9 +63,6 @@ $RECYCLE.BIN/
 
 dist/
 build/
-nbproject/
-nbproject\
+\nbproject
 NROD_Login.properties
 Website_FTP_Login.properties
-private.xml
-*private.xml

@@ -144,7 +144,7 @@ public class DataGui extends JDialog
         add(mainPanel, BorderLayout.CENTER);
 
         JButton okButton = new JButton("OK");
-        okButton.addActionListener((ActionEvent e) -> { setVisible0(false); });
+        okButton.addActionListener((ActionEvent e) -> setVisible0(false));
         okButton.setPreferredSize(new Dimension(73, 23));
         okButton.setOpaque(false);
 
@@ -153,8 +153,8 @@ public class DataGui extends JDialog
         buttonPnl.setOpaque(false);
         add(buttonPnl, BorderLayout.SOUTH);
 
-        getRootPane().registerKeyboardAction((ActionEvent e) -> { setVisible0(false); }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
-        getRootPane().registerKeyboardAction((ActionEvent e) -> { setVisible0(false); }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+        getRootPane().registerKeyboardAction((ActionEvent e) -> setVisible0(false), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+        getRootPane().registerKeyboardAction((ActionEvent e) -> setVisible0(false), KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
 
         pack();
         setLocationRelativeTo(EastAngliaSignalMapServer.guiServer.frame);
@@ -164,7 +164,7 @@ public class DataGui extends JDialog
     {
         if (visible)
         {
-            EventQueue.invokeLater(() -> { setVisible(true); });
+            EventQueue.invokeLater(() -> setVisible(true));
             updateData();
         }
         else

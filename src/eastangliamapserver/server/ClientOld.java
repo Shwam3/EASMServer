@@ -420,11 +420,10 @@ public class ClientOld implements Runnable, Client
 
     public String getErrorString()
     {
-        if (errors != 0)
+        if (errors != 0 && !errorList.isEmpty())
         {
             String errorStr = "";
-            for (Throwable t : new ArrayList<>(errorList))
-                errorStr += t.toString() + ", ";
+            errorStr = errorList.stream().map((t) -> t.getClass().getName() + ", ").reduce(errorStr, String::concat);
 
             return errorStr.substring(0, errorStr.length() - 2) + " (" + errors + ")";
         }

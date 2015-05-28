@@ -10,12 +10,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 import jsonparser.JSONParser;
@@ -29,7 +29,7 @@ public class ClientJSON implements Runnable, Client
   //private String port    = "";
     private String name    = "Unnamed";
 
-    private Properties props = new Properties();
+    private Map<String, String> properties = new HashMap<>();
 
     private boolean         stop   = false;
     private int             errors = 0;
@@ -71,73 +71,76 @@ public class ClientJSON implements Runnable, Client
             {
                 String jsonMessage = in.readLine();
 
-                Map<String, Object> message = (Map<String, Object>) JSONParser.parseJSON(jsonMessage);
-                MessageType type = MessageType.getType(String.valueOf(message.get("type")));
-
-                lastMessageTime = System.currentTimeMillis();
-
-                switch (type)
+                if (jsonMessage != null && !jsonMessage.isEmpty())
                 {
-                    case SOCKET_CLOSE:
-                        printClient("Closing connection", false);
-                        addClientLog("Close connection", true);
+                    Map<String, Object> message = (Map<String, Object>) ((Map<String, Object>) JSONParser.parseJSON(jsonMessage)).get("Message");
+                    MessageType type = MessageType.getType(String.valueOf(message.get("type")));
 
-                        stop = true;
-                        break;
+                    lastMessageTime = System.currentTimeMillis();
 
-                    case HEARTBEAT_REQUEST:
-                        //printClient("Sending heartbeat", false);
-                        addClientLog("Heartbeat ->", false);
+                    switch (type)
+                    {
+                        case SOCKET_CLOSE:
+                            printClient("Closing connection", false);
+                            addClientLog("Close connection", true);
 
-                        sendHeartbeatReply();
-                        break;
+                            stop = true;
+                            break;
 
-                    case HEARTBEAT_REPLY:
-                        //printClient("Received heartbeat", false);
-                        addClientLog("Heartbeat <-", false);
-                        break;
+                        case HEARTBEAT_REQUEST:
+                            //printClient("Sending heartbeat", false);
+                            addClientLog("Heartbeat ->", false);
 
-                    case REQUEST_ALL:
-                        printClient("Sending full map", false);
-                        addClientLog("Full map", false);
+                            sendHeartbeatReply();
+                            break;
 
-                        sendAll();
-                        break;
+                        case HEARTBEAT_REPLY:
+                            //printClient("Received heartbeat", false);
+                            addClientLog("Heartbeat <-", false);
+                            break;
 
-                    case REQUEST_HIST_TRAIN:
-                        printClient("Sending history of train " + message.get("id"), false);
-                        addClientLog("Train history: " + message.get("id") + " (" + message.get("berth_id") + ")", true);
+                        case REQUEST_ALL:
+                            printClient("Sending full map", false);
+                            addClientLog("Full map", false);
 
-                        sendHistoryOfTrain((String) message.get("id"));
-                        break;
+                            sendAll();
+                            break;
 
-                    case REQUEST_HIST_BERTH:
-                        printClient("Sending history of berth " + message.get("berth_id"), false);
-                        addClientLog("Berth history: " + message.get("berth_id"), true);
+                        case REQUEST_HIST_TRAIN:
+                            printClient("Sending history of train " + message.get("id"), false);
+                            addClientLog("Train history: " + message.get("id") + " (" + message.get("berth_id") + ")", true);
 
-                        sendHistoryOfBerth((String) message.get("berth_id"));
-                        break;
+                            sendHistoryOfTrain((String) message.get("id"));
+                            break;
 
-                    case SET_NAME:
-                        String newName = (String) message.get("name");
+                        case REQUEST_HIST_BERTH:
+                            printClient("Sending history of berth " + message.get("berth_id"), false);
+                            addClientLog("Berth history: " + message.get("berth_id"), true);
 
-                        printClient("Set name to '" + newName + "'", false);
-                        addClientLog("Re-Name: " + name + " --> " + newName, true);
+                            sendHistoryOfBerth((String) message.get("berth_id"));
+                            break;
 
-                        name = newName;
+                        case SET_NAME:
+                            String newName = (String) message.get("name");
 
-                        props = (message.get("props") == null ? new Properties() : (Properties) message.get("props"));
+                            printClient("Set name to '" + newName + "'", false);
+                            addClientLog("Re-Name: " + name + " --> " + newName, true);
 
-                        EastAngliaSignalMapServer.updateServerGUIs();
-                        break;
+                            name = newName;
 
-                    case SEND_MESSAGE:
-                        printClient((String) message.get("message"), false);
-                        addClientLog((String) message.get("message"), true);
-                        break;
+                            properties = (message.get("props") == null ? new HashMap<>() : (Map<String, String>) message.get("props"));
+
+                            EastAngliaSignalMapServer.updateServerGUIs();
+                            break;
+
+                        case SEND_MESSAGE:
+                            printClient((String) message.get("message"), false);
+                            addClientLog((String) message.get("message"), true);
+                            break;
+                    }
+
+                    errors = 0;
                 }
-
-                errors = 0;
             }
             catch (IOException  e) { errorList.add(e); errors++; addClientLog(String.valueOf(e), false); }
             finally { testErrors(); }
@@ -155,11 +158,11 @@ public class ClientJSON implements Runnable, Client
     public void sendSocketClose(String reason)
     {
         printClient("Socket closed sent (" + reason + ")", false);
-        Map<String, Object> message = new HashMap<>();
+        /*Map<String, Object> message = new HashMap<>();
 
         message.put("type", MessageType.SOCKET_CLOSE.getName());
         if (reason != null && !reason.equals(""))
-            message.put("reason", reason);
+            message.put("reason", reason);*/
 
         StringBuilder sb = new StringBuilder("{\"Message\":{");
         sb.append("\"type\":\"").append(MessageType.SOCKET_CLOSE.getName()).append("\",");
@@ -169,6 +172,8 @@ public class ClientJSON implements Runnable, Client
         try
         {
             out.write(sb.toString());
+            out.write("\r\n");
+            out.flush();
 
             errors = 0;
         }
@@ -193,32 +198,20 @@ public class ClientJSON implements Runnable, Client
     //<editor-fold defaultstate="collapsed" desc="SEND_ALL">
     public void sendAll()
     {
-        //Map<String, Object> message = new HashMap<>();
-        //Map<String, String> dataMap = new HashMap<>(EastAngliaSignalMapServer.CClassMap.size() + EastAngliaSignalMapServer.SClassMap.size());
-        //Map<String, String> sclass = new HashMap<>(EastAngliaSignalMapServer.SClassMap);
-        //String[] keys = sclass.keySet().toArray(new String[0]);
-        //for (String key : keys)
-        //    if (!key.contains(":"))
-        //        sclass.remove(key);
-        //dataMap.putAll(EastAngliaSignalMapServer.CClassMap);
-        //dataMap.putAll(sclass);
-        //message.put("type", MessageType.SEND_ALL.getValue());
-        //message.put("message", dataMap);
-
         StringBuilder sb = new StringBuilder("{\"Message\":{");
         sb.append("\"type\":\"").append(MessageType.SEND_ALL.getName()).append("\",");
-        sb.append("\"message\":[");
+        sb.append("\"message\":{");
 
         EastAngliaSignalMapServer.CClassMap.entrySet().stream()
                 .forEach(p -> sb.append("\"").append(p.getKey()).append("\":\"").append(p.getValue()).append("\","));
 
         EastAngliaSignalMapServer.SClassMap.entrySet().stream()
-                .filter(p -> !p.getKey().contains(":"))
+                .filter(p -> p.getKey().contains(":"))
                 .forEach(p -> sb.append("\"").append(p.getKey()).append("\":\"").append(p.getValue()).append("\","));
 
         if (sb.charAt(sb.length()-1) == ',')
             sb.deleteCharAt(sb.length()-1);
-        sb.append("]}}");
+        sb.append("}}}");
 
         sendMessage(sb.toString());
     }
@@ -305,11 +298,11 @@ public class ClientJSON implements Runnable, Client
     {
         StringBuilder sb = new StringBuilder("{\"Message\":{");
         sb.append("\"type\":\"").append(MessageType.SEND_UPDATE.getName()).append("\",");
-        sb.append("\"message\":[");
+        sb.append("\"message\":{");
         updateMap.entrySet().stream().forEach((p) -> sb.append("\"").append(p.getKey()).append("\":\"").append(p.getValue()).append("\","));
         if (sb.charAt(sb.length()-1) == ',')
             sb.deleteCharAt(sb.length()-1);
-        sb.append("]}}");
+        sb.append("}}}");
 
         sendMessage(sb.toString());
     }
@@ -328,9 +321,12 @@ public class ClientJSON implements Runnable, Client
         try
         {
             out.write(message);
+            out.write("\r\n");
+            out.flush();
 
             errors = 0;
         }
+        catch (SocketException e) { errors++; }
         catch (IOException e)
         {
             errorList.add(e);
@@ -426,11 +422,10 @@ public class ClientJSON implements Runnable, Client
 
     public String getErrorString()
     {
-        if (errors != 0)
+        if (errors != 0 && !errorList.isEmpty())
         {
             String errorStr = "";
-            for (Throwable t : new ArrayList<>(errorList))
-                errorStr += t.toString() + ", ";
+            errorStr = errorList.stream().map((t) -> t.toString() + ", ").reduce(errorStr, String::concat);
 
             return errorStr.substring(0, errorStr.length() - 2) + " (" + errors + ")";
         }
@@ -445,12 +440,12 @@ public class ClientJSON implements Runnable, Client
         /*for (Map.Entry pairs : props.entrySet())
             list.add(pairs.getKey() + ": " + pairs.getValue());*/
 
-        list.add("Java:      " + props.getProperty("java.version", ""));
-        list.add("User name: " + props.getProperty("user.name", ""));
-        list.add("OS:        " + props.getProperty("os.name", ""));
-        list.add("Locale:    " + props.getProperty("user.language", "") + "_" + props.getProperty("user.country", ""));
-        list.add("Timezone:  " + props.getProperty("user.timezone", ""));
-        list.add("Command:   " + props.getProperty("sun.java.command", ""));
+        list.add("Java:      " + properties.getOrDefault("java.version", ""));
+        list.add("User name: " + properties.getOrDefault("user.name", ""));
+        list.add("OS:        " + properties.getOrDefault("os.name", ""));
+        list.add("Locale:    " + properties.getOrDefault("user.language", "") + "_" + properties.getOrDefault("user.country", ""));
+        list.add("Timezone:  " + properties.getOrDefault("user.timezone", ""));
+        list.add("Command:   " + properties.getOrDefault("sun.java.command", ""));
 
         return list;
     }

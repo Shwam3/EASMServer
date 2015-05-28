@@ -91,10 +91,13 @@ public class ServerHandler
                     catch (InterruptedException e) {}
                 }
             }
+            
+            if (!stop)
+                printServer("Server (Old) ended unnexpectedly", true);
         }, "Server-Old");
         threadServerJSON = new Thread(() ->
         {
-            while (!stop)
+            while (!stop || Thread.currentThread().isInterrupted())
             {
                 if (!EastAngliaSignalMapServer.serverOffline)
                 {
@@ -124,6 +127,9 @@ public class ServerHandler
                     catch (InterruptedException e) {}
                 }
             }
+            
+            if (!stop)
+                printServer("Server (JSON) ended unnexpectedly", true);
         }, "Server-JSON");
     }
 
