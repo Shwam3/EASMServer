@@ -1,7 +1,10 @@
 package eastangliamapserver.stomp;
 
+import eastangliamapserver.Berth;
+import eastangliamapserver.Berths;
 import eastangliamapserver.EastAngliaSignalMapServer;
 import eastangliamapserver.SignalMap;
+import eastangliamapserver.Train;
 import eastangliamapserver.server.Clients;
 import eastangliamapserver.stomp.handlers.CClassHandler;
 import eastangliamapserver.stomp.handlers.SClassHandler;
@@ -34,7 +37,6 @@ public class StompConnectionHandler
     public  static long   lastMessageTime = System.currentTimeMillis();
     private static String appID = "";
     private static int    stompConnectionId = System.getProperty("args", "").contains("-id:") ? Integer.parseInt(System.getProperty("args", "-id:1").substring(System.getProperty("args").indexOf("-id:")+4, System.getProperty("args").indexOf("-id:")+5)) : 1;
-    private static final Map<String, String> queuedUpdates = new HashMap<>();
 
     public static boolean connect() throws LoginException, IOException
     {
@@ -105,14 +107,7 @@ public class StompConnectionHandler
                 Map<String, String> CClass = CClassHandler.parseMessage(messageList);
                 Map<String, String> SClass = SClassHandler.parseMessage(messageList);
 
-                Map<String, String> updateMap = new HashMap<>(CClass.size() + SClass.size() + queuedUpdates.size());
-                if (!queuedUpdates.isEmpty())
-                {
-                    printCClass(queuedUpdates.size() + " queued updates", false);
-
-                    updateMap.putAll(queuedUpdates);
-                    queuedUpdates.clear();
-                }
+                Map<String, String> updateMap = new HashMap<>(CClass.size() + SClass.size());
                 updateMap.putAll(CClass);
                 updateMap.putAll(SClass);
 
@@ -142,7 +137,8 @@ public class StompConnectionHandler
                 /*if (headers.get("message").contains(" already connected from "))
                 incrementConnectionId();*/
 
-                printStomp(headers.get("message").trim(), true);
+                if (headers != null && headers.containsKey("message"))
+                    printStomp(headers.get("message").trim(), true);
 
                 if (body != null && !body.isEmpty())
                     printStomp(body.trim().replace("\n", "\n[Stomp]"), true);
@@ -154,7 +150,7 @@ public class StompConnectionHandler
         }
         else
         {
-            printStomp("Not connecting stomp, in offline mode (offline: "+EastAngliaSignalMapServer.stompOffline+")", false);
+            printStomp("Not connecting stomp, in offline mode (offline: " + EastAngliaSignalMapServer.stompOffline + ")", false);
             return false;
         }
     }
@@ -220,6 +216,29 @@ public class StompConnectionHandler
 
                     printStomp((isTimedOut() ? "Timed Out" : "") + (isTimedOut() && isClosed() ? ", " : "") + (isClosed() ? "Closed" : "") + ((isTimedOut() || isClosed()) && !isConnected() ? " & " : "") + (!isConnected() ? "Disconnected" : "") + " (" + timeoutWait + "s)", true);
 
+                    Berth berth = Berths.createOrGetBerth("XXMOTD");
+                    if (berth != null)
+                    {
+                        String errorMessage = "Disconnected from Network Rail's servers";
+                        String motd = berth.getHeadcode();
+
+                        if (motd.contains("No problems"))
+                            motd = motd.replace("No problems", errorMessage);
+
+                        motd += errorMessage;
+
+                        berth.interpose(new Train(motd, berth));
+
+                        Map<String, String> motdMap = new HashMap<>();
+                        motdMap.put("XXMOTD", motd);
+
+                        Clients.broadcastUpdate(motdMap);
+                        EastAngliaSignalMapServer.CClassMap.putAll(motdMap);
+
+                        printStomp("MOTD Status: \"" + motd + "\"", false);
+                        EastAngliaSignalMapServer.updateServerGUIs();
+                    }
+
                     try
                     {
                         if (client != null)
@@ -235,6 +254,28 @@ public class StompConnectionHandler
                 else
                 {
                     timeoutWait = 10;
+
+                    Berth berth = Berths.createOrGetBerth("XXMOTD");
+                    if (berth != null)
+                    {
+                        String motd = berth.getHeadcode();
+
+                        if (motd.contains("Disconnected from Network Rail's servers"))
+                        {
+                            motd = motd.replace("Disconnected from Network Rail's servers", "No problems");
+
+                            berth.interpose(new Train(motd, berth));
+
+                            Map<String, String> motdMap = new HashMap<>();
+                            motdMap.put("XXMOTD", motd);
+
+                            Clients.broadcastUpdate(motdMap);
+                            EastAngliaSignalMapServer.CClassMap.putAll(motdMap);
+
+                            printStomp("MOTD Status: \"" + motd + "\"", false);
+                            EastAngliaSignalMapServer.updateServerGUIs();
+                        }
+                    }
                 }
             }
             else
@@ -291,10 +332,5 @@ public class StompConnectionHandler
     {
         stompConnectionId++;
         printStomp("Incrementing connection Id (" + stompConnectionId + ")", false);
-    }
-
-    public static void scheduleForNextUpdate(String id, String headcode)
-    {
-        queuedUpdates.put(id, headcode);
     }
 }

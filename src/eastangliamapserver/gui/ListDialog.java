@@ -6,7 +6,6 @@ import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,13 +65,13 @@ public class ListDialog
 
         JButton okButton = new JButton("OK");
         okButton.setBounds(102, pnl.getHeight() - 23, 73, 23);
-        okButton.addActionListener((ActionEvent e) -> dialog.dispose());
+        okButton.addActionListener(e -> dialog.dispose());
         JPanel buttonPnl = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         buttonPnl.add(okButton);
         pnl.add(buttonPnl, BorderLayout.SOUTH);
 
-        dialog.getRootPane().registerKeyboardAction((ActionEvent e) -> dialog.dispose(), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_FOCUSED);
-        dialog.getRootPane().registerKeyboardAction((ActionEvent e) -> dialog.dispose(), KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,  0), JComponent.WHEN_FOCUSED);
+        dialog.getRootPane().registerKeyboardAction(e -> dialog.dispose(), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_FOCUSED);
+        dialog.getRootPane().registerKeyboardAction(e -> dialog.dispose(), KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,  0), JComponent.WHEN_FOCUSED);
 
         dialog.add(pnl);
         dialog.pack();

@@ -20,7 +20,7 @@ public class ClientContextMenu extends JPopupMenu
     JMenuItem info;
     JMenuItem history;
 
-    ActionListener clickEvent = (evt) ->
+    ActionListener clickEvent = evt ->
     {
         Client client = Clients.getClient(selectedValue.substring(selectedValue.lastIndexOf("(") + 1, selectedValue.length() - 1));
 

@@ -1,5 +1,6 @@
 package eastangliamapserver;
 
+import eastangliamapserver.server.Clients;
 import eastangliamapserver.stomp.StompConnectionHandler;
 import java.util.ArrayList;
 import java.util.Date;
@@ -126,8 +127,8 @@ public class Berth
         List<String> stepToBerthList = new ArrayList<>();
 
         stepToBerths.stream()
-                .filter((hm) -> (hm.get("realToBerthId").equals(toBerthId) && hm.get("fromBerthId").equals(fromBerthId)))
-                .forEach((hm) -> stepToBerthList.add(hm.get("fakeToBerthId")));
+                .filter(hm -> hm.get("realToBerthId").equals(toBerthId) && hm.get("fromBerthId").equals(fromBerthId))
+                .forEach(hm -> stepToBerthList.add(hm.get("fakeToBerthId")));
 
         return stepToBerthList;
     }
@@ -149,8 +150,8 @@ public class Berth
     public boolean canStepToBerth(String realToBerthId, String fromBerthId)
     {
         return stepToBerths.stream()
-                .anyMatch((hm) -> (hm.get("fromBerthId").equals(fromBerthId) &&
-                        hm.get("realToBerthId").equals(realToBerthId)));
+                .anyMatch(hm -> hm.get("fromBerthId").equals(fromBerthId) &&
+                        hm.get("realToBerthId").equals(realToBerthId));
     }
 
     public boolean hasStepToEvent()
@@ -172,7 +173,7 @@ public class Berth
                 currentTrain = train;
 
                 EastAngliaSignalMapServer.CClassMap.put(getId(), train.getHeadcode());
-                StompConnectionHandler.scheduleForNextUpdate(getId(), train.getHeadcode());
+                Clients.scheduleForNextUpdate(getId(), train.getHeadcode());
 
                 if (trainHistory.isEmpty() || !trainHistory.get(0).contains(currentTrain.getHeadcode()))
                     trainHistory.add(0, String.format("%s: %s (%s)", EastAngliaSignalMapServer.sdfDateTimeShort.format(new Date()), currentTrain.getHeadcode(), currentTrain.UUID));
@@ -223,8 +224,8 @@ public class Berth
         List<Train> trainList = new ArrayList<>();
 
         getAdjacentBerths().stream()
-                .filter((berth) -> (berth.hasTrain()))
-                .forEach((berth) -> trainList.add(berth.getTrain()));
+                .filter(berth -> berth.hasTrain())
+                .forEach(berth -> trainList.add(berth.getTrain()));
 
         return trainList;
     }

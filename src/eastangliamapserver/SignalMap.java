@@ -71,6 +71,13 @@ public class SignalMap
                 while ((line = br.readLine()) != null)
                     motdStr += line;
 
+                /*String errorMessage = "Disconnected from Network Rail's servers";
+
+                if (motdStr.contains("No problems"))
+                    motdStr = motdStr.replace("No problems", errorMessage);
+                else
+                    motdStr += errorMessage;*/
+
                 if (!motdStr.isEmpty())
                     motd.interpose(new Train(motdStr.trim(), motd));
             }

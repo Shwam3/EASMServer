@@ -14,7 +14,6 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.SystemTray;
 import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -100,7 +99,7 @@ public class ServerGui
         logPanel.add(new JScrollPane(logTextArea), BorderLayout.CENTER);
 
         commandInput = new JTextField();
-        commandInput.addActionListener((ActionEvent evt) ->
+        commandInput.addActionListener(evt ->
         {
             commandInput.setText("");
             logTextArea.setCaretPosition(logTextArea.getDocument().getLength());
@@ -171,7 +170,7 @@ public class ServerGui
         motdLabel.setPreferredSize(new Dimension(500, 30));
         dataPanel.add(motdLabel);
         JButton dataGuiButton = new JButton("Data Viewer...");
-        dataGuiButton.addActionListener((ActionEvent evt) -> { EastAngliaSignalMapServer.guiData.setVisible0(true); });
+        dataGuiButton.addActionListener(e -> EastAngliaSignalMapServer.guiData.setVisible0(true));
         dataPanel.add(dataGuiButton);
         dataPanel.setBorder(new TitledBorder(new EtchedBorder(), "Status"));
         monitorPanel.add(dataPanel, BorderLayout.CENTER);
@@ -182,7 +181,7 @@ public class ServerGui
         final AtomicLong lastUptime = new AtomicLong(rtMxBean.getUptime());
         final AtomicLong lastProcessCpuTime = new AtomicLong(osMxBean.getProcessCpuTime());
 
-        ActionListener listenerTimer = (ActionEvent evt) ->
+        ActionListener listenerTimer = evt ->
         {
             try
             {
@@ -266,7 +265,7 @@ public class ServerGui
         DefaultListModel<String> model = new DefaultListModel<>();
         List<String> clientNames = Clients.getClientList();
         Collections.sort(clientNames, String.CASE_INSENSITIVE_ORDER);
-        clientNames.stream().forEachOrdered((client) -> model.addElement(client));
+        clientNames.stream().forEachOrdered(client -> model.addElement(client));
         clientList.setModel(model);
     }
 

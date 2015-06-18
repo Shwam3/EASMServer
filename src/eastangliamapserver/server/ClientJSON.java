@@ -251,9 +251,12 @@ public class ClientJSON implements Runnable, Client
             sb.append("\"headcode\":\"").append(train == null ? "" : (String) train.get("headcode")).append("\",");
 
             sb.append("\"history\":[");
-            List<String> hist = (List<String>) train.get("history");
-            for (int i = 0; i < hist.size(); i++)
-                sb.append("\"").append(hist.get(i)).append("\"").append(i >= hist.size()-1 ? "" : ",");
+            if (train != null)
+            {
+                List<String> hist = (List<String>) train.get("history");
+                for (int i = 0; i < hist.size(); i++)
+                    sb.append("\"").append(hist.get(i)).append("\"").append(i >= hist.size()-1 ? "" : ",");
+            }
             sb.append("]");
 
             sb.append("}}");
@@ -299,7 +302,7 @@ public class ClientJSON implements Runnable, Client
         StringBuilder sb = new StringBuilder("{\"Message\":{");
         sb.append("\"type\":\"").append(MessageType.SEND_UPDATE.getName()).append("\",");
         sb.append("\"message\":{");
-        updateMap.entrySet().stream().forEach((p) -> sb.append("\"").append(p.getKey()).append("\":\"").append(p.getValue()).append("\","));
+        updateMap.entrySet().stream().forEach(p -> sb.append("\"").append(p.getKey()).append("\":\"").append(p.getValue()).append("\","));
         if (sb.charAt(sb.length()-1) == ',')
             sb.deleteCharAt(sb.length()-1);
         sb.append("}}}");
@@ -425,7 +428,7 @@ public class ClientJSON implements Runnable, Client
         if (errors != 0 && !errorList.isEmpty())
         {
             String errorStr = "";
-            errorStr = errorList.stream().map((t) -> t.toString() + ", ").reduce(errorStr, String::concat);
+            errorStr = errorList.stream().map(t -> t.toString() + ", ").reduce(errorStr, String::concat);
 
             return errorStr.substring(0, errorStr.length() - 2) + " (" + errors + ")";
         }

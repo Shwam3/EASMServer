@@ -7,7 +7,9 @@ import eastangliamapserver.stomp.StompConnectionHandler;
 import java.awt.Desktop;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -272,7 +274,7 @@ public class CommandHandler
                     else if (args[1].length() == 6)
                     {
                         EastAngliaSignalMapServer.SClassMap.put(args[1].toUpperCase(), args[2]);
-                        StompConnectionHandler.scheduleForNextUpdate(args[1].toUpperCase(), args[2]);
+                        Clients.scheduleForNextUpdate(args[1].toUpperCase(), args[2]);
                         printCommand("Set bit " + args[1] + " to " + args[2], false);
                     }
                     else
@@ -573,6 +575,7 @@ public class CommandHandler
 
                         motd = motd.replaceAll("%date%", EastAngliaSignalMapServer.sdfDate.format(new Date()));
                         motd = motd.replaceAll("%time%", EastAngliaSignalMapServer.sdfTime.format(new Date()));
+
                         motd = motd.trim();
 
                         berth.interpose(new Train(motd, berth));
@@ -612,7 +615,7 @@ public class CommandHandler
                     if (EastAngliaSignalMapServer.CClassMap.containsKey(pairs.getKey()) && !EastAngliaSignalMapServer.CClassMap.get(pairs.getKey()).equals(pairs.getValue().getHeadcode()))
                     {
                         changes += pairs.getValue().getBerthDescription() + ": " + EastAngliaSignalMapServer.CClassMap.get(pairs.getKey()) + " -> " + pairs.getValue().getHeadcode() + ", ";
-                        StompConnectionHandler.scheduleForNextUpdate(pairs.getKey(), pairs.getValue().getHeadcode());
+                        Clients.scheduleForNextUpdate(pairs.getKey(), pairs.getValue().getHeadcode());
                     }
 
                     EastAngliaSignalMapServer.CClassMap.put(pairs.getKey(), pairs.getValue().getHeadcode());
@@ -625,37 +628,6 @@ public class CommandHandler
                 System.gc();
                 break;
 
-            /*case "addresses":
-                if (args.length != 2)
-                    printCommand("Usage: addresses <berth_id>", true);
-                else
-                {
-                    Berth berth = Berths.getBerth(args[1].toUpperCase());
-                    if (berth != null)
-                    {
-                        Map<String, Map<String, String>> map = berth.getPossibleAddreses();
-                        List<String> possibleAddresses = new ArrayList<>(map.size());
-
-                        for (Map.Entry<String, Map<String, String>> pairs : map.entrySet())
-                            possibleAddresses.add(pairs.getValue().get("occurences") + ": " + pairs.getKey() + " " + (pairs.getValue().containsKey("old_data") ? pairs.getValue().get("old_data") : "--") + " --> " +  pairs.getValue().get("data") + " (" + (pairs.getValue().containsKey("bit_change") ? pairs.getValue().get("bit_change") : "-") + ")");
-
-                        Collections.sort(possibleAddresses, (String s1, String s2) ->
-                        {
-                            try
-                            {
-                                String num1 = s1.substring(0, s1.indexOf(":")).trim();
-                                String num2 = s2.substring(0, s2.indexOf(":")).trim();
-                                return Integer.valueOf(num2) - Integer.valueOf(num1);
-                            }
-                            catch (NumberFormatException e) { return 0; }
-                        });
-                        new ListDialog("S-Class data", "S-Class data for " + berth.getBerthDescription(), possibleAddresses);
-                    }
-                    else
-                        printCommand("Unrecognised berth id \"" + args[1].toUpperCase() + "\"", true);
-                }
-                break;*/
-
             case "updateip":
                 EastAngliaSignalMapServer.updateIP();
                 break;
@@ -663,11 +635,6 @@ public class CommandHandler
             case "incrementid":
                 StompConnectionHandler.incrementConnectionId();
                 break;
-
-            /*case "updateppm":
-            case "updatertppm":
-                RTPPMHandler.uploadHTML();
-                break;*/
 
             case "setmaxtimeout":
                 if (args.length == 1 || args.length == 2)
@@ -700,6 +667,44 @@ public class CommandHandler
                 EastAngliaSignalMapServer.CClassMap = new HashMap<>(EastAngliaSignalMapServer.CClassMap);
                 Berths.cleanMaps();
                 System.gc();
+                break;
+
+            case "savereplay":
+            case "sr":
+                String newLine = System.getProperty("line.separator", "\n");
+                StringBuilder sb = new StringBuilder().append("{\"ReplayData\":{");
+
+                sb.append(newLine);
+
+                EastAngliaSignalMapServer.CClassMap.entrySet().stream().filter(p -> !p.getKey().contains("XX")).forEach(pairs ->
+                    sb.append('"').append(pairs.getKey()).append("\":\"").append(pairs.getValue()).append("\",")
+                );
+
+                sb.append(newLine);
+
+                EastAngliaSignalMapServer.SClassMap.entrySet().stream().filter(p -> p.getKey().contains(":")).forEach(pairs ->
+                    sb.append('"').append(pairs.getKey()).append("\":\"").append(pairs.getValue()).append("\",")
+                );
+
+                if (sb.charAt(sb.length()-1) == ',')
+                    sb.deleteCharAt(sb.length()-1);
+                sb.append(newLine).append("}}");
+
+                try
+                {
+                    File ReplayJSON = new File(EastAngliaSignalMapServer.storageDir, "Logs" + File.separator + "ReplaySaves" + File.separator + EastAngliaSignalMapServer.sdfDateTime.format(new Date()).replace("/", "-").replace(":", ".") + ".json");
+                    ReplayJSON.getParentFile().mkdirs();
+                    ReplayJSON.createNewFile();
+
+                    try (BufferedWriter bw = new BufferedWriter(new FileWriter(ReplayJSON)))
+                    {
+                        bw.write(sb.toString());
+                    }
+                    catch (IOException e) { EastAngliaSignalMapServer.printThrowable(e, "Persistence"); }
+
+                    EastAngliaSignalMapServer.printOut("[Persistence] Saved replay file (" + ReplayJSON.length() / 1024L + "KiB)");
+                }
+                catch (IOException e) { EastAngliaSignalMapServer.printThrowable(e, "Persistence");}
                 break;
 
             default:

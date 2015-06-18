@@ -1,19 +1,8 @@
 package eastangliamapserver;
 
-import eastangliamapserver.server.Clients;
 import java.awt.MouseInfo;
 import java.awt.PointerInfo;
 import java.awt.Robot;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.ConnectException;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -21,7 +10,7 @@ public class TimerMethods
 {
     private static boolean allowSleep = false;
     private static Timer sleepTimer;
-    private static Timer statusTimer;
+    //private static Timer statusTimer;
     private static Timer IPUpdater;
 
     public static boolean sleep(boolean sleep)
@@ -57,63 +46,68 @@ public class TimerMethods
                             if (mouseInfo != null)
                                 new Robot(mouseInfo.getDevice()).mouseMove(mouseInfo.getLocation().x, mouseInfo.getLocation().y);
                         }
-                        catch (Exception e) { EastAngliaSignalMapServer.printErr("[Timer] Exception: " + e.toString()); }
+                        catch (Exception e) { EastAngliaSignalMapServer.printThrowable(e, "Sleep-Timer"); }
                 }
             }, 30000, 30000);
         }
 
-        if (statusTimer == null || statusTimer.purge() != 0)
-        {
-            statusTimer = new Timer("statusTimer", true);
-            statusTimer.scheduleAtFixedRate(new TimerTask()
-            {
-                @Override
-                public void run()
-                {
-                    try
-                    {
-                        String status = null;
-                        try (BufferedReader br = new BufferedReader(new InputStreamReader(new URL("http://easignalmap.altervista.org/status/status.txt").openStream())))
-                        {
-                            status = br.readLine();
-                        }
-                        catch (ConnectException e) { EastAngliaSignalMapServer.printErr("[MOTD] Unable to connect to altervista server"); }
-                        catch (IOException e) { EastAngliaSignalMapServer.printThrowable(e, "MOTD"); }
-
-                        if (status != null)
-                        {
-                            Berth motdBerth = Berths.getBerth("XXMOTD");
-                            if (motdBerth != null && !motdBerth.getHeadcode().equals(status.trim()))
-                            {
-                                status = status.trim();
-
-                                motdBerth.interpose(new Train(status, motdBerth));
-
-                                Map<String, String> motdMap = new HashMap<>();
-                                motdMap.put("XXMOTD", status.trim());
-                                Clients.broadcastUpdate(motdMap);
-
-                                File motdFile = new File(EastAngliaSignalMapServer.storageDir, "MOTD.txt");
-                                if (!motdFile.exists())
-                                    motdFile.getParentFile().mkdirs();
-
-                                try (BufferedWriter out = new BufferedWriter(new FileWriter(motdFile)))
-                                {
-                                    out.write(status);
-                                }
-                                catch (ConnectException e) { EastAngliaSignalMapServer.printErr("[MOTD] Unable to connect to FTP server"); }
-                                catch (IOException e)
-                                {
-                                    EastAngliaSignalMapServer.printErr("[MOTD] IOException writing to \"" + motdFile.getAbsolutePath() + "\"");
-                                    EastAngliaSignalMapServer.printThrowable(e, "MOTD");
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception e) {}
-                }
-            }, 30000, 30000);
-        }
+        //if (statusTimer == null || statusTimer.purge() != 0)
+        //{
+        //    statusTimer = new Timer("statusTimer", true);
+        //    statusTimer.scheduleAtFixedRate(new TimerTask()
+        //    {
+        //        @Override
+        //        public void run()
+        //        {
+        //            try
+        //            {
+        //                String status = null;
+        //                try (BufferedReader br = new BufferedReader(new InputStreamReader(new URL("http://easignalmap.altervista.org/status/status.txt").openStream())))
+        //                {
+        //                    status = br.readLine();
+        //                }
+        //                catch (ConnectException e) { EastAngliaSignalMapServer.printErr("[MOTD] Unable to connect to altervista server"); }
+        //                catch (IOException e) { EastAngliaSignalMapServer.printThrowable(e, "MOTD"); }
+        //
+        //                if (status != null && !status.trim().isEmpty())
+        //                {
+        //                    Berth motdBerth = Berths.getBerth("XXMOTD");
+        //                    if (motdBerth != null && !motdBerth.getHeadcode().equals(status.trim()))
+        //                    {
+        //                        String errorMessage = "Disconnected from Network Rail's servers";
+        //
+        //                        if (status.contains("No problems"))
+        //                            status = status.replace("No problems", errorMessage);
+        //
+        //                        status = status.trim();
+        //
+        //                        motdBerth.interpose(new Train(status, motdBerth));
+        //
+        //                        Map<String, String> motdMap = new HashMap<>();
+        //                        motdMap.put("XXMOTD", status.trim());
+        //                        Clients.broadcastUpdate(motdMap);
+        //
+        //                        File motdFile = new File(EastAngliaSignalMapServer.storageDir, "MOTD.txt");
+        //                        if (!motdFile.exists())
+        //                            motdFile.getParentFile().mkdirs();
+        //
+        //                        try (BufferedWriter out = new BufferedWriter(new FileWriter(motdFile)))
+        //                        {
+        //                            out.write(status);
+        //                        }
+        //                        catch (ConnectException e) { EastAngliaSignalMapServer.printErr("[MOTD] Unable to connect to FTP server"); }
+        //                        catch (IOException e)
+        //                        {
+        //                            EastAngliaSignalMapServer.printErr("[MOTD] IOException writing to \"" + motdFile.getAbsolutePath() + "\"");
+        //                            EastAngliaSignalMapServer.printThrowable(e, "MOTD");
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //            catch (Exception e) { EastAngliaSignalMapServer.printThrowable(e, "MOTD-Timer"); }
+        //        }
+        //    }, 30000, 30000);
+        //}
 
         if (IPUpdater == null || IPUpdater.purge() != 0)
         {

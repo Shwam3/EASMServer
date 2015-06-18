@@ -5,6 +5,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.JOptionPane;
@@ -13,6 +14,8 @@ public class Clients
 {
     private static final List<Client> clients = new ArrayList<>();
     public  static final List<String> clientsHistory = new ArrayList<>();
+
+    private static final Map<String, String> queuedUpdates = new HashMap<>();
 
     public static void addClient(Client client)
     {
@@ -31,10 +34,10 @@ public class Clients
 
         try
         {
-            clients.stream().forEach((client) -> clientList.add(client.getName()
+            clients.stream().forEach(client -> clientList.add(client.getName()
                     + " (" + client.getSocket().getInetAddress().getHostAddress()
                     + ":" + client.getSocket().getPort() + ")"
-                    + client.getErrorString()) );
+                    + client.getErrorString()));
         }
         catch (Exception e) {}
 
@@ -53,26 +56,40 @@ public class Clients
             reason = "You have been kicked";
 
         final String finReason = reason;
-        clients.parallelStream().forEach((client) -> client.disconnect(finReason));
+        clients.parallelStream().forEach(client -> client.disconnect(finReason));
 
         addClientLog("Kicked all clients (" + reason + ")");
     }
 
     public static boolean hasClient(Socket clientSocket)
     {
-        return clients.stream().anyMatch((client) -> clientSocket.equals(client.getSocket()));
+        return clients.stream().anyMatch(client -> clientSocket.equals(client.getSocket()));
     }
 
-    public static void broadcastUpdate(final Map<String, String> update)
+    public static void scheduleForNextUpdate(String id, String headcode)
+    {
+        queuedUpdates.put(id, headcode);
+    }
+
+    public static void broadcastUpdate(final Map<String, String> updateMap)
     {
         if (!EastAngliaSignalMapServer.stop)
-            clients.stream().forEach((client) -> client.sendUpdate(update));
+        {
+            if (!queuedUpdates.isEmpty())
+            {
+                EastAngliaSignalMapServer.printOut("[Stomp] " + queuedUpdates.size() + " queued updates");
+
+                updateMap.putAll(queuedUpdates);
+                queuedUpdates.clear();
+            }
+            clients.stream().forEach(client -> client.sendUpdate(updateMap));
+        }
     }
 
     public static void sendAll()
     {
         if (!EastAngliaSignalMapServer.stop)
-            clients.stream().forEach((client) -> client.sendAll());
+            clients.stream().forEach(client -> client.sendAll());
     }
 
     public static void remove(Client client)
@@ -88,7 +105,7 @@ public class Clients
 
     public static void closeAll()
     {
-        clients.parallelStream().forEach((client) ->
+        clients.stream().forEach(client ->
         {
             client.printClient("Closing connection", false);
             client.disconnect("Server closed");
@@ -100,7 +117,7 @@ public class Clients
     public static Client getClient(String name)
     {
         return clients.stream()
-                .filter((client) -> client.getName().equals(name) ||
+                .filter(client -> client.getName().equals(name) ||
                         client.getName().equals(name) ||
                         client.getName().equals(name) ||
                         name.equals(client.getSocket().getInetAddress().getHostAddress() + ":" + client.getSocket().getPort()))
@@ -109,7 +126,7 @@ public class Clients
 
     public static boolean hasMultiple(String name)
     {
-        return clients.stream().filter((client) -> client.getName().equals(name)).count() > 1L;
+        return clients.stream().filter(client -> client.getName().equals(name)).count() > 1L;
     }
 
     public static void addClientLog(String message)

@@ -423,7 +423,7 @@ public class ClientOld implements Runnable, Client
         if (errors != 0 && !errorList.isEmpty())
         {
             String errorStr = "";
-            errorStr = errorList.stream().map((t) -> t.getClass().getName() + ", ").reduce(errorStr, String::concat);
+            errorStr = errorList.stream().map(t -> t.getClass().getName() + ", ").reduce(errorStr, String::concat);
 
             return errorStr.substring(0, errorStr.length() - 2) + " (" + errors + ")";
         }

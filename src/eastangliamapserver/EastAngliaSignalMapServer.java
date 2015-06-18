@@ -13,6 +13,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -471,8 +472,6 @@ public class EastAngliaSignalMapServer
                                 Berths.addTrainHistory(pairs.getKey(), historyData);
                             }
 
-                            Berths.ready = true;
-
                             printOut("[Persistence] Read train history data (UUID: " + jsonHist.get("TrainHistoryUUID") + ", " + trainHistory.size() + " objects)");
 
                             long end = System.nanoTime();
@@ -569,8 +568,6 @@ public class EastAngliaSignalMapServer
             }
             */
             //</editor-fold>
-
-            long jsonStart = System.nanoTime();
 
             //<editor-fold defaultstate="collapsed" desc="JSON Persistence">
             String newLine = System.getProperty("line.separator", "\n");
@@ -669,23 +666,24 @@ public class EastAngliaSignalMapServer
             trainhistorySB.append(newLine).append("\"TrainHistoryUUID\":").append(lastUUID.get()).append(',');
             trainhistorySB.append(newLine).append("\"Timestamp\":").append(System.currentTimeMillis()).append('}');
 
+            long fileStart = System.nanoTime();
 
             File CClassJSON = new File(storageDir, "EastAngliaSigMap-CClass.json");
-            try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(CClassJSON))))
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(CClassJSON)))
             {
                 bw.write(cclassSB.toString());
             }
             catch (IOException e) { printThrowable(e, "Persistence"); }
 
             File SClassJSON = new File(storageDir, "EastAngliaSigMap-SClass.json");
-            try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(SClassJSON))))
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(SClassJSON)))
             {
                 bw.write(sclassSB.toString());
             }
             catch (IOException e) { printThrowable(e, "Persistence"); }
 
             File TrainHistJSON = new File(storageDir, "EastAngliaSigMap-TrainHist.json");
-            try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(TrainHistJSON))))
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(TrainHistJSON)))
             {
                 bw.write(trainhistorySB.toString());
             }
@@ -693,7 +691,9 @@ public class EastAngliaSignalMapServer
             //</editor-fold>
 
             long end = System.nanoTime();
-            printOut(String.format("[Persitence] Time all: %sms, loops: %sms, json: %sms", (end-loopStart)/1000000, (jsonStart-loopStart)/1000000, (end-jsonStart)/1000000));
+
+            printOut("[Persitence] Saved current state");
+            printOut(String.format("[Persitence] Time all: %sms, json: %sms, file: %sms", (end-loopStart)/1000000, (fileStart-loopStart)/1000000, (end-fileStart)/1000000));
         }
         else
             printOut("[Persitence] Not saving state, persistence disabled");

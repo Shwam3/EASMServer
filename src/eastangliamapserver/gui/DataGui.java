@@ -7,7 +7,6 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -113,18 +112,18 @@ public class DataGui extends JDialog
         cbSX.setSelected(filterSX);
         cbWG.setSelected(filterWG);
         cbXX.setSelected(filterXX);
-        cbBlank.addItemListener((ItemEvent evt) -> { includeBlanks = evt.getStateChange() == ItemEvent.SELECTED; updateData(); });
-        cbMissing.addItemListener((ItemEvent evt) -> { includeMissing = evt.getStateChange() == ItemEvent.SELECTED; updateData(); });
-        cbCA.addItemListener((ItemEvent evt) -> { filterCA = evt.getStateChange() == ItemEvent.SELECTED; updateData(); });
-        cbCC.addItemListener((ItemEvent evt) -> { filterCC = evt.getStateChange() == ItemEvent.SELECTED; updateData(); });
-        cbEN.addItemListener((ItemEvent evt) -> { filterEN = evt.getStateChange() == ItemEvent.SELECTED; updateData(); });
-        cbLS.addItemListener((ItemEvent evt) -> { filterLS = evt.getStateChange() == ItemEvent.SELECTED; updateData(); });
-        cbSE.addItemListener((ItemEvent evt) -> { filterSE = evt.getStateChange() == ItemEvent.SELECTED; updateData(); });
-        cbSI.addItemListener((ItemEvent evt) -> { filterSI = evt.getStateChange() == ItemEvent.SELECTED; updateData(); });
-        cbSO.addItemListener((ItemEvent evt) -> { filterSO = evt.getStateChange() == ItemEvent.SELECTED; updateData(); });
-        cbSX.addItemListener((ItemEvent evt) -> { filterSX = evt.getStateChange() == ItemEvent.SELECTED; updateData(); });
-        cbWG.addItemListener((ItemEvent evt) -> { filterWG = evt.getStateChange() == ItemEvent.SELECTED; updateData(); });
-        cbXX.addItemListener((ItemEvent evt) -> { filterXX = evt.getStateChange() == ItemEvent.SELECTED; updateData(); });
+        cbBlank.addItemListener(evt -> { includeBlanks = evt.getStateChange() == ItemEvent.SELECTED; updateData(); });
+        cbMissing.addItemListener(evt -> { includeMissing = evt.getStateChange() == ItemEvent.SELECTED; updateData(); });
+        cbCA.addItemListener(evt -> { filterCA = evt.getStateChange() == ItemEvent.SELECTED; updateData(); });
+        cbCC.addItemListener(evt -> { filterCC = evt.getStateChange() == ItemEvent.SELECTED; updateData(); });
+        cbEN.addItemListener(evt -> { filterEN = evt.getStateChange() == ItemEvent.SELECTED; updateData(); });
+        cbLS.addItemListener(evt -> { filterLS = evt.getStateChange() == ItemEvent.SELECTED; updateData(); });
+        cbSE.addItemListener(evt -> { filterSE = evt.getStateChange() == ItemEvent.SELECTED; updateData(); });
+        cbSI.addItemListener(evt -> { filterSI = evt.getStateChange() == ItemEvent.SELECTED; updateData(); });
+        cbSO.addItemListener(evt -> { filterSO = evt.getStateChange() == ItemEvent.SELECTED; updateData(); });
+        cbSX.addItemListener(evt -> { filterSX = evt.getStateChange() == ItemEvent.SELECTED; updateData(); });
+        cbWG.addItemListener(evt -> { filterWG = evt.getStateChange() == ItemEvent.SELECTED; updateData(); });
+        cbXX.addItemListener(evt -> { filterXX = evt.getStateChange() == ItemEvent.SELECTED; updateData(); });
         jtfFilter.addKeyListener(new KeyAdapter() { public void keyReleased(KeyEvent evt) { super.keyReleased(evt); filterString = (((JTextField) evt.getComponent()).getText()).trim(); updateData(); }});
         pnlFilters.add(cbBlank);
         pnlFilters.add(cbMissing);
@@ -144,7 +143,7 @@ public class DataGui extends JDialog
         add(mainPanel, BorderLayout.CENTER);
 
         JButton okButton = new JButton("OK");
-        okButton.addActionListener((ActionEvent e) -> setVisible0(false));
+        okButton.addActionListener(e -> setVisible0(false));
         okButton.setPreferredSize(new Dimension(73, 23));
         okButton.setOpaque(false);
 
@@ -153,8 +152,8 @@ public class DataGui extends JDialog
         buttonPnl.setOpaque(false);
         add(buttonPnl, BorderLayout.SOUTH);
 
-        getRootPane().registerKeyboardAction((ActionEvent e) -> setVisible0(false), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
-        getRootPane().registerKeyboardAction((ActionEvent e) -> setVisible0(false), KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+        getRootPane().registerKeyboardAction(e -> setVisible0(false), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+        getRootPane().registerKeyboardAction(e -> setVisible0(false), KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
 
         pack();
         setLocationRelativeTo(EastAngliaSignalMapServer.guiServer.frame);

@@ -15,7 +15,6 @@ public class Berths
     private static final Map<String, Berth> berthMap = new HashMap<>();
     private static final List<String>       missingBerths = new ArrayList<>();
     private static final Map<String, Date>  berthChangeTimes = new HashMap<>();
-    public  static boolean ready = false;
 
     public static Berth createOrGetBerth(String berthId)
     {
@@ -52,7 +51,7 @@ public class Berths
     {
         List<String> list = new ArrayList<>();
 
-        berthMap.entrySet().stream().forEach((pairs) -> list.addAll(Arrays.asList(pairs.getValue().getId())));
+        berthMap.entrySet().stream().forEach(pairs -> list.addAll(Arrays.asList(pairs.getValue().getId())));
 
         return list.toArray(new String[0]);
     }
@@ -61,7 +60,7 @@ public class Berths
     {
         List<Berth> list = new ArrayList<>();
 
-        berthMap.entrySet().stream().forEach((pairs) -> list.add(pairs.getValue()));
+        berthMap.entrySet().stream().forEach(pairs -> list.add(pairs.getValue()));
 
         return list;
     }
@@ -126,7 +125,7 @@ public class Berths
 
     public static void addTrainHistory(String trainId, Map<String, Object> historyMap)
     {
-        if (historyMap.size() > 2 && ready)
+        if (historyMap.size() > 2)
         {
             trainMap.put(trainId, historyMap);
         }
@@ -248,9 +247,7 @@ public class Berths
 
     public static void cleanMaps()
     {
-        getBerths().stream()
-                .filter((berth) -> (berth.hasTrain()))
-                .forEach((berth) ->
+        getBerths().stream().filter(berth -> berth.hasTrain()).forEach(berth ->
         {
             berth.clean();
             berth.getTrain().clean();
@@ -259,7 +256,7 @@ public class Berths
         Map<String, Map<String, Object>> trainMapNew = new HashMap<>(trainMap);
         try
         {
-            trainMapNew.entrySet().parallelStream().forEach((pairs) ->
+            trainMapNew.entrySet().parallelStream().forEach(pairs ->
             {
                 Date change = (Date) pairs.getValue().get("change");
                 if (change != null && change.before(new Date(System.currentTimeMillis() - 86400000)))

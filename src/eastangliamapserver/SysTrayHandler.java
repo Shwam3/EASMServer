@@ -5,7 +5,6 @@ import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -21,7 +20,7 @@ public class SysTrayHandler
     {
         if (SystemTray.isSupported())
         {
-            ActionListener actionListener = (ActionEvent evt) ->
+            ActionListener actionListener = evt ->
             {
                 EastAngliaSignalMapServer.guiServer.frame.setVisible(true);
                 EastAngliaSignalMapServer.guiServer.frame.requestFocus();
@@ -55,7 +54,7 @@ public class SysTrayHandler
         final MenuItem exit = new MenuItem("Exit");
         final MenuItem showWindow = new MenuItem("Show window");
 
-        ActionListener menuListener = (ActionEvent evt) ->
+        ActionListener menuListener = evt ->
         {
             Object src = evt.getSource();
             if (src == exit)
