@@ -66,3 +66,4 @@ build/
 \nbproject
 NROD_Login.properties
 Website_FTP_Login.properties
+*.hprof
