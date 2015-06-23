@@ -97,22 +97,18 @@ public class Berths
 
     public static void addMissingBerth(String berthId)
     {
-        addMissingBerth(berthId, new Date());
+        if (getBerth(berthId) == null)
+        {
+            if (!missingBerths.contains(berthId))
+                missingBerths.add(berthId);
+        }
+
+        setBerthModifiedDate(berthId, new Date());
     }
 
     public static void setBerthModifiedDate(String berthId, Date date)
     {
         berthChangeTimes.put(berthId, date);
-    }
-
-    public static void addMissingBerth(String berthId, Date date)
-    {
-        if (getBerth(berthId) == null)
-        {
-            if (!missingBerths.contains(berthId))
-                missingBerths.add(berthId);
-            berthChangeTimes.put(berthId, date);
-        }
     }
 
     public static Date getBerthLastModifiedTime(String berthId)

@@ -1,10 +1,7 @@
 package eastangliamapserver.stomp;
 
-import eastangliamapserver.Berth;
-import eastangliamapserver.Berths;
 import eastangliamapserver.EastAngliaSignalMapServer;
 import eastangliamapserver.SignalMap;
-import eastangliamapserver.Train;
 import eastangliamapserver.server.Clients;
 import eastangliamapserver.stomp.handlers.CClassHandler;
 import eastangliamapserver.stomp.handlers.SClassHandler;
@@ -216,7 +213,7 @@ public class StompConnectionHandler
 
                     printStomp((isTimedOut() ? "Timed Out" : "") + (isTimedOut() && isClosed() ? ", " : "") + (isClosed() ? "Closed" : "") + ((isTimedOut() || isClosed()) && !isConnected() ? " & " : "") + (!isConnected() ? "Disconnected" : "") + " (" + timeoutWait + "s)", true);
 
-                    Berth berth = Berths.createOrGetBerth("XXMOTD");
+                    /*Berth berth = Berths.createOrGetBerth("XXMOTD");
                     if (berth != null)
                     {
                         String errorMessage = "Disconnected from Network Rail's servers";
@@ -237,7 +234,7 @@ public class StompConnectionHandler
 
                         printStomp("MOTD Status: \"" + motd + "\"", false);
                         EastAngliaSignalMapServer.updateServerGUIs();
-                    }
+                    }*/
 
                     try
                     {
@@ -255,7 +252,7 @@ public class StompConnectionHandler
                 {
                     timeoutWait = 10;
 
-                    Berth berth = Berths.createOrGetBerth("XXMOTD");
+                    /*Berth berth = Berths.createOrGetBerth("XXMOTD");
                     if (berth != null)
                     {
                         String motd = berth.getHeadcode();
@@ -275,7 +272,7 @@ public class StompConnectionHandler
                             printStomp("MOTD Status: \"" + motd + "\"", false);
                             EastAngliaSignalMapServer.updateServerGUIs();
                         }
-                    }
+                    }*/
                 }
             }
             else

@@ -142,7 +142,7 @@ public class ClientJSON implements Runnable, Client
                     errors = 0;
                 }
             }
-            catch (IOException  e) { errorList.add(e); errors++; addClientLog(String.valueOf(e), false); }
+            catch (IllegalArgumentException | IOException  e) { errorList.add(e); errors++; addClientLog(String.valueOf(e), false); }
             finally { testErrors(); }
         }
 

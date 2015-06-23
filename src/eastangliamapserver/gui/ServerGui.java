@@ -141,37 +141,54 @@ public class ServerGui
         updateClientList();
 
         JPanel dataPanel = new JPanel();
-        dataPanel.setLayout(new FlowLayout());
+        dataPanel.setLayout(new BorderLayout());
         dataPanel.setOpaque(true);
         dataPanel.setBackground(Color.WHITE);
 
-        //dataList = new JList<>();
-        //dataList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        //dataList.setFont(new Font("Monospaced", 0, 12));
-        //JScrollPane dataScrollPane = new JScrollPane(dataList);
-        //dataScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        //dataScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        //dataPanel.add(dataScrollPane, BorderLayout.CENTER);
+        JPanel pnlDataText = new JPanel(new FlowLayout());
+        pnlDataText.setOpaque(true);
+        pnlDataText.setBackground(Color.WHITE);
+        JPanel pnlDataControl = new JPanel(new FlowLayout());
+        pnlDataControl.setOpaque(true);
+        pnlDataControl.setBackground(Color.WHITE);
 
         JLabel clockLabel = new JLabel(EastAngliaSignalMapServer.sdfTime.format(new Date()));
         clockLabel.setFont(new Font(Font.MONOSPACED, Font.TRUETYPE_FONT, 22));
         clockLabel.setHorizontalAlignment(SwingConstants.CENTER);
         clockLabel.setPreferredSize(new Dimension(500, 27));
-        dataPanel.add(clockLabel);
+        dataPanel.add(clockLabel, BorderLayout.NORTH);
+
         JLabel statsLabel = new JLabel("<html><pre>Last Message: <br>Uptime: <br>   CPU:<br>   RAM:</pre></html>");
         statsLabel.setFont(new Font(Font.MONOSPACED, Font.TRUETYPE_FONT, 12));
         statsLabel.setHorizontalAlignment(SwingConstants.LEFT);
         statsLabel.setPreferredSize(new Dimension(500, 65));
-        dataPanel.add(statsLabel);
-        JLabel motdLabel = new JLabel("MOTD: \"\"");
+        pnlDataText.add(statsLabel);
+
+        JLabel motdLabel = new JLabel("<html>MOTD: \"\"</html>");
         motdLabel.setFont(new Font(Font.MONOSPACED, Font.TRUETYPE_FONT, 12));
         motdLabel.setHorizontalAlignment(SwingConstants.LEFT);
         motdLabel.setVerticalAlignment(SwingConstants.TOP);
         motdLabel.setPreferredSize(new Dimension(500, 30));
-        dataPanel.add(motdLabel);
-        JButton dataGuiButton = new JButton("Data Viewer...");
+        pnlDataText.add(motdLabel);
+
+        JButton dataGuiButton = new JButton("Data Viewer");
         dataGuiButton.addActionListener(e -> EastAngliaSignalMapServer.guiData.setVisible0(true));
-        dataPanel.add(dataGuiButton);
+        pnlDataControl.add(dataGuiButton);
+
+        JButton controlMenu = new JButton("▲");
+        controlMenu.addMouseListener(new MouseAdapter()
+        {
+            @Override
+            public void mouseClicked(MouseEvent evt)
+            {
+                if (SwingUtilities.isLeftMouseButton(evt))
+                    new ControlContextMenu(evt.getComponent());
+            }
+        });
+        pnlDataControl.add(controlMenu);
+
+        dataPanel.add(pnlDataText, BorderLayout.CENTER);
+        dataPanel.add(pnlDataControl, BorderLayout.SOUTH);
         dataPanel.setBorder(new TitledBorder(new EtchedBorder(), "Status"));
         monitorPanel.add(dataPanel, BorderLayout.CENTER);
 
@@ -188,12 +205,7 @@ public class ServerGui
                 clockLabel.setText(EastAngliaSignalMapServer.sdfTime.format(new Date()));
 
                 Berth motdBerth = Berths.getBerth("XXMOTD");
-                if (motdBerth != null)
-                    motdLabel.setText("MOTD: \"" + motdBerth.getHeadcode().trim() + "\"");
-                else
-                {
-                    motdLabel.setText("MOTD: \"\"");
-                }
+                motdLabel.setText("<html>MOTD: \"" + (motdBerth == null ? "" : motdBerth.getHeadcode().trim()) + "\"</html>");
 
                 String stats = "<html><pre>";
                 long timeLastMessage = System.currentTimeMillis() - StompConnectionHandler.lastMessageTime;
@@ -226,7 +238,7 @@ public class ServerGui
                     stats += (String.format("   CPU: %.2f%%", elapsedCpu / (elapsedTime * 10000F * numProcessors)));
                 }
                 else
-                    stats += "   CPU: ?.??%";
+                    stats += "   CPU: --.--%";
                 stats += "<br>";
 
                 lastUptime.set(uptime);

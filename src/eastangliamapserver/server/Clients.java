@@ -48,7 +48,7 @@ public class Clients
     public static void kickAll(String reason)
     {
         if (reason == null)
-            reason = JOptionPane.showInputDialog(EastAngliaSignalMapServer.guiServer.frame, "Add a message to kickAll:");
+            reason = JOptionPane.showInputDialog(EastAngliaSignalMapServer.guiServer.frame, "Add a reason:");
 
         if (reason != null && !reason.equals(""))
             reason = "You have been kicked: " + reason;
@@ -82,14 +82,14 @@ public class Clients
                 updateMap.putAll(queuedUpdates);
                 queuedUpdates.clear();
             }
-            clients.stream().forEach(client -> client.sendUpdate(updateMap));
+            clients.stream().filter(c -> c != null).forEach(client -> client.sendUpdate(updateMap));
         }
     }
 
     public static void sendAll()
     {
         if (!EastAngliaSignalMapServer.stop)
-            clients.stream().forEach(client -> client.sendAll());
+            clients.stream().filter(c -> c != null).forEach(client -> client.sendAll());
     }
 
     public static void remove(Client client)
@@ -105,7 +105,7 @@ public class Clients
 
     public static void closeAll()
     {
-        clients.stream().forEach(client ->
+        clients.stream().filter(c -> c != null).forEach(client ->
         {
             client.printClient("Closing connection", false);
             client.disconnect("Server closed");
@@ -116,7 +116,7 @@ public class Clients
 
     public static Client getClient(String name)
     {
-        return clients.stream()
+        return clients.stream().filter(c -> c != null)
                 .filter(client -> client.getName().equals(name) ||
                         client.getName().equals(name) ||
                         client.getName().equals(name) ||
@@ -126,7 +126,7 @@ public class Clients
 
     public static boolean hasMultiple(String name)
     {
-        return clients.stream().filter(client -> client.getName().equals(name)).count() > 1L;
+        return clients.stream().filter(c -> c != null).filter(client -> client.getName().equals(name)).count() > 1L;
     }
 
     public static void addClientLog(String message)

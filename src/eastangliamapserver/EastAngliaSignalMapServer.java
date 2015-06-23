@@ -80,7 +80,7 @@ public class EastAngliaSignalMapServer
         logFile.getParentFile().mkdirs();
         lastLogDate = sdfDate.format(logDate);
 
-        try { logStream = new PrintStream(new FileOutputStream(logFile, logFile.length() > 0)); }
+        try { logStream = new PrintStream(new FileOutputStream(logFile, logFile.length() > 0), true); }
         catch (FileNotFoundException e) { printErr("Could not create log file"); printThrowable(e, "Startup"); }
 
         String argString = Arrays.deepToString(args).toLowerCase();
@@ -220,7 +220,7 @@ public class EastAngliaSignalMapServer
                 try
                 {
                     logFile.createNewFile();
-                    logStream = new PrintStream(new FileOutputStream(logFile, true));
+                    logStream = new PrintStream(new FileOutputStream(logFile, true), true);
                 }
                 catch (IOException e) { printErr("Could not create log file"); printThrowable(e, "Logging"); }
             }
@@ -384,10 +384,9 @@ public class EastAngliaSignalMapServer
 
                         Map<String, Map<String, Object>> berthMap = (Map<String, Map<String, Object>>) jsonCClass.get("CClassData");
                         Map<String, String> newCClassMap = new HashMap<>();
-                        for (Map.Entry<String, Map<String, Object>> pairs : berthMap.entrySet())
+                        berthMap.entrySet().stream().forEach(pairs ->
                         {
                             Berth berth = Berths.getBerth(pairs.getKey());
-
                             if (!pairs.getValue().get("headcode").equals(""))
                             {
                                 if (!isOld)
@@ -400,11 +399,11 @@ public class EastAngliaSignalMapServer
                             if (berth != null && pairs.getValue().get("berth_hist") != null)
                                 berth.setHistory((List<String>) pairs.getValue().get("berth_hist"));
 
-                            if (pairs.getValue().get("last_modified") == null)
-                                Berths.addMissingBerth(pairs.getKey(), new Date());
-                            else
-                                Berths.addMissingBerth(pairs.getKey(), new Date((long) pairs.getValue().get("last_modified")));
-                        }
+                            Berths.setBerthModifiedDate(pairs.getKey(), new Date((long) pairs.getValue().get("last_modified")));
+
+                            if (berth == null)
+                                Berths.addMissingBerth(pairs.getKey());
+                        });
 
                         EastAngliaSignalMapServer.CClassMap.putAll(newCClassMap);
 
@@ -462,17 +461,16 @@ public class EastAngliaSignalMapServer
 
                             lastUUID.set((long) jsonHist.get("TrainHistoryUUID"));
 
-                            Map<String, Map<String, Object>> trainHistory = new HashMap<>((Map<String, Map<String, Object>>) jsonHist.get("TrainHistoryMap"));
-                            for (Map.Entry<String, Map<String, Object>> pairs : trainHistory.entrySet())
+                            ((Map<String, Map<String, Object>>) jsonHist.get("TrainHistoryMap")).entrySet().stream().forEach(pairs ->
                             {
                                 Map<String, Object> historyData = pairs.getValue();
                                 historyData.put("start",  historyData.get("start")  == null ? null : new Date((long) historyData.get("start")));
                                 historyData.put("change", historyData.get("change") == null ? null : new Date((long) historyData.get("change")));
                                 historyData.put("end",    historyData.get("end")    == null ? null : new Date((long) historyData.get("end")));
                                 Berths.addTrainHistory(pairs.getKey(), historyData);
-                            }
+                            });
 
-                            printOut("[Persistence] Read train history data (UUID: " + jsonHist.get("TrainHistoryUUID") + ", " + trainHistory.size() + " objects)");
+                            printOut("[Persistence] Read train history data (UUID: " + jsonHist.get("TrainHistoryUUID") + ", " + ((Map<String, Map<String, Object>>) jsonHist.get("TrainHistoryMap")).size() + " objects)");
 
                             long end = System.nanoTime();
                             printOut(String.format("[Persistence] JSON read took %sms, C-Class: %sms, S-Class %sms, History: %sms", (end-start)/1000000, (mid1-start)/1000000, (mid2-mid1)/1000000, (end-mid2)/1000000));
@@ -503,12 +501,9 @@ public class EastAngliaSignalMapServer
         {
             long loopStart = System.nanoTime();
 
-            //Map<String, Object> outMap = new HashMap<>();
-            //outMap.put("date-time", new Date());
-
             Map<String, Map<String, Object>> berthMap = new HashMap<>();
 
-            for (Map.Entry<String, String> pairs : EastAngliaSignalMapServer.CClassMap.entrySet())
+            EastAngliaSignalMapServer.CClassMap.entrySet().stream().forEach(pairs ->
             {
                 Berth berth = Berths.getBerth(pairs.getKey());
 
@@ -525,7 +520,7 @@ public class EastAngliaSignalMapServer
                 berthDetail.put("last_modified", Berths.getBerthLastModifiedTime(pairs.getKey()).getTime());
 
                 berthMap.put(pairs.getKey(), berthDetail);
-            }
+            });
 
             //<editor-fold defaultstate="collapsed" desc="Object Output Sream">
             //outMap.put("CClassData", berthMap);
@@ -712,7 +707,7 @@ public class EastAngliaSignalMapServer
 
             if (!InetAddress.getByName("easignalmap.altervista.org").isReachable(2000))
             {
-                printErr("[IPUpdater] \"http://easignalmap.altervista.org/\" is unavailable");
+                printErr("[IPUpdater] \"http://easignalmap.altervista.org/\" is unavailable (via ping)");
                 return;
             }
         }

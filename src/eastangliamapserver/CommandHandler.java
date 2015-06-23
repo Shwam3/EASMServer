@@ -8,17 +8,12 @@ import java.awt.Desktop;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -558,15 +553,13 @@ public class CommandHandler
                 break;
 
             case "motd":
+                Berth berth = Berths.createOrGetBerth("XXMOTD");
                 if (args.length == 1)
                 {
-                    Berth berth = Berths.createOrGetBerth("XXMOTD");
                     printCommand("MOTD: \"" + (berth != null ? berth.getHeadcode() : "") + "\"", false);
                 }
                 else
                 {
-                    Berth berth = Berths.createOrGetBerth("XXMOTD");
-
                     if (berth != null)
                     {
                         String motd = "";
@@ -587,6 +580,23 @@ public class CommandHandler
 
                         try
                         {
+                            File motdFile = new File(EastAngliaSignalMapServer.storageDir, "MOTD.txt");
+                            if (!motdFile.exists())
+                            {
+                                motdFile.getParentFile().mkdirs();
+                                motdFile.createNewFile();
+                            }
+
+                            try (BufferedWriter bw = new BufferedWriter(new FileWriter(motdFile)))
+                            {
+                                bw.write(motd);
+                                bw.write("\r\n");
+                            }
+                        }
+                        catch (IOException e) { EastAngliaSignalMapServer.printThrowable(e, "MOTD"); }
+
+                        /*try
+                        {
                             URLConnection con = new URL(EastAngliaSignalMapServer.ftpBaseUrl + "status/status.txt;type=i").openConnection();
                             con.setConnectTimeout(10000);
 
@@ -597,10 +607,10 @@ public class CommandHandler
                             catch (IOException e) {}
                         }
                         catch (FileNotFoundException | MalformedURLException e) {}
-                        catch (IOException e) {}
+                        catch (IOException e) {}*/
 
 
-                        printCommand("MOTD (literal): \"" + motd + "\"", false);
+                        printCommand("MOTD: \"" + motd + "\"", false);
 
                         EastAngliaSignalMapServer.updateServerGUIs();
                     }

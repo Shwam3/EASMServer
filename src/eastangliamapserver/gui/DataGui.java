@@ -179,20 +179,42 @@ public class DataGui extends JDialog
         {
             setTitle("Data" + (filterString.isEmpty() ? "" : " - " + filterString));
             DefaultListModel<String> modelCClass = new DefaultListModel<>();
-            //modelCClass.addElement("------ C Class Data (#" + EastAngliaSignalMapServer.CClassMap.size() + ") ---------------");
-            //for (String element : Berths.getCClassData(false))
-            for (String element : Berths.getCClassData(includeBlanks, includeMissing))
-                if (elementFitsFilter(element))
-                    modelCClass.addElement(element);
+            Berths.getCClassData(includeBlanks, includeMissing).stream()
+                    .filter(element -> elementFitsFilter(element))
+                    .forEach(element -> modelCClass.addElement(element));
+
+            if (modelCClass.getSize() == 0)
+            {
+                String filt = filterString;
+                filterString = "";
+
+                modelCClass.clear();
+                Berths.getCClassData(includeBlanks, includeMissing).stream()
+                    .filter(element -> elementFitsFilter(element))
+                    .forEach(element -> modelCClass.addElement(element));
+
+                filterString = filt;
+            }
             listCClass.setModel(modelCClass);
 
             DefaultListModel<String> modelSClass = new DefaultListModel<>();
             String[] sclassIds = EastAngliaSignalMapServer.SClassMap.keySet().toArray(new String[0]);
             Arrays.sort(sclassIds);
-            //modelSClass.addElement("------ S Class Data (#" + EastAngliaSignalMapServer.SClassMap.size() + ") ---------------");
             for (String sclassId : sclassIds)
                 if (elementFitsFilter(sclassId))
                     modelSClass.addElement((sclassId.contains(":") ? sclassId : "- " + sclassId) + ": " + String.valueOf(EastAngliaSignalMapServer.SClassMap.get(sclassId)));
+
+            if (modelSClass.getSize() == 0)
+            {
+                String filt = filterString;
+                filterString = "";
+
+                for (String sclassId : sclassIds)
+                    if (elementFitsFilter(sclassId))
+                        modelSClass.addElement((sclassId.contains(":") ? sclassId : "- " + sclassId) + ": " + String.valueOf(EastAngliaSignalMapServer.SClassMap.get(sclassId)));
+
+                filterString = filt;
+            }
             listSClass.setModel(modelSClass);
         }
     }
