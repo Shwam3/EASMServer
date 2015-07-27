@@ -41,6 +41,7 @@ public class ControlContextMenu extends JPopupMenu
 
     JMenuItem serverKickAll;
     JMenuItem serverMessage;
+    JMenuItem maxClients;
 
     //JCheckBoxMenuItem preventSleep;
     //JCheckBoxMenuItem minToSysTray;
@@ -157,6 +158,8 @@ public class ControlContextMenu extends JPopupMenu
                     EastAngliaSignalMapServer.printOut("Interpose " + newHC + " to " + berth.getBerthDescription());
                 }
             }
+            else if (berthStr != null)
+                EastAngliaSignalMapServer.printErr("Unrecognised berth id \"" + berthStr + "\"");
         }
         else if (src == editCClassCancel)
         {
@@ -175,71 +178,87 @@ public class ControlContextMenu extends JPopupMenu
 
                 EastAngliaSignalMapServer.printOut("Cancel " + hc + " from " + berth.getBerthDescription());
             }
-            else
+            else if (berthStr != null)
                 EastAngliaSignalMapServer.printErr("Unrecognised berth id \"" + berthStr + "\"");
         }
         else if (src == editCClassStep)
         {
             String fromBerthStr = JOptionPane.showInputDialog(EastAngliaSignalMapServer.guiServer.frame, "Enter from Berth Id", "Step", JOptionPane.QUESTION_MESSAGE).toUpperCase();
-            String toBerthStr   = JOptionPane.showInputDialog(EastAngliaSignalMapServer.guiServer.frame, "Enter to Berth Id",   "Step", JOptionPane.QUESTION_MESSAGE).toUpperCase();
-            Berth fromBerth = Berths.getBerth(fromBerthStr);
-            Berth toBerth   = Berths.getBerth(toBerthStr);
-            Train newTrain = null;
 
-            if (fromBerth == null)
-                EastAngliaSignalMapServer.printErr("Unrecognised berth id \"" + fromBerthStr + "\"");
-
-            if (toBerth == null)
-                EastAngliaSignalMapServer.printErr("Unrecognised berth id \"" + toBerthStr + "\"");
-
-            if (fromBerth != null && toBerth != null)
+            if (fromBerthStr != null)
             {
-                if (fromBerth.hasTrain())
-                    newTrain = fromBerth.getTrain();
-                else
-                    return;
+                String toBerthStr = JOptionPane.showInputDialog(EastAngliaSignalMapServer.guiServer.frame, "Enter to Berth Id",   "Step", JOptionPane.QUESTION_MESSAGE).toUpperCase();
 
-                if (fromBerth.hasAdjacentBerths())
-                    for (Train train : fromBerth.getAdjacentTrains())
-                        if (train.getHeadcode().equals(fromBerth.getHeadcode()))
-                        {
-                            toBerth = train.getCurrentBerth();
+                if (toBerthStr != null)
+                {
+                    Berth fromBerth = Berths.getBerth(fromBerthStr);
+                    Berth toBerth = Berths.getBerth(toBerthStr);
+                    Train newTrain = null;
 
-                            if (!toBerth.getHeadcode().equals(newTrain.getHeadcode()))
-                                toBerth.interpose(newTrain);
+                    if (fromBerth == null)
+                        EastAngliaSignalMapServer.printErr("Unrecognised berth id \"" + fromBerthStr + "\"");
 
+                    if (toBerth == null)
+                        EastAngliaSignalMapServer.printErr("Unrecognised berth id \"" + toBerthStr + "\"");
+
+                    if (fromBerth != null && toBerth != null)
+                    {
+                        if (fromBerth.hasTrain())
+                            newTrain = fromBerth.getTrain();
+                        else
+                            return;
+
+                        if (fromBerth.hasAdjacentBerths())
+                            for (Train train : fromBerth.getAdjacentTrains())
+                                if (train.getHeadcode().equals(fromBerth.getHeadcode()))
+                                {
+                                    toBerth = train.getCurrentBerth();
+
+                                    if (!toBerth.getHeadcode().equals(newTrain.getHeadcode()))
+                                        toBerth.interpose(newTrain);
+
+                                    fromBerth.cancel(newTrain.getHeadcode(), null);
+                                }
+                        else
                             fromBerth.cancel(newTrain.getHeadcode(), null);
-                        }
-                else
-                    fromBerth.cancel(newTrain.getHeadcode(), null);
 
-                if (fromBerth.canStepToBerth(toBerth.getId(), fromBerth.getId()))
-                    for (String berthId : fromBerth.getStepToBerthsFor(toBerth.getId(), fromBerth.getId()))
-                        Berths.getBerth(berthId).suggestTrain(newTrain, fromBerth.getTypeFor(berthId, fromBerth.getId()));
+                        if (fromBerth.canStepToBerth(toBerth.getId(), fromBerth.getId()))
+                            for (String berthId : fromBerth.getStepToBerthsFor(toBerth.getId(), fromBerth.getId()))
+                                Berths.getBerth(berthId).suggestTrain(newTrain, fromBerth.getTypeFor(berthId, fromBerth.getId()));
 
-                Map<String, String> updateMap = new HashMap<>();
-                updateMap.put(fromBerth.getId(), "");
-                updateMap.put(toBerth.getId(), newTrain.getHeadcode());
+                        Map<String, String> updateMap = new HashMap<>();
+                        updateMap.put(fromBerth.getId(), "");
+                        updateMap.put(toBerth.getId(), newTrain.getHeadcode());
 
-                Clients.broadcastUpdate(updateMap);
-                EastAngliaSignalMapServer.CClassMap.putAll(updateMap);
+                        Clients.broadcastUpdate(updateMap);
+                        EastAngliaSignalMapServer.CClassMap.putAll(updateMap);
 
-                EastAngliaSignalMapServer.printOut("Step " + toBerth.getHeadcode() + " from " + fromBerth.getBerthDescription() + " to " + toBerth.getBerthDescription());
+                        EastAngliaSignalMapServer.printOut("Step " + toBerth.getHeadcode() + " from " + fromBerth.getBerthDescription() + " to " + toBerth.getBerthDescription());
+                    }
+                }
             }
         }
         else if (src == editSClassSet)
         {
             String bit = JOptionPane.showInputDialog(EastAngliaSignalMapServer.guiServer.frame, "Enter Bit Address", "Set", JOptionPane.QUESTION_MESSAGE).toUpperCase();
-            String value = (String)JOptionPane.showInputDialog(EastAngliaSignalMapServer.guiServer.frame, "Enter Bit Address", "Set", JOptionPane.QUESTION_MESSAGE, null, new String[]{"0", "1"}, "0");
-            if (bit.length() == 6)
+
+            if (bit != null)
             {
-                String from = EastAngliaSignalMapServer.SClassMap.getOrDefault(bit, "0");
-                EastAngliaSignalMapServer.SClassMap.put(bit, value);
-                Clients.scheduleForNextUpdate(bit, value);
-                EastAngliaSignalMapServer.printOut("Change " + bit + " from " + from + " to " + value);
+                String value = (String)JOptionPane.showInputDialog(EastAngliaSignalMapServer.guiServer.frame, "Enter Bit Address", "Set", JOptionPane.QUESTION_MESSAGE, null, new String[]{"0", "1"}, "0");
+
+                if (value != null)
+                {
+                    if (bit.length() == 6)
+                    {
+                        String from = EastAngliaSignalMapServer.SClassMap.getOrDefault(bit, "0");
+                        EastAngliaSignalMapServer.SClassMap.put(bit, value);
+                        Clients.scheduleForNextUpdate(bit, value);
+                        EastAngliaSignalMapServer.printOut("Change " + bit + " from " + from + " to " + value);
+                    }
+                    else
+                        EastAngliaSignalMapServer.printErr("Invalid bit address \"" + bit + "\"");
+                }
             }
-            else
-                EastAngliaSignalMapServer.printErr("Invalid bit address \"" + bit + "\"");
         }
         else if (src == serverKickAll)
         {
@@ -250,7 +269,24 @@ public class ControlContextMenu extends JPopupMenu
             String message = JOptionPane.showInputDialog(EastAngliaSignalMapServer.guiServer.frame, "Add a reason", "Kick all clients", JOptionPane.QUESTION_MESSAGE);
 
             if (message != null && !message.isEmpty())
-                Clients.getClientList().stream().forEach(c -> Clients.hasClient(c) ? Clients.getClient(c).sendTextMessage(message) : null);
+                Clients.getClientList().stream().filter(c -> Clients.getClient(c) != null).forEach(c -> Clients.getClient(c).sendTextMessage(message));
+        }
+        else if (src == maxClients)
+        {
+            String maxClientsStr = JOptionPane.showInputDialog(EastAngliaSignalMapServer.guiServer.frame, "Enter new maximum: ", "Max no of Clients", JOptionPane.QUESTION_MESSAGE);
+
+            if (maxClientsStr != null)
+            {
+                try
+                {
+                    int maxClientsOld = Clients.getMaxClients();
+                    int maxClientsNew = Integer.parseInt(maxClientsStr);
+                    Clients.setMaxClients(maxClientsNew);
+
+                    EastAngliaSignalMapServer.printOut("Max clients changed from " + maxClientsOld + " to " + maxClientsNew);
+                }
+                catch (NumberFormatException e) {}
+            }
         }
         else if (src == exit)
         {

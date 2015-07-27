@@ -717,6 +717,27 @@ public class CommandHandler
                 catch (IOException e) { EastAngliaSignalMapServer.printThrowable(e, "Persistence");}
                 break;
 
+            case "maxclients":
+                if (args.length == 1)
+                {
+                    printCommand("Max Clients: " + Clients.getMaxClients(), false);
+                }
+                else if (args.length == 2)
+                {
+                    try
+                    {
+                        int maxClientsOld = Clients.getMaxClients();
+                        int maxClientsNew = Integer.parseInt(args[1]);
+                        Clients.setMaxClients(maxClientsNew);
+
+                        printCommand("Max clients changed from " + maxClientsOld + " to " + maxClientsNew, false);
+                    }
+                    catch (NumberFormatException e) {}
+                }
+                else
+                    printCommand("Usage: maxclients <max_clients>", true);
+                break;
+
             default:
                 printCommand("Unrecognised command '" + command + "'", true);
                 break;

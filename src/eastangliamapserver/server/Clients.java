@@ -12,8 +12,10 @@ import javax.swing.JOptionPane;
 
 public class Clients
 {
+    private static       int          maxClients = 10;
     private static final List<Client> clients = new ArrayList<>();
     public  static final List<String> clientsHistory = new ArrayList<>();
+    //private static final Object       clientLock = new Object();
 
     private static final Map<String, String> queuedUpdates = new HashMap<>();
 
@@ -21,8 +23,16 @@ public class Clients
     {
         if (hasSpace())
         {
-            clients.add(client);
-            EastAngliaSignalMapServer.updateServerGUIs();
+            if (!maxConnectionsForIP(client))
+            {
+                //synchronized (clientLock)
+                {
+                    clients.add(client);
+                }
+                EastAngliaSignalMapServer.updateServerGUIs();
+            }
+            else
+                client.disconnect("Too many connections from this IP (" + client.getSocket().getInetAddress().getHostAddress() + ")");
         }
         else
             client.disconnect("Server full");
@@ -32,14 +42,17 @@ public class Clients
     {
         List<String> clientList = new ArrayList<>();
 
-        try
+        //synchronized (clientLock)
         {
-            clients.stream().forEach(client -> clientList.add(client.getName()
-                    + " (" + client.getSocket().getInetAddress().getHostAddress()
-                    + ":" + client.getSocket().getPort() + ")"
-                    + client.getErrorString()));
+            try
+            {
+                clients.stream().forEach(client -> clientList.add(client.getName()
+                        + " (" + client.getSocket().getInetAddress().getHostAddress()
+                        + ":" + client.getSocket().getPort() + ")"
+                        + client.getErrorString()));
+            }
+            catch (Exception e) {}
         }
-        catch (Exception e) {}
 
         Collections.sort(clientList);
         return clientList;
@@ -56,14 +69,17 @@ public class Clients
             reason = "You have been kicked";
 
         final String finReason = reason;
-        clients.parallelStream().forEach(client -> client.disconnect(finReason));
+        clients.stream().forEach(client -> client.disconnect(finReason));
 
         addClientLog("Kicked all clients (" + reason + ")");
     }
 
     public static boolean hasClient(Socket clientSocket)
     {
-        return clients.stream().anyMatch(client -> clientSocket.equals(client.getSocket()));
+        //synchronized (clientLock)
+        {
+            return clients.stream().anyMatch(client -> clientSocket.equals(client.getSocket()));
+        }
     }
 
     public static void scheduleForNextUpdate(String id, String headcode)
@@ -136,6 +152,22 @@ public class Clients
 
     public static boolean hasSpace()
     {
-        return clients.size() < 5;
+        return clients.size() < maxClients;
+    }
+
+    public static boolean maxConnectionsForIP(Client client)
+    {
+        String newClientAddr = client.getSocket().getInetAddress().getHostAddress();
+        return clients.stream().filter(c -> c.getSocket().getInetAddress().getHostAddress().equals(newClientAddr)).count() >= 2;
+    }
+
+    public static void setMaxClients(int maxClientsNew)
+    {
+        maxClients = maxClientsNew;
+    }
+
+    public static int getMaxClients()
+    {
+        return maxClients;
     }
 }
