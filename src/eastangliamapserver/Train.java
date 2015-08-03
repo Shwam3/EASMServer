@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class Train
 {
@@ -101,18 +102,25 @@ public class Train
     @Override
     public String toString()
     {
-        return "eastangliamapserver.Train[headcode=" + headcode + ",uuid=" + UUID + "]";
+        return "eastangliamapserver.Train=[headcode=" + headcode + ",uuid=" + UUID + "]";
     }
 
     @Override
     public boolean equals(Object obj)
     {
-        if (obj instanceof Train)
-        {
-            Train train = (Train) obj;
-            return headcode.equals(train.getHeadcode()) && this.UUID.equals(train.UUID);
-        }
+        if (obj == null || this.getClass() != obj.getClass())
+            return false;
 
-        return false;
+        Train train = (Train) obj;
+        return headcode.equals(train.getHeadcode()) && this.UUID.equals(train.UUID);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int hash = 3;
+        hash = 29 * hash + Objects.hashCode(UUID);
+        hash = 29 * hash + Objects.hashCode(headcode);
+        return hash;
     }
 }
