@@ -55,8 +55,8 @@ public class EastAngliaSignalMapServer
     public  static final File storageDir = new File(System.getProperty("user.home", "C:") + File.separator + ".easigmap");
 
     public static SimpleDateFormat sdfTime          = new SimpleDateFormat("HH:mm:ss");
-    public static SimpleDateFormat sdfDate          = new SimpleDateFormat("dd/MM/YY");
-    public static SimpleDateFormat sdfDateTime      = new SimpleDateFormat("dd/MM/YY HH:mm:ss");
+    public static SimpleDateFormat sdfDate          = new SimpleDateFormat("dd/MM/yy");
+    public static SimpleDateFormat sdfDateTime      = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
     public static SimpleDateFormat sdfDateTimeShort = new SimpleDateFormat("dd/MM HH:mm:ss");
 
     public  static File         logFile;
