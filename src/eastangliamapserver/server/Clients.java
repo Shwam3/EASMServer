@@ -13,9 +13,9 @@ import javax.swing.JOptionPane;
 public class Clients
 {
     private static       int          maxClients = 10;
+    private static       int          maxClientsEach = 3;
     private static final List<Client> clients = new ArrayList<>();
     public  static final List<String> clientsHistory = new ArrayList<>();
-    //private static final Object       clientLock = new Object();
 
     private static final Map<String, String> queuedUpdates = new HashMap<>();
 
@@ -25,10 +25,7 @@ public class Clients
         {
             if (!maxConnectionsForIP(client))
             {
-                //synchronized (clientLock)
-                {
-                    clients.add(client);
-                }
+                clients.add(client);
                 EastAngliaSignalMapServer.updateServerGUIs();
             }
             else
@@ -42,17 +39,14 @@ public class Clients
     {
         List<String> clientList = new ArrayList<>();
 
-        //synchronized (clientLock)
+        try
         {
-            try
-            {
-                clients.stream().forEach(client -> clientList.add(client.getName()
-                        + " (" + client.getSocket().getInetAddress().getHostAddress()
-                        + ":" + client.getSocket().getPort() + ")"
-                        + client.getErrorString()));
-            }
-            catch (Exception e) {}
+            clients.stream().forEach(client -> clientList.add(client.getName()
+                    + " (" + client.getSocket().getInetAddress().getHostAddress()
+                    + ":" + client.getSocket().getPort() + ")"
+                    + client.getErrorString()));
         }
+        catch (Exception e) {}
 
         Collections.sort(clientList);
         return clientList;
@@ -76,10 +70,7 @@ public class Clients
 
     public static boolean hasClient(Socket clientSocket)
     {
-        //synchronized (clientLock)
-        {
-            return clients.stream().anyMatch(client -> clientSocket.equals(client.getSocket()));
-        }
+        return clients.stream().anyMatch(client -> clientSocket.equals(client.getSocket()));
     }
 
     public static void scheduleForNextUpdate(String id, String headcode)
@@ -158,16 +149,12 @@ public class Clients
     public static boolean maxConnectionsForIP(Client client)
     {
         String newClientAddr = client.getSocket().getInetAddress().getHostAddress();
-        return clients.stream().filter(c -> c.getSocket().getInetAddress().getHostAddress().equals(newClientAddr)).count() >= 2;
+        return clients.stream().filter(c -> c.getSocket().getInetAddress().getHostAddress().equals(newClientAddr)).count() >= maxClientsEach;
     }
 
-    public static void setMaxClients(int maxClientsNew)
-    {
-        maxClients = maxClientsNew;
-    }
+    public static void setMaxClients(int maxClientsNew) { maxClients = Math.max(1, maxClientsNew); }
+    public static int getMaxClients() { return maxClients; }
 
-    public static int getMaxClients()
-    {
-        return maxClients;
-    }
+    public static void setMaxClientsEach(int maxClientsEachNew) { maxClientsEach = Math.max(1, maxClientsEachNew); }
+    public static int getMaxClientsEach() { return maxClientsEach; }
 }

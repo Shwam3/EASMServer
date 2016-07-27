@@ -273,7 +273,7 @@ public class ControlContextMenu extends JPopupMenu
         }
         else if (src == maxClients)
         {
-            String maxClientsStr = JOptionPane.showInputDialog(EastAngliaSignalMapServer.guiServer.frame, "Enter new maximum: ", "Max no of Clients", JOptionPane.QUESTION_MESSAGE);
+            String maxClientsStr = JOptionPane.showInputDialog(EastAngliaSignalMapServer.guiServer.frame, "Enter new maximum total (" + Clients.getMaxClients() + "): ", "Max no. of Clients", JOptionPane.QUESTION_MESSAGE);
 
             if (maxClientsStr != null)
             {
@@ -283,9 +283,26 @@ public class ControlContextMenu extends JPopupMenu
                     int maxClientsNew = Integer.parseInt(maxClientsStr);
                     Clients.setMaxClients(maxClientsNew);
 
-                    EastAngliaSignalMapServer.printOut("Max clients changed from " + maxClientsOld + " to " + maxClientsNew);
+                    if (maxClientsOld != maxClientsNew)
+                        EastAngliaSignalMapServer.printOut("Max clients changed from " + maxClientsOld + " to " + maxClientsNew);
                 }
                 catch (NumberFormatException e) {}
+
+                String maxClientsEachStr = JOptionPane.showInputDialog(EastAngliaSignalMapServer.guiServer.frame, "Enter new maximum per IP (" + Clients.getMaxClientsEach()+ "): ", "Max no. of Clients Each", JOptionPane.QUESTION_MESSAGE);
+
+                if (maxClientsEachStr != null)
+                {
+                    try
+                    {
+                        int maxClientsEachOld = Clients.getMaxClientsEach();
+                        int maxClientsEachNew = Integer.parseInt(maxClientsEachStr);
+                        Clients.setMaxClientsEach(maxClientsEachNew);
+
+                        if (maxClientsEachOld != maxClientsEachNew)
+                            EastAngliaSignalMapServer.printOut("Max clients per IP changed from " + maxClientsEachOld + " to " + maxClientsEachNew);
+                    }
+                    catch (NumberFormatException e) {}
+                }
             }
         }
         else if (src == exit)
@@ -315,19 +332,20 @@ public class ControlContextMenu extends JPopupMenu
         stompReconnect  = new JMenuItem("Stomp Reconnect");
         trainHistory    = new JMenuItem("Train History");
 
-        editCClass      = new JMenu("C Class");
+        editCClass          = new JMenu("C Class");
         editCClassInterpose = new JMenuItem("Interpose");
         editCClassCancel    = new JMenuItem("Cancel");
         editCClassStep      = new JMenuItem("Step");
 
-        editSClass      = new JMenu("S Class");
-        editSClassSet       = new JMenuItem("Set Bit");
+        editSClass    = new JMenu("S Class");
+        editSClassSet = new JMenuItem("Set Bit");
 
-        serverKickAll   = new JMenuItem("Kick All");
-        serverMessage   = new JMenuItem("Client Message");
-      //preventSleep    = new JCheckBoxMenuItem("Keep your PC Awake",      EastAngliaMapClient.preventSleep);
-      //minToSysTray    = new JCheckBoxMenuItem("Minimise to System Tray", EastAngliaMapClient.minimiseToSysTray);
-        exit            = new JMenuItem("Exit");
+        serverKickAll = new JMenuItem("Kick All");
+        serverMessage = new JMenuItem("Client Message");
+        maxClients    = new JMenuItem("Set Client Limits");
+      //preventSleep  = new JCheckBoxMenuItem("Keep your PC Awake",      EastAngliaMapClient.preventSleep);
+      //minToSysTray  = new JCheckBoxMenuItem("Minimise to System Tray", EastAngliaMapClient.minimiseToSysTray);
+        exit          = new JMenuItem("Exit");
 
         add(disableServer).addActionListener(clickEvent);
         add(disableStomp).addActionListener(clickEvent);
@@ -345,6 +363,7 @@ public class ControlContextMenu extends JPopupMenu
         addSeparator();
         add(serverKickAll).addActionListener(clickEvent);
         add(serverMessage).addActionListener(clickEvent);
+        add(maxClients).addActionListener(clickEvent);
         addSeparator();
       //add(preventSleep).addActionListener(clickEvent);
       //add(minToSysTray).addActionListener(clickEvent);

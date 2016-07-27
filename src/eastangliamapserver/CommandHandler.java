@@ -720,22 +720,27 @@ public class CommandHandler
             case "maxclients":
                 if (args.length == 1)
                 {
-                    printCommand("Max Clients: " + Clients.getMaxClients(), false);
+                    printCommand("Max Clients total:  " + Clients.getMaxClients(), false);
+                    printCommand("Max Clients per IP: " + Clients.getMaxClientsEach(), false);
                 }
-                else if (args.length == 2)
+                else if (args.length == 3)
                 {
                     try
                     {
                         int maxClientsOld = Clients.getMaxClients();
+                        int maxClientsEachOld = Clients.getMaxClientsEach();
                         int maxClientsNew = Integer.parseInt(args[1]);
+                        int maxClientsEachNew = Integer.parseInt(args[2]);
                         Clients.setMaxClients(maxClientsNew);
+                        Clients.setMaxClientsEach(maxClientsEachNew);
 
-                        printCommand("Max clients changed from " + maxClientsOld + " to " + maxClientsNew, false);
+                        printCommand("Max clients total changed from  " + maxClientsOld + " to " + maxClientsNew, false);
+                        printCommand("Max clients per IP changed from " + maxClientsEachOld + " to " + maxClientsEachNew, false);
                     }
                     catch (NumberFormatException e) {}
                 }
                 else
-                    printCommand("Usage: maxclients <max_clients>", true);
+                    printCommand("Usage: maxclients <[max_clients_total] [max_clients_per_IP]>", true);
                 break;
 
             default:

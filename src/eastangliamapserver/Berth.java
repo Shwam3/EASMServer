@@ -10,18 +10,15 @@ import java.util.Map;
 
 public class Berth
 {
-    private final String  BERTH_ID;
-    private final String  BERTH_DESCRIPTION;
-    private       String  name = "";
-    private transient Train currentTrain;
-  //private       boolean isProblematic  = false;
-  //public        int     isMonitoring   = 0;
-    private       Train   suggestedTrain = null;
+    private final     String BERTH_ID;
+    private final     String BERTH_DESCRIPTION;
+    private           String name = "";
+    private transient Train  currentTrain;
+    private           Train  suggestedTrain = null;
 
-    //private final Map<String, Map<String, String>> possibleAddresses = new HashMap<>();
-    private final List<Berth>                   adjacentBerths = new ArrayList<>();
-    private       List<String>                  trainHistory   = new ArrayList<>();
-    private final List<Map<String, String>>     stepToBerths   = new ArrayList<>();
+    private final List<Berth>               adjacentBerths = new ArrayList<>();
+    private       List<String>              trainHistory   = new ArrayList<>();
+    private final List<Map<String, String>> stepToBerths   = new ArrayList<>();
 
     public Berth(String berthId)
     {
@@ -266,15 +263,10 @@ public class Berth
     public List<String> getTrainsHistory()
     {
         if (currentTrain == null)
-            return null;
+            return new ArrayList<>(0);
 
         return currentTrain.getTrainsHistory();
     }
-
-    /*public Map<String, Map<String, String>> getPossibleAddreses()
-    {
-        return possibleAddresses;
-    }*/
 
     public void clean()
     {
